@@ -7,8 +7,11 @@
 - **Claude Code / Claude Desktop**: CLI、Desktop（Cowork含む）、VSCode、Web、Slackの全インターフェースが対象。新機能・破壊的変更をリリース初日に導入する方針
 - **Anthropic全般**: API変更、新モデル、新プロダクト、料金変更
 - **Cursor**: アップデート、新機能
-- **Devin**: アップデート、新機能、料金変更
 - **AIエージェント全般**: コーディングエージェント、自律型エージェントの新プロダクト
+- **ChatGPT**（エンドユーザーレイヤー）: GPT-4o/GPT-5等のモデル更新、ChatGPT Plus/Pro/Team/Enterpriseのプラン変更、新機能（Canvas、Deep Research、Memory、Voice Mode等）・料金変更
+- **Custom GPTs / GPT Store**（カスタマイズレイヤー）: GPT Builder、Actions、GPT Storeの動向、企業向けカスタムGPT管理・共有機能
+- **OpenAI Blog / DevDay / ロードマップ**（計画レイヤー）: 未来のリリース予定、新モデル予告、ポリシー変更、モデル利用制限に直結する安全性アップデート
+
 
 ## 関心の方向性
 
