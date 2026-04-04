@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI News Digest</title>
+  <title>AI News - Master</title>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -96,7 +96,7 @@
 </head>
 <body>
   <nav class="sidebar">
-    <h2>AI News</h2>
+    <h2>AI News Master</h2>
     <ul id="file-list"></ul>
   </nav>
   <main class="main">
@@ -109,33 +109,45 @@
     const DAYS = ['日', '月', '火', '水', '木', '金', '土'];
 
     async function init() {
-      const res = await fetch('files.json');
-      const files = await res.json();
-      const list = document.getElementById('file-list');
+      try {
+        const res = await fetch('files.json');
+        if (!res.ok) throw new Error(res.status);
+        const files = await res.json();
+        const list = document.getElementById('file-list');
 
-      files.forEach((file, i) => {
-        const match = file.match(/ai-news-(\d{4}-\d{2}-\d{2})/);
-        if (!match) return;
-        const date = new Date(match[1] + 'T00:00:00');
-        const label = match[1];
-        const day = DAYS[date.getDay()];
+        files.forEach((file, i) => {
+          const match = file.match(/ai-news-(\d{4}-\d{2}-\d{2})/);
+          if (!match) return;
+          const date = new Date(match[1] + 'T00:00:00');
+          const label = match[1];
+          const day = DAYS[date.getDay()];
 
-        const li = document.createElement('li');
-        li.innerHTML = `${label}<div class="day">${day}曜日</div>`;
-        li.addEventListener('click', () => loadFile(file, li));
-        list.appendChild(li);
+          const li = document.createElement('li');
+          li.innerHTML = `${label}<div class="day">${day}曜日</div>`;
+          li.addEventListener('click', () => loadFile(file, li));
+          list.appendChild(li);
 
-        if (i === 0) loadFile(file, li);
-      });
+          if (i === 0) loadFile(file, li);
+        });
+      } catch (e) {
+        document.getElementById('content').innerHTML =
+          '<div class="empty">ダイジェスト一覧の読み込みに失敗しました</div>';
+      }
     }
 
     async function loadFile(file, li) {
       document.querySelectorAll('.sidebar li').forEach(el => el.classList.remove('active'));
       li.classList.add('active');
 
-      const res = await fetch(file);
-      const md = await res.text();
-      document.getElementById('content').innerHTML = marked.parse(md);
+      try {
+        const res = await fetch(file);
+        if (!res.ok) throw new Error(res.status);
+        const md = await res.text();
+        document.getElementById('content').innerHTML = marked.parse(md);
+      } catch (e) {
+        document.getElementById('content').innerHTML =
+          '<div class="empty">ダイジェストの読み込みに失敗しました</div>';
+      }
     }
 
     init();
