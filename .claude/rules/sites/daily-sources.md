@@ -11,6 +11,9 @@
 RSS URLの記載がないソースはRSS未提供。「休止中」と記載のRSS URLは403が7日以上継続しているため一時的にWebSearchへ切り替え済み。WebFetch/RSSが復旧した場合は取得方法を元に戻すこと。
 
 > **2026-04-14更新**: Claude Code Changelog を除く全ソースでWebFetch/RSS 403が7日以上継続。取得方法をWebSearchプライマリに一括変更。
+>
+> **2026-06-04更新**: 上記の403は2ヶ月以上継続（Anthropic news は62日連続）。WebSearchプライマリ運用は恒久化として扱う。WebFetch/RSSの復旧チェックは月1回程度の頻度に下げてよい。
+> WebFetch安定が確認されている一次ソース: Claude Code Changelog、GitHub Copilot CLI Releases、OpenAI Codex CLI Releases。これらは毎日WebFetchで一次取得する。
 
 ---
 
@@ -95,6 +98,31 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 
 ## 高優先
 
+### GitHub Copilot CLI Releases
+- URL（一次）: https://github.com/github/copilot-cli/releases
+- URL（参考）: https://github.com/github/copilot-cli/blob/main/changelog.md
+- 取得方法: WebFetch（毎日）→ 失敗時 WebSearch
+- 注目点: 安定版（`vX.Y.Z`）と pre-release（`-0` / `-1` サフィックス）の両方。pre-release は日次で刻まれる
+- 頻度: 毎日確認
+- 備考: WebFetch安定継続。**pre-releaseはWebSearchでは拾いにくいため必ずWebFetchで取得すること**。`changelog.md` よりreleasesページの方が新しい情報が載る場合があるため、releasesページを一次ソースとする。pre-releaseはダイジェスト上では安定版と1項目に集約してよい
+
+### OpenAI Codex CLI Releases
+- URL（一次）: https://github.com/openai/codex/releases
+- URL（参考）: https://developers.openai.com/codex/changelog
+- 取得方法: WebFetch（毎日）→ 失敗時 WebSearch
+- 注目点: Codex CLI の新バージョン、機能追加、モデル切替
+- 頻度: 毎日確認
+- 備考: `developers.openai.com/codex/changelog` は2026-04-02以降403継続のため、GitHub releasesを一次ソースに切替済み。WebFetch安定
+
+### xAI / Grok Release Notes
+- URL（候補1）: https://x.ai/news
+- URL（候補2）: https://docs.x.ai/developers/release-notes
+- 検索キーワード（WebSearch用）: `xAI Grok release update 2026` / `Grok new features 2026`
+- 取得方法: WebFetch（疎通確認後に確定）→ 失敗時 WebSearch
+- 注目点: Grok新バージョン、Custom Skills等の機能追加、API変更、料金変更
+- 頻度: 毎日確認
+- 備考: **疎通未確認の宿題ソース**（2026-05-28〜06-03で複数回改善メモに記録）。次回ダイジェスト生成時にWebFetch疎通を試行し、結果に応じて取得方法欄を更新すること。WebFetch失敗時はWebSearch運用（Musk の X 投稿で予告 → 公式ドキュメントで詳細確認のパターンが多い）
+
 ### Google DeepMind Blog / Google Research
 - URL: https://deepmind.google/discover/blog/
 - RSS URL（休止中）: https://research.google/blog/rss
@@ -138,3 +166,34 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
   - `coding agent release`
 - 注目点: 話題のAIツール、バズっている技術トピック
 - 頻度: 毎日確認
+
+---
+
+## 大型イベント期間中の追加運用
+
+Microsoft Build / Google I/O / OpenAI DevDay / Anthropic イベント等の大型カンファレンス期間中は、公式アジェンダ・プレビュー記事・リアルタイムレポートが並列で発生するため、通常の日次取得では取りこぼしが多い。**イベント当日と翌日は以下の追加検索を必須手順とする**。
+
+### 追加WebSearchクエリ（テンプレート）
+
+イベント名を `<event>` に置き換えて以下を順に実行：
+
+- `<event> <YYYY-MM-DD> day <N> announcement`
+- `<event> <YYYY-MM-DD> recap`
+- `<event> <YYYY-MM-DD> live blog`
+- `<event> keynote announcement <YYYY>`
+- `site:techcrunch.com <event> <YYYY>` / `site:theverge.com <event> <YYYY>`
+
+### 主要イベントの想定タイミング
+
+- **Microsoft Build**: 例年5月中下旬
+- **Google I/O**: 例年5月中旬
+- **OpenAI DevDay**: 例年10月前後（不定期に追加開催あり）
+- **Anthropic イベント**: 不定期（モデルリリースに合わせて開催）
+
+### クラウドパートナー発表の検出
+
+AWS / Azure / GCP がAnthropic・OpenAI等のモデル提供を開始する発表は、**公式 news ページの WebSearch では拾えないことがある**（例: 2026-06 の AWS Bedrock × OpenAI モデル提供開始は `openai.com/index/` 経由で初検出）。期間中は以下も併用：
+
+- `site:aws.amazon.com/blogs <Anthropic|OpenAI> <YYYY>`
+- `site:openai.com/index <partnership|integration> <YYYY>`
+- `site:anthropic.com <AWS|Azure|GCP> <YYYY>`
