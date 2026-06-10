@@ -11,6 +11,7 @@
 - **ChatGPT**（エンドユーザーレイヤー）: GPT-4o/GPT-5等のモデル更新、ChatGPT Plus/Pro/Team/Enterpriseのプラン変更、新機能（Canvas、Deep Research、Memory、Voice Mode等）・料金変更
 - **Custom GPTs / GPT Store**（カスタマイズレイヤー）: GPT Builder、Actions、GPT Storeの動向、企業向けカスタムGPT管理・共有機能
 - **OpenAI Blog / DevDay / ロードマップ**（計画レイヤー）: 未来のリリース予定、新モデル予告、ポリシー変更、モデル利用制限に直結する安全性アップデート
+- **Anthropic ↔ Harvey 提携**（月次トラッキング）: 法務 SaaS への frontier モデル展開事例。月1回程度、採用拡大・成果数値・類似事例の進展を確認する（B-010採用、2026-06-10）
 
 
 ## 関心の方向性
