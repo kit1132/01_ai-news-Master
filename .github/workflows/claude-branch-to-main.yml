@@ -1,0 +1,35 @@
+# クラウドのスケジュールエージェントがセッション用ブランチ（claude/...）に
+# push してしまった場合に、自動で main へマージして取り残しを防ぐ安全網。
+# 経緯: 2026-06-10〜12 にダイジェストの取り残し事故が複数発生（CLAUDE.md「⚠️ ブランチ運用」参照）
+name: claude-branch-to-main
+
+on:
+  push:
+    branches: ['claude/**']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: claude-to-main
+  cancel-in-progress: false
+
+jobs:
+  merge-to-main:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: claude ブランチを main にマージ
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          echo "merging ${GITHUB_REF_NAME} into main"
+          git merge --ff-only "origin/${GITHUB_REF_NAME}" || git merge --no-edit "origin/${GITHUB_REF_NAME}"
+          git push origin main
+
+      - name: マージ済みブランチを削除
+        run: git push origin --delete "${GITHUB_REF_NAME}" || true
