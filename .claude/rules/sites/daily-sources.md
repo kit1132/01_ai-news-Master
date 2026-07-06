@@ -32,10 +32,10 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 ### Claude モデルドキュメント（Fable 5 / Mythos 5）
 - URL: https://platform.claude.com/docs/en/about-claude/models/introducing-claude-fable-5-and-claude-mythos-5
 - 検索キーワード（WebSearch用）: `Claude Fable 5 Mythos 5 specs 2026`
-- 取得方法: WebFetch（疎通確認後に確定）→ 失敗時 WebSearch
+- 取得方法: WebFetch（疎通確認済み・2026-07-06）→ 失敗時 WebSearch
 - 注目点: Fable 5 / Mythos 5 の公式仕様（コンテキスト長・料金・能力・制限）の変更・追補
 - 頻度: 毎日確認（GA直後のため。仕様が安定したら週次に下げ検討）
-- 備考: **疎通未確認の宿題ソース**（B-006採用、2026-06-10）。次回生成時にWebFetch疎通を試行し、結果に応じて取得方法欄を更新すること。公式 system card の正式URLは判明次第追記
+- 備考: B-006採用（2026-06-10）。2026-07-06 に WebFetch 疎通を確認しプライマリに確定（現行仕様: 1M context / 128k output / $10・$50、Fable 5 は refusal 分類器あり・Mythos 5 は無し）。公式 system card の正式URLは判明次第追記
 
 ### Anthropic Blog / News
 - URL: https://www.anthropic.com/news

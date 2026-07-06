@@ -18,7 +18,7 @@
 
 ## 既知の取得障害
 
-- 主要ソース一括 WebFetch 403（Anthropic news / OpenAI / Google / Cursor / Devin 等）: 403（初出 2026-04-14 / 最終確認 2026-07-03）→ 回避策: WebSearch プライマリ運用（daily-sources.md は 2026-04-14 に更新済み）。例外: `code.claude.com/docs/en/changelog` は WebFetch 成功する日が多い
+- 主要ソース一括 WebFetch 403（Anthropic news / OpenAI / Google / Cursor / Devin 等）: 403（初出 2026-04-14 / 最終確認 2026-07-06）→ 回避策: WebSearch プライマリ運用（daily-sources.md は 2026-04-14 に更新済み）。例外: `code.claude.com/docs/en/changelog`・`platform.claude.com`（Fable 5 ドキュメント、2026-07-06 疎通確認）は WebFetch 成功。`developers.openai.com/codex/changelog` は 403 継続（2026-07-06 再確認、GitHub releases 一次運用のまま）
 - apple.com/newsroom: 403（初出 2026-06-09 / 最終確認 2026-06-09）→ 回避策: WebSearch
 
 ## アーカイブ（採用済み・見送り）
