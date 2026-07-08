@@ -18,7 +18,7 @@
 
 ## 既知の取得障害
 
-- 主要ソース一括 WebFetch 403（Anthropic news / OpenAI / Google / Cursor / Devin 等）: 403（初出 2026-04-14 / 最終確認 2026-07-08）→ 回避策: WebSearch プライマリ運用（daily-sources.md は 2026-04-14 に更新済み）。例外: `code.claude.com/docs/en/changelog`・`github.com/*/releases`（Copilot/Codex CLI、2026-07-07 疎通確認）・`platform.claude.com`（Fable 5 ドキュメント、2026-07-06 疎通確認）は WebFetch 成功。`developers.openai.com/codex/changelog` は 403 継続（GitHub releases 一次運用のまま）
+- 主要ソース一括 WebFetch 403（Anthropic news / OpenAI / Google / Cursor / Devin 等）: 403（初出 2026-04-14 / 最終確認 2026-07-08）→ 回避策: WebSearch プライマリ運用（daily-sources.md は 2026-04-14 に更新済み）。例外: `code.claude.com/docs/en/changelog`・`github.com/*/releases`（Copilot/Codex CLI、2026-07-07 疎通確認）・`platform.claude.com`（Fable 5 ドキュメント、2026-07-06 疎通確認）は WebFetch 成功。`developers.openai.com/codex/changelog` は 403 継続（GitHub releases 一次運用のまま）→ `developers.openai.com` 配下（changelog / codex/changelog / blog）は復旧（2026-07-08）。help.openai.com（ChatGPT/Sora release notes）は 403 継続を 2026-07-08 に再確認
 - apple.com/newsroom: 403（初出 2026-06-09 / 最終確認 2026-06-09）→ 回避策: WebSearch
 
 ## アーカイブ（採用済み・見送り）
@@ -33,3 +33,4 @@
 - B-008: 「企業構造 / GTM 動向」セクションの独立化 — **採用済み（2026-06-10）**。`output-style.md` フォーマット節に反映（該当ニュースがある日のみ）
 - B-009: Apple 関連ソースの追加 — **採用済み（2026-06-10）**。`daily-sources.md` 高優先に追加（秋 GA 後に頻度見直し）
 - B-010: Anthropic ↔ Harvey 提携の月次トラッキング — **採用済み（2026-06-10）**。`interests/ai-tools.md` に反映
+- B-011: OpenAI 系ソースの拡充 — **採用済み（2026-07-08・kit の直接指示によりセッション内で反映）**。疎通確認の上で `daily-sources.md` に反映: ① OpenAI Developer Community Announcements（`community.openai.com/c/announcements/6.rss`、RSS可）を最優先に新規追加 ② OpenAI Platform Changelog の一次URLを `developers.openai.com/changelog`（WebFetch可）に変更 ③ OpenAI Developer Blog（`developers.openai.com/blog`）を高優先に新規追加 ④ Codex changelog 復旧に伴い併用一次に昇格（B-003 の宿題完了） ⑤ OpenAI Blog 項に TechCrunch OpenAI タグを補完二次ソースとして追記。help.openai.com（Sora release notes 含む）と theverge.com は取得不可のため見送り

@@ -16,6 +16,8 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 >
 > **2026-06-10更新（B-001採用）**: WebFetch/RSSの復旧チェックは**週1回（月曜）**に実施する。手順は `fetch-flow.md`「復旧チェック」を参照（06-04時点の「月1回程度」から変更）。
 > WebFetch安定が確認されている一次ソース: Claude Code Changelog、GitHub Copilot CLI Releases、OpenAI Codex CLI Releases。これらは毎日WebFetchで一次取得する。
+>
+> **2026-07-08更新（B-011採用）**: OpenAI系ソースを拡充。`developers.openai.com` 配下（changelog / codex/changelog / blog）はWebFetch疎通を確認し一次取得に昇格。`community.openai.com/c/announcements/6.rss` はRSS取得可能な公式一次ソースとして新規追加。openai.com / help.openai.com / platform.openai.com の403は継続中。
 
 ---
 
@@ -62,15 +64,25 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 - フィード本文: 要約のみ（タイトル・説明・URL）。詳細が必要な場合は記事URLをWebFetchで追加取得
 - 注目点: 新モデル発表（GPT-5等）、DevDay、ポリシー変更、大型機能発表、パートナーシップ
 - 頻度: 毎日確認
-- 備考: RSS/WebFetch ともに403が2026-04-02以降継続中（2026-04-14時点）。WebSearch をプライマリに変更。RSS復旧時は取得方法を `RSS → WebSearch` に戻すこと
+- 備考: RSS/WebFetch ともに403が2026-04-02以降継続中（2026-04-14時点）。WebSearch をプライマリに変更。RSS復旧時は取得方法を `RSS → WebSearch` に戻すこと。WebFetch可能な二次ソースとして `https://techcrunch.com/tag/openai/` を補完利用可（2026-07-08疎通確認・B-011）。theverge.com はWebFetch不可
+
+### OpenAI Developer Community Announcements（公式フォーラム）
+- URL: https://community.openai.com/c/announcements/6
+- RSS URL: https://community.openai.com/c/announcements/6.rss
+- 取得方法: RSS（疎通確認済み・2026-07-08）→ 失敗時 WebSearch
+- フィード本文: 要約＋本文あり（Discourse標準RSS）
+- 注目点: 新モデル（GPT-5.6シリーズ等）・API新機能（Realtime等）・DevDay告知の公式アナウンス。openai.com/news が403継続の中、**RSSで直接取得できる貴重なOpenAI一次ソース**
+- 頻度: 毎日確認
+- 備考: 2026-07-08追加（B-011）。openai.com/news と重複する内容も多いが、API寄りの発表はこちらが先行・詳細な場合がある
 
 ### OpenAI Platform Changelog
-- URL: https://platform.openai.com/docs/changelog
+- URL（一次）: https://developers.openai.com/changelog
+- URL（旧・403継続）: https://platform.openai.com/docs/changelog
 - 検索キーワード（WebSearch用）: `OpenAI platform changelog API update 2026`
-- 取得方法: WebSearch → WebFetch
+- 取得方法: WebFetch（一次URL・疎通確認済み 2026-07-08）→ 失敗時 WebSearch
 - 注目点: モデルリリース・廃止予定、API仕様変更、料金変更、新エンドポイント追加、SDK更新
 - 頻度: 毎日確認
-- 備考: WebFetch 403が2026-04-02以降継続中（2026-04-14時点）。WebSearch をプライマリに変更
+- 備考: `platform.openai.com` は403継続中だが、新ドメイン `developers.openai.com/changelog` はWebFetch成功（2026-07-08確認、最新7/6エントリまで取得可）。一次URLを新ドメインに変更（B-011）
 
 ### ChatGPT Release Notes
 - URL: https://help.openai.com/en/articles/6825453-chatgpt-release-notes
@@ -78,7 +90,7 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 - 取得方法: WebSearch → WebFetch
 - 注目点: ChatGPTの新機能（Canvas、Deep Research、Memory、Voice Mode等）、UI変更、プラン別機能開放（Plus/Pro/Team/Enterprise）、モバイル対応
 - 頻度: 毎日確認
-- 備考: WebFetch 403が2026-04-02以降継続中（2026-04-14時点）。WebSearch をプライマリに変更
+- 備考: WebFetch 403が2026-04-02以降継続中（2026-04-14時点、help.openai.com 配下は Sora release notes 含め全滅を2026-07-08に再確認）。WebSearch をプライマリに変更。ChatGPTアプリ更新は `developers.openai.com/codex/changelog` にも載ることがある（例: ChatGPT for iOS）ため併読すること
 
 ### Google Workspace Updates Blog
 - URL: https://workspaceupdates.googleblog.com/
@@ -128,11 +140,19 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 
 ### OpenAI Codex CLI Releases
 - URL（一次）: https://github.com/openai/codex/releases
-- URL（参考）: https://developers.openai.com/codex/changelog
-- 取得方法: WebFetch（毎日）→ 失敗時 WebSearch
+- URL（併用一次）: https://developers.openai.com/codex/changelog
+- 取得方法: WebFetch（毎日・両URL）→ 失敗時 WebSearch
 - 注目点: Codex CLI の新バージョン、機能追加、モデル切替
 - 頻度: 毎日確認
-- 備考: `developers.openai.com/codex/changelog` は2026-04-02以降403継続のため、GitHub releasesを一次ソースに切替済み。WebFetch安定。**2026-06-05 のメモで changelog 側の安定提供を確認（B-003採用）。次回生成時に WebFetch 疎通を試行し、成功すれば併用一次に昇格させること**
+- 備考: WebFetch安定。`developers.openai.com/codex/changelog` は2026-04-02以降403だったが**2026-07-08に復旧確認**（最新7/8エントリまで取得可）→ B-003の宿題どおり併用一次に昇格。changelog側はリリースノートが整理済みで、ChatGPTアプリ更新も載るため、GitHub releases（pre-release検出用）と使い分ける
+
+### OpenAI Developer Blog
+- URL: https://developers.openai.com/blog
+- 検索キーワード（WebSearch用）: `OpenAI developer blog Codex API 2026`
+- 取得方法: WebFetch（疎通確認済み・2026-07-08）→ 失敗時 WebSearch
+- 注目点: Codex・API・MCP・Realtime等の開発者向け機能解説・ベストプラクティス・活用事例
+- 頻度: 週1〜2回確認（月数回更新のため）
+- 備考: 2026-07-08追加（B-011）。ニュース速報性は低いが、Codex Remote等の新機能の詳細解説が出る場所。大型発表時は必ず確認
 
 ### xAI / Grok Release Notes
 - URL（候補1）: https://x.ai/news
