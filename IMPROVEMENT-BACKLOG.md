@@ -19,7 +19,7 @@
 ## 既知の取得障害
 
 - 主要ソース一括 WebFetch 403（Anthropic news / OpenAI / Google / Cursor / Devin 等）: 403（初出 2026-04-14 / 最終確認 2026-07-20）→ 回避策: WebSearch プライマリ運用（daily-sources.md は 2026-04-14 に更新済み）。例外: `code.claude.com/docs/en/changelog`・`github.com/*/releases`（Copilot/Codex CLI、2026-07-07 疎通確認）・`platform.claude.com`（Fable 5 ドキュメント、2026-07-06 疎通確認）・`developers.openai.com` 配下（changelog / codex/changelog / blog、2026-07-08 復旧確認）は WebFetch 成功。help.openai.com（ChatGPT/Sora release notes）は 403 継続を 2026-07-08 に再確認
-- `developers.openai.com` 配下（codex/changelog・changelog）＋ `community.openai.com/c/announcements/6.rss`: 403 再発（初出 2026-07-15［codex/changelog］→ 2026-07-18 に changelog・community RSS へ拡大 / 最終確認 2026-07-20（月曜復旧チェックで 403 継続を確認・未復旧）。2026-07-08 に復旧確認済みだった exception ソース群の再障害）→ 回避策: Codex CLI 情報は `github.com/openai/codex/releases`（WebFetch 安定）で完全代替可、OpenAI news/API 発表は WebSearch フォールバックで代替可・いずれも情報欠落なし。次回月曜（07-27）復旧チェック対象
+- `developers.openai.com` 配下（codex/changelog・changelog）＋ `community.openai.com/c/announcements/6.rss`: 403 再発（初出 2026-07-15［codex/changelog］→ 2026-07-18 に changelog・community RSS へ拡大 / 最終確認 2026-07-23（403 継続・未復旧）。2026-07-08 に復旧確認済みだった exception ソース群の再障害）→ 回避策: Codex CLI 情報は `github.com/openai/codex/releases`（WebFetch 安定）で完全代替可、OpenAI news/API 発表は WebSearch フォールバックで代替可・いずれも情報欠落なし。次回月曜（07-27）復旧チェック対象
 - xAI/SpaceXAI Grok changelog / https://x.ai/*（build/changelog・news 配下）: 403（初出 2026-07-09 / 最終確認 2026-07-10）→ 回避策: WebSearch（daily-sources.md は既に「WebFetch→失敗時 WebSearch」運用のため取得方法欄の変更は不要）
 - apple.com/newsroom: 403（初出 2026-06-09 / 最終確認 2026-06-09）→ 回避策: WebSearch
 
