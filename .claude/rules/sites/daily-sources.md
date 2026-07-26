@@ -181,12 +181,66 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 - 頻度: 週1〜2回確認（更新頻度が低いため）
 
 ### Cursor Changelog
-- URL: https://cursor.com/changelog
+- URL（優先）: https://cursor.com/changelog
+- URL（フォールバック）: https://cursor.com/blog
+- RSS URL: https://cursor.com/changelog/rss.xml
 - 検索キーワード（WebSearch用）: `Cursor changelog new features 2026`
-- 取得方法: WebSearch → WebFetch
-- 注目点: 新機能、エージェント改善、IDE統合、料金変更
+- 取得方法: RSS（changelog/rss.xml）→ WebFetch（changelog）→ WebSearch
+- 注目点: 新機能、エージェント改善（Subagents / Cloud Agents / Router）、IDE統合、料金変更、Team/Enterprise 管理機能
 - 頻度: 毎日確認
-- 備考: WebFetch 403が2026-04-03以降再発・継続中（2026-04-14時点）。WebSearch をプライマリに変更。`cursor-changelog.com/feed`（サードパーティRSS）も代替候補
+- 備考: **公式RSS を 2026-07-26 に発見**（B-012採用）。curl 実測 200 / `application/rss+xml` / 138,344 bytes / item 50件 / `content:encoded` に本文全文（＝RSS 1回で要約まで完結し追加 WebFetch は不要）。HTML 側に `<link rel="alternate" type="application/rss+xml">` 宣言がないため自動検出では見つからない。
+  **403 は未復旧扱いとする**: 2026-07-26 にローカルからは WebFetch 200 で取得できたが、同日のクラウドルーチンは 403 を記録している（`.last-check-state.md`）。ローカル200とクラウド403が併存するため復旧とはしない。復旧判定は月曜の復旧チェック（`fetch-flow.md`）でルーチン自身が成功したときに行う。それまでは WebSearch が実質の一次。
+  `cursor-changelog.com/feed`（旧・代替候補）は**削除した**。応答なし（curl exit 92 / HTTPコード 000）で、DNS がドメインパーキング系への CNAME になっており内容を信頼できない。
+
+### Cursor Forum Announcements
+- URL（優先）: https://forum.cursor.com/c/announcements/11.rss
+- URL（フォールバック）: https://forum.cursor.com/c/announcements/11.json
+- RSS URL: https://forum.cursor.com/c/announcements/11.rss
+- 検索キーワード（WebSearch用）: `Cursor forum announcements model now available 2026`
+- 取得方法: RSS → JSON → WebSearch
+- 注目点: **新モデルの Cursor 提供開始告知**とその価格・CursorBench スコア・Zero Data Retention 対応可否。changelog と重複する記事（Cursor Router 等）は片方に統合する
+- 頻度: 毎日確認
+- 備考: 2026-07-26 追加（B-012採用）。curl 実測 200 / `application/rss+xml` / 81,504 bytes / item 25件。投稿者は Cursor スタッフのみで一次情報。
+  **changelog との役割が違う**: changelog RSS 全50件を全文検索して `Opus 5` 0件 / `GPT-5.6` 0件 / `Sonnet 5` 0件 / `Zero Data Retention` 0件。**モデル提供開始告知はフォーラム側にしか出ない**（例: `Claude Opus 5 now available!` 2026-07-24）。changelog だけでは「Cursor で Opus 5 が使えるようになった」を取り逃す。
+  ⚠️ カテゴリIDは **11**。`/c/announcements/8.rss` は 301 で `/c/support/help/8.rss` に転送され Help カテゴリが 200 で返るため、バイト数だけ見ると成功に見える。IDは https://forum.cursor.com/categories.json で確認できる。
+
+### Obsidian Changelog（AI連携に限定）
+- URL（優先）: https://obsidian.md/changelog/
+- URL（フォールバック）: https://obsidian.md/feed.xml （公式ブログ）
+- RSS URL: https://obsidian.md/changelog.xml
+- 検索キーワード（WebSearch用）: `Obsidian MCP AI plugin API 2026`
+- 取得方法: RSS（changelog.xml）→ WebFetch（changelog/）→ WebSearch
+- 注目点: **AI連携に限定する。** MCP 対応、AIプラグイン向け API、プラグイン API の破壊的変更、Web Clipper、AI関連の商用・チームライセンス条件。
+  エディタ挙動・テーマ・同期の細目・個別コミュニティプラグインの更新は**取り上げない**。
+  タイトル末尾の `(Early access)` / `(Public)` でインサイダー限定か一般公開かを必ず区別する
+- 頻度: 週1〜2回確認
+- 備考: 2026-07-26 追加（B-012採用）。curl 実測: `changelog.xml` → 200 / `application/xml` / 940,832 bytes / Atom entry 469件。`obsidian.md/feed.xml` → 200 / entry 42件。403なし。
+  ⚠️ **AI関連の産出量は極小**: 2026年の41エントリを全文走査して AI / LLM / MCP / Claude / ChatGPT / Copilot / agent の言及は **0件**（2026-07-26 実測）。公式ブログ側も42件中2件のみ（`The future of Obsidian plugins`・`2024 Gems of the year winners`）。**該当がない週は掲載しないのが正常**であり、無理に載せないこと。
+  ⚠️ リリース間隔は月1.7件相当（2026-04 は0件、03-23→05-28 に66日の空白）。毎日確認する根拠はない。
+  ⚠️ `obsidian.md/changelog/rss.xml` と `obsidian.md/blog/feed.xml` は 404。正しいパスは `changelog.xml` と `feed.xml`。フォーラム（forum.obsidian.md）に **announcements カテゴリは存在しない**（Help / Bug reports / Feature requests / Developers: Plugin & API 等のみ）ので公式アナウンス経路は changelog とブログだけ。
+
+### TestingCatalog
+- URL（優先）: https://www.testingcatalog.com/
+- URL（フォールバック）: https://www.testingcatalog.com/feed/
+- RSS URL: https://www.testingcatalog.com/rss/
+- 検索キーワード（WebSearch用）: `TestingCatalog new feature launch 2026`
+- 取得方法: RSS → WebFetch（個別記事URLで詳細取得）→ WebSearch
+- 注目点: AIツールの機能追加・段階的ロールアウトを追う専門メディア。403 で WebSearch 運用中の一次ソースに対する**クロスチェック**として使う
+- 頻度: 毎日確認
+- 備考: 2026-07-26 追加（B-012採用）。curl 実測 200 / `text/xml` / 83,831 bytes / entry 100件。前面は openresty + Fastly（Cloudflare ではない）。直近7日18件 / 直近30日71件＝**1日 2.4件**。`description` は平均138字なので詳細が必要な項目のみ記事URLを WebFetch する。
+  ★**除外フィルタ必須**: タイトルに `tests` / `develops` / `preparing` / `set to` / `previews` / `to get` / `working on` を含む記事は**未発表・社内限定・リリース日なし**。実測で直近7日18件のうち10件（56%）がこれに該当した。「今日から使えるもの」として扱わず、載せるなら「近日」枠に明示する。
+  ★画像・動画・音声生成（FLUX / MAI-Image / Seedream 等）は `interests/ai-tools.md` の除外基準に該当するので落とす。
+  `ICYMI:` プレフィックスは既報の再掲なので重複判定に使える（公式発表の2〜3日遅れで出ることがある）。
+
+### Simon Willison's Weblog
+- URL（優先）: https://simonwillison.net/tags/ai.atom
+- URL（フォールバック）: https://simonwillison.net/atom/everything/
+- RSS URL: https://simonwillison.net/tags/ai.atom
+- 検索キーワード（WebSearch用）: `Simon Willison Claude Code 2026`
+- 注目点: **新機能を実際に動かした検証結果とコード例**、公式リリースノートに載らない実装上の落とし穴。既存ダイジェストで繰り返し引用している実績あり
+- 頻度: 週1〜2回確認
+- 備考: 2026-07-26 追加（B-012採用）。curl 実測 200 / `application/xml` / 184,282 bytes。
+  `Quoting ...` 形式（中の人の発言引用のみ）と非AIの個人投稿は落とす。
 
 ### Devin Release Notes
 - URL: https://docs.devin.ai/release-notes/overview

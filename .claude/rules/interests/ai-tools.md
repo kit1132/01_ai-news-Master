@@ -6,7 +6,9 @@
 
 - **Claude Code / Claude Desktop**: CLI、Desktop（Cowork含む）、VSCode、Web、Slackの全インターフェースが対象。新機能・破壊的変更をリリース初日に導入する方針
 - **Anthropic全般**: API変更、新モデル、新プロダクト、料金変更
-- **Cursor**: アップデート、新機能
+- **Cursor**: アップデート、新機能。**モデル提供開始の告知は changelog に載らずフォーラム側にしか出る**ので両方見る（`daily-sources.md` の Cursor Forum Announcements 参照）
+- **Obsidian**（**AI連携に限定**）: MCP 対応、AIプラグイン向け API、プラグイン API の破壊的変更、Web Clipper、AI関連のライセンス条件。エディタ挙動・テーマ・同期の細目・個別コミュニティプラグインの更新は対象外。
+  2026-07-26 追加。changelog の AI 言及は 2026年41件中 **0件**（実測）なので、**該当がない週は載せないのが正常**。無理に載せない
 - **AIエージェント全般**: コーディングエージェント、自律型エージェントの新プロダクト
 - **ChatGPT**（エンドユーザーレイヤー）: GPT-4o/GPT-5等のモデル更新、ChatGPT Plus/Pro/Team/Enterpriseのプラン変更、新機能（Canvas、Deep Research、Memory、Voice Mode等）・料金変更
 - **Custom GPTs / GPT Store**（カスタマイズレイヤー）: GPT Builder、Actions、GPT Storeの動向、企業向けカスタムGPT管理・共有機能
