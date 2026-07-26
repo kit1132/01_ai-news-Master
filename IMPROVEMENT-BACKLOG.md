@@ -14,12 +14,22 @@
 
 ## 提案中
 
-（現在なし）
+- **B-013: 403 を「ゲートウェイ拒否」と「オリジン 403」に分類して記録する**（起票 2026-07-27 / 最終確認 2026-07-27 / 回数 1）
+  - 対象: `.claude/rules/sites/fetch-flow.md`「フォールバック発生時の記録ルール」および「復旧チェック（週1回・月曜）」、本台帳「既知の取得障害」の記載形式
+  - 変更内容: 障害記録時に 2 種類を区別する。① **ゲートウェイ拒否**（実行環境のネットワーク許可リスト外。`curl` が exit 56 / `CONNECT tunnel failed, response 403` を返す）② **オリジン 403**（サイト側のブロック。HTTP レスポンスとして 403 が返る）。判定手順は `curl -sS -o /dev/null -w "%{http_code}" --max-time 25 <URL>` と `curl -sS "$HTTPS_PROXY/__agentproxy/status"` の `recentRelayFailures` の確認。①は週次復旧チェックの対象から外し、代わりに「実行環境のネットワークポリシーへの許可リスト追加を kit に要請する」項目として台帳に置く
+  - 根拠: 2026-07-26 に curl 実測 200 を確認して追加した B-012 の 4 ソース（`cursor.com`・`forum.cursor.com`・`www.testingcatalog.com`・`simonwillison.net`）が、2026-07-27 のクラウド定期実行では**全て CONNECT 403**。プロキシの `recentRelayFailures` に `gateway answered 403 to CONNECT (policy denial or upstream failure)` として 5 ホスト分が記録されており、オリジンではなくゲートウェイ段での遮断と確定した。①はサイト側が復旧しても解消しないため、現行の「復旧チェックで毎週叩き直す」運用は永久に空振りする
+
+- **B-014: Claude Code Changelog のフォールバック URL を raw に変更**（起票 2026-07-27 / 最終確認 2026-07-27 / 回数 1）
+  - 対象: `daily-sources.md`「Claude Code Changelog」項の `URL（フォールバック）`
+  - 変更内容: `https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md` → `https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md`
+  - 根拠: 2026-07-27 に一次 URL `code.claude.com/docs/en/changelog` が 503 を返しフォールバックへ移行したところ、blob URL は GitHub の UI シェル（ファイルサイズ 466KB・5248行というメタ情報）のみが返り**本文が取得できなかった**。同一セッションで raw URL は本文取得に成功し v2.1.220 を確認できた。現行の備考にある「GitHub 版は大きいため 429 になることがある」への対策としても raw のほうが軽い
 
 ## 既知の取得障害
 
-- 主要ソース一括 WebFetch 403（Anthropic news / OpenAI / Google / Cursor / Devin 等）: 403（初出 2026-04-14 / 最終確認 2026-07-25）→ 回避策: WebSearch プライマリ運用（daily-sources.md は 2026-04-14 に更新済み）。例外: `code.claude.com/docs/en/changelog`・`github.com/*/releases`（Copilot/Codex CLI、2026-07-07 疎通確認）・`platform.claude.com`（Fable 5 ドキュメント、2026-07-06 疎通確認）・`developers.openai.com` 配下（changelog / codex/changelog / blog、2026-07-08 復旧確認）は WebFetch 成功。help.openai.com（ChatGPT/Sora release notes）は 403 継続を 2026-07-08 に再確認
-- `developers.openai.com` 配下（codex/changelog・changelog）＋ `community.openai.com/c/announcements/6.rss`: 403 再発（初出 2026-07-15［codex/changelog］→ 2026-07-18 に changelog・community RSS へ拡大 / 最終確認 2026-07-25（403 継続・未復旧）。2026-07-08 に復旧確認済みだった exception ソース群の再障害）→ 回避策: Codex CLI 情報は `github.com/openai/codex/releases`（WebFetch 安定）で完全代替可、OpenAI news/API 発表は WebSearch フォールバックで代替可・いずれも情報欠落なし。次回月曜（07-27）復旧チェック対象
+- 主要ソース一括 WebFetch 403（Anthropic news / OpenAI / Google / Cursor / Devin 等）: 403（初出 2026-04-14 / 最終確認 2026-07-27）→ 回避策: WebSearch プライマリ運用（daily-sources.md は 2026-04-14 に更新済み）。例外: `code.claude.com/docs/en/changelog`・`github.com/*/releases`（Copilot/Codex CLI、2026-07-07 疎通確認）・`platform.claude.com`（Fable 5 ドキュメント・release-notes、2026-07-27 疎通再確認）・`raw.githubusercontent.com`（2026-07-27 疎通確認）は WebFetch 成功。help.openai.com（ChatGPT/Sora release notes）は 403 継続を 2026-07-08 に再確認
+- `developers.openai.com` 配下（codex/changelog・changelog）: 403 再発（初出 2026-07-15［codex/changelog］→ 2026-07-18 に changelog へ拡大 / 最終確認 2026-07-27（403 継続・未復旧、月曜復旧チェック実施済み））→ 回避策: Codex CLI 情報は `github.com/openai/codex/releases`（WebFetch 安定）で完全代替可、OpenAI news/API 発表は WebSearch フォールバックで代替可・いずれも情報欠落なし
+- **ゲートウェイ拒否（CONNECT 403・実行環境のネットワーク許可リスト外）**: `cursor.com` / `forum.cursor.com` / `www.testingcatalog.com` / `simonwillison.net` / `community.openai.com`（初出 2026-07-27 / 最終確認 2026-07-27）→ 回避策: WebSearch のみ。**サイト側の復旧待ちでは解消しない**（`curl` exit 56・プロキシの `recentRelayFailures` に policy denial として記録）。前4者は 2026-07-26 に B-012 でローカル curl 200 を根拠に追加したソースだが、クラウド定期実行からは到達不可。`community.openai.com` は 07-18 以降「403 継続」と記録してきたが、実体はオリジン 403 ではなくゲートウェイ拒否だったと 07-27 に判明。**要対応: 実行環境のネットワークポリシーへの許可リスト追加（kit 判断）**。詳細は B-013
+- `www.anthropic.com/news`: オリジン 403（ゲートウェイは通過・HTTP 403 が返る）（初出 2026-04-02 / 最終確認 2026-07-27）→ 回避策: WebSearch
 - xAI/SpaceXAI Grok changelog / https://x.ai/*（build/changelog・news 配下）: 403（初出 2026-07-09 / 最終確認 2026-07-10）→ 回避策: WebSearch（daily-sources.md は既に「WebFetch→失敗時 WebSearch」運用のため取得方法欄の変更は不要）
 - apple.com/newsroom: 403（初出 2026-06-09 / 最終確認 2026-06-09）→ 回避策: WebSearch
 
