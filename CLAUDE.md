@@ -12,7 +12,7 @@
 - `digests/YYYY/MM/ai-news-YYYY-MM-DD.md` — デイリーダイジェスト本体
 - `.last-check-state.md` — 各ソースの前回チェック状態（差分判定用）
 - `IMPROVEMENT-BACKLOG.md` — 改善提案・取得障害の台帳（改善メモの単一情報源。運用ルールはファイル冒頭参照）
-- `index.html` — ダイジェストのHTMLビューア（marked.js使用、GitHub Pagesで公開）
+- `index.html` — **5ソース統合ビューア**（marked.js使用、GitHub Pagesで公開）。02_ai-news-Copilot / 03_ai-news-industry / 04_ai-news-weekly / 05_ai-news-daily のビューアはこのファイルへのリダイレクトなので、ビューアの修正はこの1ファイルだけで完結する。各ソースのデータは相対パス `../<リポジトリ名>/files.json` で取得する（5リポとも同一オリジンのため CORS 不要）
 - `files.json` — ビューアが参照するダイジェストファイル一覧（新しい順、パスはルートからの相対）
 
 ## 実行環境
