@@ -233,8 +233,17 @@
       };
     }
 
+    // 「## 改善メモ」以降は運用（提案台帳・取得障害）の内容なので Web では表示しない。
+    // 436/437 ファイルで表記が同一かつ必ず最終セクションであることを確認済み。
+    const OPS_SECTION = /^##\s*改善メモ.*$/m;
+    function stripOpsSection(md) {
+      const m = md.match(OPS_SECTION);
+      return m ? md.slice(0, m.index).trimEnd() : md;
+    }
+
     // --- 状態 ---
-    const state = { sourceId: 'master', entries: [], activeId: null, token: 0 };
+    // 既定は daily。Master / Copilot / 業界 の3ソースを統合したまとめなので入口に適する。
+    const state = { sourceId: 'daily', entries: [], activeId: null, token: 0 };
     const mdCache = new Map();
 
     const $ = (sel) => document.querySelector(sel);
@@ -383,7 +392,7 @@
       if (md === undefined) {
         const res = await fetch(url);
         if (!res.ok) throw new Error(`${e.label} の取得に失敗しました (HTTP ${res.status})`);
-        md = await res.text();
+        md = stripOpsSection(await res.text());
         mdCache.set(url, md);
       }
       if (my !== state.token) return; // ソース切り替えと競合したら描画しない
