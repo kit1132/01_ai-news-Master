@@ -58,6 +58,15 @@
     .pill:hover { border-color: var(--muted); }
     .pill[aria-current="true"] { background: #1f6feb33; border-color: var(--accent); color: var(--link); font-weight: 600; }
 
+    /* 節の一括開閉。折りたたみで本文がページ内検索に出ない問題の回避手段も兼ねる */
+    #expand-all {
+      flex: none; background: var(--border2); border: 1px solid var(--border); color: var(--fg);
+      font: inherit; font-size: 11px; padding: 6px 9px; border-radius: 6px; cursor: pointer;
+      min-height: 34px; white-space: nowrap;
+    }
+    #expand-all[aria-pressed="true"] { background: #1f6feb33; border-color: var(--accent); color: var(--link); }
+    #expand-all:hover { border-color: var(--muted); }
+
     /* --- レイアウト --- */
     .layout { display: flex; height: 100dvh; padding-top: var(--topbar); }
     .sidebar {
@@ -207,10 +216,14 @@
       .glabel { width: 40px; font-size: 9px; }
       .sidebar {
         position: fixed; top: var(--topbar); bottom: 0; left: 0; z-index: 30;
-        transform: translateX(-100%); transition: transform .2s ease;
+        transform: translateX(-100%); transition: transform .2s ease, visibility .2s;
         box-shadow: 0 0 24px #0008;
+        /* visibility:hidden は支援技術のツリーとヒットテストの両方から外れる。
+           JS で aria-hidden を張り替えるとイベントの発火漏れで
+           デスクトップにも残る事故が起きるため、CSS だけで完結させる */
+        visibility: hidden;
       }
-      .sidebar.open { transform: none; }
+      .sidebar.open { transform: none; visibility: visible; }
       /* ⚠️ hidden 属性ではなくクラスで出し分ける。
          `.scrim { display:block }` は UA スタイルの `[hidden]{display:none}` に勝つため、
          hidden を付けても消えず、本文を覆って画面が暗くなりタッチも奪われる（2026-07-27 に発生） */
@@ -230,6 +243,20 @@
          （[hidden] の display:none は作者CSSに負けるため） */
       #to-top.show { display: block; }
     }
+
+    /* --- 横向きのスマホ：トップバーを1段に畳む ---
+       812x375 実測でトップバー81px は画面高の 22% を占め、本文の可視高が294pxしか残らなかった。
+       高さが足りないときはグループ見出しを隠し、2段を1段にまとめて縦を取り戻す */
+    @media (max-width: 900px) and (max-height: 500px) {
+      .groups { flex-direction: row; align-items: center; gap: 10px; overflow-x: auto; scrollbar-width: none; }
+      .groups::-webkit-scrollbar { display: none; }
+      .glabel { display: none; }
+      /* 「まとめ」と「元ソース」の境目は区切り線で示す（案Aの階層表現を保つ） */
+      .grp + .grp { border-left: 1px solid var(--border); padding-left: 10px; }
+      .topbar { padding: 6px 10px; }
+      .content h1 { font-size: 20px; }
+      .content h3 { font-size: 17px; }
+    }
   </style>
 </head>
 <body>
@@ -237,7 +264,7 @@
   <div id="warn" class="banner b-warn" hidden></div>
 
   <header class="topbar">
-    <button id="menu-btn" type="button" aria-label="一覧を開く">☰</button>
+    <button id="menu-btn" type="button" aria-label="日付の一覧を開く" aria-expanded="false" aria-controls="sidebar">☰</button>
     <span class="brand">AI NEWS</span>
     <div class="groups">
       <div class="grp">
@@ -249,10 +276,11 @@
         <nav class="pills" id="pills-source" aria-label="元ソース"></nav>
       </div>
     </div>
+    <button id="expand-all" type="button" aria-pressed="false" title="すべての節を開く／閉じる">全開</button>
   </header>
 
   <div class="layout">
-    <nav class="sidebar">
+    <nav class="sidebar" id="sidebar" aria-label="日付の一覧">
       <div id="file-list"></div>
     </nav>
     <div class="scrim" id="scrim"></div>
@@ -594,12 +622,40 @@
       applySectionOpen(box);
     }
 
-    // モバイルは先頭の節だけ開く。デスクトップは全部開く（従来どおりの見え方）
+    // 節の開閉。既定は「先頭の節だけ開く」で、画面幅によらず同じ挙動にする。
+    // デスクトップでも週次は 14.8画面（1440x900 実測）あり、畳む価値はモバイルと変わらない。
+    // 「全開」を選んだ場合はその選択を localStorage に覚えて次回以降も維持する。
+    // localStorage はプライベートブラウズ等で例外を投げることがあるのでメモリに退避する
+    const EXPAND_KEY = 'ai-news-expand-all';
+    let expandMem = false;
+    const wantExpandAll = () => {
+      try { return localStorage.getItem(EXPAND_KEY) === '1'; } catch { return expandMem; }
+    };
+    const setExpandAll = (v) => {
+      expandMem = v;
+      try { localStorage.setItem(EXPAND_KEY, v ? '1' : '0'); } catch { /* 保存できなくても動作は継続する */ }
+    };
+
     function applySectionOpen(box) {
-      const mob = isMobile();
+      const all = wantExpandAll();
       for (const det of (box || document).querySelectorAll('details.sec')) {
-        det.open = !mob || det.dataset.n === '0';
+        det.open = all || det.dataset.n === '0';
       }
+      syncExpandBtn();
+    }
+
+    function syncExpandBtn() {
+      const btn = $('#expand-all');
+      if (!btn) return;
+      const all = wantExpandAll();
+      btn.setAttribute('aria-pressed', String(all));
+      btn.textContent = all ? '全閉' : '全開';
+      btn.title = all ? 'すべての節を閉じる' : 'すべての節を開く（ページ内検索の前に使う）';
+    }
+
+    function toggleExpandAll() {
+      setExpandAll(!wantExpandAll());
+      applySectionOpen();
     }
 
     // 裸URL（リンクテキストが URL そのもの）を出典ドメインのチップにする。
@@ -737,9 +793,23 @@
 
     const isMobile = () => window.matchMedia('(max-width: 820px)').matches;
 
+    // ドロワーの開閉。支援技術に状態を伝え、フォーカスも移す（2026-07-27 の指摘 3-2）
+    let drawerOpener = null;
+
     function setDrawer(open) {
-      $('.sidebar').classList.toggle('open', open);
+      const sb = $('#sidebar');
+      sb.classList.toggle('open', open);
       $('#scrim').classList.toggle('show', open);
+      $('#menu-btn').setAttribute('aria-expanded', String(open));
+      // 一覧の露出は CSS の visibility が制御する（aria-hidden は使わない）
+
+      if (open) {
+        drawerOpener = document.activeElement;
+        (sb.querySelector('.item.is-active') || sb.querySelector('.item'))?.focus();
+      } else if (drawerOpener) {
+        drawerOpener.focus();
+        drawerOpener = null;
+      }
     }
 
     function boot() {
@@ -761,14 +831,15 @@
         if (isMobile()) setDrawer(false);
       });
 
-      $('#menu-btn').addEventListener('click', () => setDrawer(!$('.sidebar').classList.contains('open')));
+      $('#menu-btn').addEventListener('click', () => setDrawer(!$('#sidebar').classList.contains('open')));
       $('#scrim').addEventListener('click', () => setDrawer(false));
-      document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') setDrawer(false); });
+      $('#expand-all').addEventListener('click', toggleExpandAll);
+      document.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Escape' && $('#sidebar').classList.contains('open')) setDrawer(false);
+      });
+      // resize と matchMedia の両方から張り直す（片方が発火しない環境への保険）
       window.addEventListener('resize', syncTopbarHeight);
-      // 節の開閉は「ブレークポイントを跨いだとき」だけ作り直す。
-      // resize のたびに実行すると、スマホの回転やキーボード表示で
-      // ユーザーが開いた節が勝手に畳まれてしまう
-      window.matchMedia('(max-width: 820px)').addEventListener('change', () => applySectionOpen());
+      syncExpandBtn();
 
       // 先頭へ戻る（モバイルで最大29画面スクロールするため）
       const main = $('.main');
