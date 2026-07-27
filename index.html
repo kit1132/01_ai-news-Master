@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- ダーク固定の配色なので OS 側にもそう伝える。
+       未宣言だと OS がライトモードのときスクロールバーやフォーム部品だけ明色で描画される -->
+  <meta name="color-scheme" content="dark">
   <title>AI News</title>
   <script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js"
           integrity="sha384-948ahk4ZmxYVYOc+rxN1H2gM1EJ2Duhp7uHtZ4WSLkV4Vtx5MUqnV+l7u9B+jFv+"
@@ -11,6 +14,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
+      color-scheme: dark;
       --bg:#0d1117; --panel:#161b22; --border:#30363d; --border2:#21262d;
       --fg:#c9d1d9; --fg-strong:#f0f6fc; --muted:#8b949e; --link:#58a6ff;
       --accent:#1f6feb; --side:260px;
@@ -59,10 +63,13 @@
     .pill[aria-current="true"] { background: #1f6feb33; border-color: var(--accent); color: var(--link); font-weight: 600; }
 
     /* 節の一括開閉。折りたたみで本文がページ内検索に出ない問題の回避手段も兼ねる */
+    .main-tools { max-width: 760px; margin: 0 auto 14px; display: flex; justify-content: flex-end; }
+    /* 折りたたむ節が無い日は余白ごと消す。`display:flex` があるので hidden 属性ではなくクラスで制御する */
+    .main-tools.hide { display: none; }
     #expand-all {
-      flex: none; background: var(--border2); border: 1px solid var(--border); color: var(--fg);
-      font: inherit; font-size: 11px; padding: 6px 9px; border-radius: 6px; cursor: pointer;
-      min-height: 34px; white-space: nowrap;
+      background: var(--border2); border: 1px solid var(--border); color: var(--fg);
+      font: inherit; font-size: 12px; padding: 7px 12px; border-radius: 6px; cursor: pointer;
+      min-height: 36px; white-space: nowrap;
     }
     #expand-all[aria-pressed="true"] { background: #1f6feb33; border-color: var(--accent); color: var(--link); }
     #expand-all:hover { border-color: var(--muted); }
@@ -160,13 +167,15 @@
     .sec:not([open]) > summary::before { content: "▸"; }
     .sec > summary:hover .sec-t { color: var(--link); }
 
-    /* --- 先頭へ戻る --- */
+    /* --- 先頭へ戻る（画面幅によらず、スクロールしたときだけ出す） --- */
     #to-top {
-      display: none; position: fixed; right: 14px; bottom: 18px; z-index: 45;
+      display: none; position: fixed; right: 18px; bottom: 20px; z-index: 45;
       width: 44px; height: 44px; border-radius: 50%; cursor: pointer;
       background: var(--panel); border: 1px solid var(--border); color: var(--fg);
       font-size: 17px; line-height: 1; box-shadow: 0 3px 12px #0007;
     }
+    #to-top.show { display: block; }
+    #to-top:hover { border-color: var(--muted); }
     #to-top:active { background: var(--border2); }
 
     /* 導入段落はリード文として落ち着かせる */
@@ -239,9 +248,6 @@
       .sec > summary::before { display: inline; }
       .sec:not([open]) > summary { background: var(--panel); border: 1px solid var(--border); }
       .sec:not([open]) > summary::after { display: none; }
-      /* スクロールしたときだけ出す。hidden 属性ではなくクラスで制御する
-         （[hidden] の display:none は作者CSSに負けるため） */
-      #to-top.show { display: block; }
     }
 
     /* --- 横向きのスマホ：トップバーを1段に畳む ---
@@ -256,6 +262,28 @@
       .topbar { padding: 6px 10px; }
       .content h1 { font-size: 20px; }
       .content h3 { font-size: 17px; }
+    }
+
+    /* --- 印刷 / PDF 保存 ---
+       節の展開は JS の beforeprint で行う（CSS からは details の open を変えられないため）。
+       提案資料の根拠として保存する用途があるので、本文が欠けないことを最優先にする */
+    @media print {
+      .topbar, .sidebar, .scrim, #to-top, .main-tools, .banner { display: none !important; }
+      .layout { display: block; height: auto; padding-top: 0; }
+      .main { overflow: visible; padding: 0; }
+      .content { max-width: none; }
+      body { background: #fff; color: #000; }
+      .content h1, .content h2, .content h3, .content h4, .content th, .content strong { color: #000; }
+      .content h2, .content h2.sec-t { border-left-color: #666; }
+      .sec > summary { border-left-color: #666; }
+      .sec > summary::before { content: none; }        /* 開閉の三角は印刷しない */
+      .content a { color: #00e; text-decoration: underline; }
+      .content strong.long { background: none; font-weight: 600; }
+      .lbl { border-left-color: #999; page-break-inside: avoid; }
+      .lbl > .k { color: #000; }
+      .content blockquote { color: #333; border-left-color: #999; }
+      ul.src a { color: #333; background: none; border-color: #999; }
+      .content h1, .content h2, .content h3, .sec > summary { page-break-after: avoid; }
     }
   </style>
 </head>
@@ -276,7 +304,6 @@
         <nav class="pills" id="pills-source" aria-label="元ソース"></nav>
       </div>
     </div>
-    <button id="expand-all" type="button" aria-pressed="false" title="すべての節を開く／閉じる">全開</button>
   </header>
 
   <div class="layout">
@@ -286,6 +313,10 @@
     <div class="scrim" id="scrim"></div>
     <button id="to-top" type="button" aria-label="先頭へ戻る">↑</button>
     <main class="main">
+      <!-- トップバーに置くとピルの幅を奪って「業界」が見えなくなったため本文側に置く -->
+      <div class="main-tools">
+        <button id="expand-all" type="button" aria-pressed="false">すべて開く</button>
+      </div>
       <div id="content" class="content">
         <div class="empty">読み込み中…</div>
       </div>
@@ -579,6 +610,9 @@
       decorateBold(box);
       decorateLede(box);
       groupSections(box); // ノードを移動するので必ず最後に実行する
+      // groupSections は節が1つ以下だと早期 return するため、
+      // ボタンの表示可否はここで必ず更新する
+      syncExpandBtn();
     }
 
     // `## セクション` を折りたたみ可能にする。
@@ -647,10 +681,16 @@
     function syncExpandBtn() {
       const btn = $('#expand-all');
       if (!btn) return;
+      // 折りたたむ節が無い日は、このボタン自体を出さない。
+      // 「今日だけ挙動が違う」ように見えるのを避けるため、機能の有無と操作子の有無を一致させる
+      const n = document.querySelectorAll('details.sec').length;
+      $('.main-tools').classList.toggle('hide', n === 0);
       const all = wantExpandAll();
       btn.setAttribute('aria-pressed', String(all));
-      btn.textContent = all ? '全閉' : '全開';
-      btn.title = all ? 'すべての節を閉じる' : 'すべての節を開く（ページ内検索の前に使う）';
+      btn.textContent = all ? 'すべて閉じる' : 'すべて開く';
+      btn.title = all
+        ? 'すべての節を閉じて見出しだけにする'
+        : 'すべての節を開く（ページ内検索をする前に押してください）';
     }
 
     function toggleExpandAll() {
@@ -840,6 +880,18 @@
       // resize と matchMedia の両方から張り直す（片方が発火しない環境への保険）
       window.addEventListener('resize', syncTopbarHeight);
       syncExpandBtn();
+
+      // 印刷・PDF保存のときは畳んだ節を一時的に全部開く。
+      // CSS からは details の open を変えられないので JS で行い、印刷後に元へ戻す
+      let printClosed = [];
+      window.addEventListener('beforeprint', () => {
+        printClosed = [...document.querySelectorAll('details.sec:not([open]), details.month:not([open])')];
+        printClosed.forEach((d) => { d.open = true; });
+      });
+      window.addEventListener('afterprint', () => {
+        printClosed.forEach((d) => { d.open = false; });
+        printClosed = [];
+      });
 
       // 先頭へ戻る（モバイルで最大29画面スクロールするため）
       const main = $('.main');
