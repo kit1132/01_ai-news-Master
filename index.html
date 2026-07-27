@@ -69,8 +69,11 @@
     #expand-all {
       background: var(--border2); border: 1px solid var(--border); color: var(--fg);
       font: inherit; font-size: 12px; padding: 7px 12px; border-radius: 6px; cursor: pointer;
-      min-height: 36px; white-space: nowrap;
+      min-height: 36px; white-space: nowrap; display: inline-flex; align-items: center; gap: 7px;
     }
+    /* 押すとどちらへ向かうかを三角で示す。閉じている状態＝これから開く＝▼ */
+    #expand-all::before { content: "▼"; font-size: 9px; color: var(--muted); }
+    #expand-all[aria-pressed="true"]::before { content: "▲"; color: var(--link); }
     #expand-all[aria-pressed="true"] { background: #1f6feb33; border-color: var(--accent); color: var(--link); }
     #expand-all:hover { border-color: var(--muted); }
 
@@ -163,9 +166,15 @@
     }
     .content h2.sec-t::after { content: none; } /* h2 側の罫線は summary 側に任せる */
     .sec-n { font-size: 11px; font-weight: 400; color: var(--muted); flex: none; }
-    .sec > summary::before { content: "▾"; display: none; font-size: 11px; color: var(--muted); flex: none; }
-    .sec:not([open]) > summary::before { content: "▸"; }
+    /* 開閉の三角は全幅で出す。デスクトップで出していなかったため、
+       節が畳まれていても「押せる」ことが分からなかった */
+    .sec > summary::before {
+      content: "▶"; font-size: 10px; color: var(--muted); flex: none;
+      transition: transform .15s; display: inline-block; width: 1em; text-align: center;
+    }
+    .sec[open] > summary::before { transform: rotate(90deg); }
     .sec > summary:hover .sec-t { color: var(--link); }
+    .sec > summary:hover::before { color: var(--link); }
 
     /* --- 先頭へ戻る（画面幅によらず、スクロールしたときだけ出す） --- */
     #to-top {
@@ -245,7 +254,6 @@
 
       /* 畳んだ見出しがそのまま目次になる。タップ領域を44px確保する */
       .sec > summary { display: flex; margin-top: 20px; margin-bottom: 12px; padding: 12px 10px; min-height: 44px; }
-      .sec > summary::before { display: inline; }
       .sec:not([open]) > summary { background: var(--panel); border: 1px solid var(--border); }
       .sec:not([open]) > summary::after { display: none; }
     }
