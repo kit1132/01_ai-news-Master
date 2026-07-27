@@ -76,10 +76,10 @@
     }
     .month > summary::-webkit-details-marker { display: none; }
     .month > summary:hover { background: var(--border2); }
-    .chev { display: inline-block; transition: transform .15s; color: #6e7681; }
+    .chev { display: inline-block; transition: transform .15s; color: var(--muted); }
     .month[open] > summary .chev { transform: rotate(90deg); }
     .m-label { font-weight: 600; }
-    .m-count { margin-left: auto; font-size: 11px; color: #6e7681; }
+    .m-count { margin-left: auto; font-size: 11px; color: var(--muted); }
 
     /* 入れ子 ul に padding が二重に付かないよう .items だけで完結させる */
     .items { list-style: none; padding: 0 0 6px 0; margin: 0; }
@@ -97,16 +97,17 @@
     .badge { margin-left: auto; font-size: 10px; padding: 2px 7px; border-radius: 999px; white-space: nowrap; flex: none; }
     .b-today { background: #238636; color: #fff; }
     .b-week  { background: #1f6feb; color: #fff; }
-    .b-part  { background: #30363d; color: var(--muted); }
+    .b-part  { background: #30363d; color: #c9d1d9; }
 
     /* --- 本文 --- */
     .content { max-width: 760px; margin: 0 auto; }
 
-    /* 見出しは単調増加にする。h2 はセクションの仕切りなので小さく、記事タイトル h3 を最も強くする */
     .content h1 { font-size: 30px; line-height: 1.35; color: var(--fg-strong); letter-spacing: .01em; margin-bottom: 6px; }
+    /* 節見出し。節が1つ以下で折りたたみが適用されないファイルでも同じ見え方にする */
     .content h2 {
-      font-size: 13px; font-weight: 700; color: var(--muted); letter-spacing: .12em;
-      margin-top: 44px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
+      font-size: 16px; font-weight: 700; color: var(--fg-strong); letter-spacing: .02em; line-height: 1.4;
+      margin-top: 44px; margin-bottom: 18px; display: flex; align-items: center; gap: 10px;
+      border-left: 3px solid var(--accent); padding: 2px 0 2px 10px;
     }
     .content h2::after { content: ""; flex: 1; height: 1px; background: var(--border); }
     .content h3 { font-size: 20px; line-height: 1.55; color: var(--fg-strong); font-weight: 700; margin-top: 34px; margin-bottom: 14px; }
@@ -128,19 +129,27 @@
     .content img { max-width: 100%; height: auto; }
 
     /* --- `## セクション` の折りたたみ --- */
-    /* h2 は summary に置き換わるので、見た目は h2 と揃えたうえで押せることを示す */
+    /* h2 は summary の「中に」入る（置き換えない）。押せることと節の始まりを視覚的に示す */
     .sec > summary {
       list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px;
-      font-size: 13px; font-weight: 700; color: var(--muted); letter-spacing: .12em;
-      margin-top: 44px; margin-bottom: 16px; border-radius: 6px;
+      margin-top: 44px; margin-bottom: 18px; border-radius: 0 6px 6px 0;
+      /* 左のアクセントバーで節の始まりを明示する */
+      border-left: 3px solid var(--accent); padding: 2px 0 2px 10px;
     }
     .sec > summary::-webkit-details-marker { display: none; }
     .sec > summary::after { content: ""; flex: 1; height: 1px; background: var(--border); }
-    .sec > summary::before { content: "▾"; display: none; font-size: 10px; color: #6e7681; flex: none; }
+    /* 節見出しは h2 要素のまま summary の中に入っている（見出し階層を壊さないため）。
+       `.content h2`（特異性 0,1,1）に勝つ必要があるので `.content h2.sec-t` で指定する */
+    .content h2.sec-t {
+      font-size: 16px; font-weight: 700; color: var(--fg-strong); line-height: 1.4;
+      letter-spacing: .02em; margin: 0; padding: 0; border: none; display: block;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .content h2.sec-t::after { content: none; } /* h2 側の罫線は summary 側に任せる */
+    .sec-n { font-size: 11px; font-weight: 400; color: var(--muted); flex: none; }
+    .sec > summary::before { content: "▾"; display: none; font-size: 11px; color: var(--muted); flex: none; }
     .sec:not([open]) > summary::before { content: "▸"; }
-    .sec-t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .sec-n { font-size: 11px; font-weight: 400; color: #6e7681; letter-spacing: 0; flex: none; }
-    .sec > summary:hover { color: var(--fg); }
+    .sec > summary:hover .sec-t { color: var(--link); }
 
     /* --- 先頭へ戻る --- */
     #to-top {
@@ -173,7 +182,7 @@
     .lbl > .v { line-height: 1.9; font-size: 15px; min-width: 0; }
     .lbl > .v > :last-child { margin-bottom: 0; }
     .lbl-key    { --rail:#58a6ff; }  /* 要点 / 事実 */
-    .lbl-detail { --rail:#6e7681; }  /* 詳細 / 根拠 */
+    .lbl-detail { --rail:#8b949e; }  /* 詳細 / 根拠。#6e7681 は 4.12:1 で AA 未達だった */
     .lbl-mean   { --rail:#d29922; }  /* 意味 / 影響 */
     .lbl-act    { --rail:#3fb950; }  /* 行動指針（旧フォーマットのみ） */
     ul.lbl-list { list-style: none; padding: 0; margin: 0 0 20px; }
@@ -562,9 +571,12 @@
 
         const sum = document.createElement('summary');
         sum.className = 'sec-h';
-        const t = document.createElement('span');
+        // ⚠️ h2 を summary に「置き換えない」。h2 要素ごと summary の中に入れる。
+        // 置き換えると文書から h2 が消え、見出し階層が h1 → h3 に飛んで
+        // スクリーンリーダーの見出しジャンプでセクションに到達できなくなる（2026-07-27 の指摘 2-1）。
+        // HTML 仕様上 summary の内容モデルは「phrasing content ＋ heading content」なので h2 を入れてよい。
+        const t = h2.cloneNode(true);
         t.className = 'sec-t';
-        t.textContent = h2.textContent.trim();
         const body = kids.slice(start + 1, end);
         const n3 = body.filter((el) => el.tagName === 'H3').length;
         const nli = body.reduce((a, el) => a + el.querySelectorAll('li').length, 0);
