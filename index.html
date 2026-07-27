@@ -202,7 +202,10 @@
         box-shadow: 0 0 24px #0008;
       }
       .sidebar.open { transform: none; }
-      .scrim { display: block; position: fixed; inset: var(--topbar) 0 0 0; background: #0008; z-index: 20; }
+      /* ⚠️ hidden 属性ではなくクラスで出し分ける。
+         `.scrim { display:block }` は UA スタイルの `[hidden]{display:none}` に勝つため、
+         hidden を付けても消えず、本文を覆って画面が暗くなりタッチも奪われる（2026-07-27 に発生） */
+      .scrim.show { display: block; position: fixed; inset: var(--topbar) 0 0 0; background: #0008; z-index: 20; }
       .main { padding: 18px 16px 76px; }
       .content h1 { font-size: 24px; }
       .content h3 { font-size: 18px; }
@@ -243,7 +246,7 @@
     <nav class="sidebar">
       <div id="file-list"></div>
     </nav>
-    <div class="scrim" id="scrim" hidden></div>
+    <div class="scrim" id="scrim"></div>
     <button id="to-top" type="button" aria-label="先頭へ戻る">↑</button>
     <main class="main">
       <div id="content" class="content">
@@ -724,7 +727,7 @@
 
     function setDrawer(open) {
       $('.sidebar').classList.toggle('open', open);
-      $('#scrim').hidden = !open;
+      $('#scrim').classList.toggle('show', open);
     }
 
     function boot() {
