@@ -686,14 +686,19 @@
       syncExpandBtn();
     }
 
+    const allSections = () => [...document.querySelectorAll('details.sec')];
+    const isAllOpen = () => { const s = allSections(); return s.length > 0 && s.every((d) => d.open); };
+
+    // ボタンの表示は保存値ではなく「今の DOM の状態」から導く。
+    // 保存値を見ていたとき、「すべて閉じる」を押しても先頭の節（ハイライト）だけ開いたままで、
+    // ラベルの約束と動作が食い違っていた
     function syncExpandBtn() {
       const btn = $('#expand-all');
       if (!btn) return;
       // 折りたたむ節が無い日は、このボタン自体を出さない。
       // 「今日だけ挙動が違う」ように見えるのを避けるため、機能の有無と操作子の有無を一致させる
-      const n = document.querySelectorAll('details.sec').length;
-      $('.main-tools').classList.toggle('hide', n === 0);
-      const all = wantExpandAll();
+      $('.main-tools').classList.toggle('hide', allSections().length === 0);
+      const all = isAllOpen();
       btn.setAttribute('aria-pressed', String(all));
       btn.textContent = all ? 'すべて閉じる' : 'すべて開く';
       btn.title = all
@@ -701,9 +706,12 @@
         : 'すべての節を開く（ページ内検索をする前に押してください）';
     }
 
+    // すべて開く／すべて閉じる。閉じるときは先頭の節も例外にしない
     function toggleExpandAll() {
-      setExpandAll(!wantExpandAll());
-      applySectionOpen();
+      const open = !isAllOpen();
+      setExpandAll(open);              // 次に開く記事にも引き継ぐ
+      allSections().forEach((d) => { d.open = open; });
+      syncExpandBtn();
     }
 
     // 裸URL（リンクテキストが URL そのもの）を出典ドメインのチップにする。
@@ -882,6 +890,9 @@
       $('#menu-btn').addEventListener('click', () => setDrawer(!$('#sidebar').classList.contains('open')));
       $('#scrim').addEventListener('click', () => setDrawer(false));
       $('#expand-all').addEventListener('click', toggleExpandAll);
+      // 個別に節を開閉したときもボタンの表示を合わせる。
+      // details の toggle イベントはバブルしないので capture で受ける
+      $('#content').addEventListener('toggle', syncExpandBtn, true);
       document.addEventListener('keydown', (ev) => {
         if (ev.key === 'Escape' && $('#sidebar').classList.contains('open')) setDrawer(false);
       });
