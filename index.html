@@ -206,6 +206,12 @@
       margin-bottom: 32px; padding-bottom: 20px; border-bottom: 1px solid var(--border);
     }
 
+    /* 見出しの「— 含意」側を落として、タイトルを相対的に立てる。
+       h3 は既に 700 なのでタイトル側を太くする余地がない（decorateHeadings 参照） */
+    .content h3 .h3-sub {
+      font-weight: 400; color: var(--muted); font-size: .82em; letter-spacing: 0;
+    }
+
     /* 太字の減圧: 短い語は太字のまま、20字を超えるものは「文の強調」なのでウェイトを落とす */
     .content strong { color: var(--fg-strong); font-weight: 700; }
     .content strong.long {
@@ -634,6 +640,7 @@
       decorateLinks(box);
       decorateLabels(box);
       decorateBold(box);
+      decorateHeadings(box);
       decorateLede(box);
       groupSections(box); // ノードを移動するので必ず最後に実行する
       // groupSections は節が1つ以下だと早期 return するため、
@@ -819,6 +826,42 @@
     function decorateBold(box) {
       for (const s of box.querySelectorAll('strong')) {
         if (s.textContent.trim().length > 20) s.classList.add('long');
+      }
+    }
+
+    // 見出しの「タイトル — 含意」を分け、含意側を弱める。
+    // h3 は既に font-weight:700 なのでタイトルをこれ以上太くはできない。
+    // 代わりに後半を落として、結果としてタイトルが立つようにする。
+    //
+    // 区切りは3形式が混在している（2026-07-28 実測・全ソース）:
+    //   ` — `   現行の標準形式               例) Opus 5 が GA — 翌日には既定が切り替わった
+    //   `）— `  weekly のリポタグ（前空白なし）例) Codex CLI 0.145.0（7/21）— [master]
+    //   `——`    industry の旧ファイル         例) Pew調査（6月）——米成人の49%が…
+    // そのため `\s*—+\s*` で拾う。ハイフン `-` は区切りではない
+    // （`Cursor 3.6 - Auto-review` のようにタイトル内の文字）ので対象外。
+    const RE_H3SEP = /\s*—+\s*/;
+
+    function decorateHeadings(box) {
+      for (const h of box.querySelectorAll('h3')) {
+        // タイトル内に `code` やリンクが入る見出しがあるため、innerHTML の文字列置換はしない。
+        // 区切りを含むテキストノードを見つけて、そこから後ろのノードごと span へ移す
+        for (const node of [...h.childNodes]) {
+          if (node.nodeType !== Node.TEXT_NODE) continue;
+          const m = node.nodeValue.match(RE_H3SEP);
+          if (!m) continue;
+
+          // 区切りが2つある旧形式（タイトル — 詳細 — 含意）は最初の区切りで分ける。
+          // 立てたいのはタイトルなので、2つ目以降は含意側にまとめてよい
+          const tail = node.splitText(m.index);
+          const sub = document.createElement('span');
+          sub.className = 'h3-sub';
+          // appendChild は移動なので、先に対象を控えてから動かす
+          const move = [];
+          for (let n = tail; n; n = n.nextSibling) move.push(n);
+          for (const n of move) sub.appendChild(n);
+          h.appendChild(sub);
+          break; // 1見出しにつき1回だけ
+        }
       }
     }
 
