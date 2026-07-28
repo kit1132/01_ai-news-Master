@@ -212,6 +212,10 @@
       font-weight: 400; color: var(--muted); font-size: .82em; letter-spacing: 0;
     }
 
+    /* 箇条書きは逆に、タイトル側を太くする（li の基本ウェイトは 400 なので余地がある）。
+       `**ラベル**:` 形式は strong が担当するので、ここでは太字を重ねない（decorateListTitles 参照） */
+    .content li .li-title, .content li > p > .li-title { font-weight: 600; color: var(--fg-strong); }
+
     /* 太字の減圧: 短い語は太字のまま、20字を超えるものは「文の強調」なのでウェイトを落とす */
     .content strong { color: var(--fg-strong); font-weight: 700; }
     .content strong.long {
@@ -641,6 +645,7 @@
       decorateLabels(box);
       decorateBold(box);
       decorateHeadings(box);
+      decorateListTitles(box);
       decorateLede(box);
       groupSections(box); // ノードを移動するので必ず最後に実行する
       // groupSections は節が1つ以下だと早期 return するため、
@@ -861,6 +866,45 @@
           for (const n of move) sub.appendChild(n);
           h.appendChild(sub);
           break; // 1見出しにつき1回だけ
+        }
+      }
+    }
+
+    // 箇条書きの「タイトル — 説明」も分ける。h3 とは扱いが逆で、
+    // li の基本ウェイトは 400 なのでタイトル側を太くできる（h3 は既に 700 で余地がなかった）。
+    //
+    // `**ラベル**: 説明` 形式は strong が既に太字なので触らない。
+    // 2026-07-28 実測では箇条書きの多数派がこの形式（Copilot 135/168・weekly 519/816）。
+    // ただし `**Claude Security** プラグインが public beta — …` のように
+    // 「太字を含むタイトル」もあるため、strong の直後が `:` のときだけ除外する。
+    function decorateListTitles(box) {
+      for (const li of box.querySelectorAll('li')) {
+        // ⚠️ 緩いリスト（項目の間に空行があるもの）は marked が中身を <p> で包むため、
+        // li の直下にテキストノードが無い。01 Master が緩いリスト、05 daily が密なリストで
+        // 実際に両方が混在する。包まれている場合は <p> 側を対象にする
+        const firstEl = li.firstElementChild;
+        const host = (firstEl && firstEl.tagName === 'P' && li.firstChild === firstEl) ? firstEl : li;
+
+        const head = host.firstChild;
+        if (head && head.nodeType === Node.ELEMENT_NODE && head.tagName === 'STRONG') {
+          const after = head.nextSibling;
+          if (after && after.nodeType === Node.TEXT_NODE && /^\s*[:：]/.test(after.nodeValue)) continue;
+        }
+
+        for (const node of [...host.childNodes]) {
+          if (node.nodeType !== Node.TEXT_NODE) continue;
+          const m = node.nodeValue.match(RE_H3SEP);
+          if (!m) continue;
+
+          node.splitText(m.index); // node は区切りの直前までになる
+          // 先頭から node までを span へ移す。appendChild は移動なので先に控える
+          const move = [];
+          for (let n = host.firstChild; n; n = n.nextSibling) { move.push(n); if (n === node) break; }
+          const title = document.createElement('span');
+          title.className = 'li-title';
+          host.insertBefore(title, host.firstChild);
+          for (const n of move) title.appendChild(n);
+          break; // 1項目につき1回だけ
         }
       }
     }
