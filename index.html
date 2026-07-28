@@ -63,9 +63,22 @@
     .pill[aria-current="true"] { background: #1f6feb33; border-color: var(--accent); color: var(--link); font-weight: 600; }
 
     /* 節の一括開閉。折りたたみで本文がページ内検索に出ない問題の回避手段も兼ねる */
-    .main-tools { max-width: 760px; margin: 0 auto 14px; display: flex; justify-content: flex-end; }
-    /* 折りたたむ節が無い日は余白ごと消す。`display:flex` があるので hidden 属性ではなくクラスで制御する */
-    .main-tools.hide { display: none; }
+    .main-tools {
+      max-width: 760px; margin: 0 auto 14px;
+      display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    }
+    /* 折りたたむ節が無い日に消すのは「すべて開く」ボタンだけ。
+       以前はこの行ごと（.main-tools）消していたが、概要リンクを同居させたため
+       節が無い日にリンクまで消えてしまう。`display:inline-flex` があるので
+       hidden 属性ではなくクラスで制御する */
+    #expand-all.hide { display: none; }
+    .about-link {
+      color: var(--muted); text-decoration: none; font-size: 12px;
+      border: 1px solid var(--border); border-radius: 6px; padding: 7px 12px;
+      min-height: 36px; display: inline-flex; align-items: center; gap: 6px;
+      white-space: nowrap; flex: none;
+    }
+    .about-link:hover, .about-link:focus-visible { color: var(--link); background: var(--border2); }
     #expand-all {
       background: var(--border2); border: 1px solid var(--border); color: var(--fg);
       font: inherit; font-size: 12px; padding: 7px 12px; border-radius: 6px; cursor: pointer;
@@ -252,6 +265,10 @@
       .lbl { grid-template-columns: 1fr; gap: 4px; padding-left: 10px; }
       .lbl > .k { padding-top: 0; }
 
+      /* 本文上の操作子もタップ領域を44px確保する（設計書の合格条件）。
+         デスクトップはマウス操作なので 36px のままでよい */
+      .about-link, #expand-all { min-height: 44px; }
+
       /* 畳んだ見出しがそのまま目次になる。タップ領域を44px確保する */
       .sec > summary { display: flex; margin-top: 20px; margin-bottom: 12px; padding: 12px 10px; min-height: 44px; }
       .sec:not([open]) > summary { background: var(--panel); border: 1px solid var(--border); }
@@ -323,6 +340,7 @@
     <main class="main">
       <!-- トップバーに置くとピルの幅を奪って「業界」が見えなくなったため本文側に置く -->
       <div class="main-tools">
+        <a class="about-link" href="about.html">? このサイトについて</a>
         <button id="expand-all" type="button" aria-pressed="false">すべて開く</button>
       </div>
       <div id="content" class="content">
@@ -696,8 +714,9 @@
       const btn = $('#expand-all');
       if (!btn) return;
       // 折りたたむ節が無い日は、このボタン自体を出さない。
-      // 「今日だけ挙動が違う」ように見えるのを避けるため、機能の有無と操作子の有無を一致させる
-      $('.main-tools').classList.toggle('hide', allSections().length === 0);
+      // 「今日だけ挙動が違う」ように見えるのを避けるため、機能の有無と操作子の有無を一致させる。
+      // 消すのはボタンだけ。行ごと消すと同居する概要リンクまで巻き添えになる
+      btn.classList.toggle('hide', allSections().length === 0);
       const all = isAllOpen();
       btn.setAttribute('aria-pressed', String(all));
       btn.textContent = all ? 'すべて閉じる' : 'すべて開く';

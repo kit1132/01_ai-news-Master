@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>このサイトについて — AI News</title>
+  <meta name="description" content="AI関連ニュースを毎朝自動収集し、日本語ダイジェストとして配信するサイトの概要。5つのタブの読み分けと情報源。">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* ビューア（index.html）と同一のパレット。ビューアは dark 固定のためライトテーマは持たない */
+    :root {
+      color-scheme: dark;
+      --bg:#0d1117; --panel:#161b22; --border:#30363d; --border2:#21262d;
+      --fg:#c9d1d9; --fg-strong:#f0f6fc; --muted:#8b949e; --link:#58a6ff;
+      --accent:#1f6feb;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans CJK JP", sans-serif;
+      background: var(--bg); color: var(--fg);
+      line-height: 1.75; font-size: 15px;
+    }
+
+    .topbar {
+      background: var(--panel); border-bottom: 1px solid var(--border);
+      padding: 10px 16px; display: flex; align-items: center; gap: 12px;
+    }
+    .brand { font-size: 11px; color: #6e7681; letter-spacing: .12em; white-space: nowrap; }
+    .back {
+      margin-left: auto; color: var(--link); text-decoration: none;
+      font-size: 13px; border: 1px solid var(--border); border-radius: 6px;
+      padding: 7px 12px; min-height: 44px; display: inline-flex; align-items: center;
+    }
+    .back:hover, .back:focus-visible { background: var(--border2); text-decoration: underline; }
+
+    main { max-width: 820px; margin: 0 auto; padding: 28px 16px 64px; }
+
+    h1 { font-size: 24px; color: var(--fg-strong); line-height: 1.4; margin-bottom: 8px; }
+    .lede { color: var(--muted); font-size: 14px; margin-bottom: 32px; }
+
+    h2 {
+      font-size: 17px; color: var(--fg-strong); margin: 40px 0 12px;
+      padding-bottom: 6px; border-bottom: 1px solid var(--border);
+    }
+    p { margin-bottom: 14px; }
+    ul { margin: 0 0 14px 1.3em; }
+    li { margin-bottom: 6px; }
+    strong { color: var(--fg-strong); }
+    a { color: var(--link); }
+
+    /* 表は幅の狭い端末で自身がスクロールする。本文は横に流れない */
+    .tw { overflow-x: auto; margin-bottom: 16px; -webkit-overflow-scrolling: touch; }
+    table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 14px; }
+    th, td { border: 1px solid var(--border); padding: 9px 11px; text-align: left; vertical-align: top; }
+    th { background: var(--border2); color: var(--fg-strong); font-weight: 600; white-space: nowrap; }
+    td .tab { color: var(--fg-strong); font-weight: 600; white-space: nowrap; }
+
+    .flow { list-style: none; margin-left: 0; }
+    .flow li {
+      display: flex; gap: 12px; align-items: baseline;
+      padding: 8px 0; border-bottom: 1px solid var(--border2);
+    }
+    .flow li:last-child { border-bottom: 0; }
+    .flow time {
+      font-variant-numeric: tabular-nums; color: var(--fg-strong);
+      font-weight: 600; flex: none; width: 82px;
+    }
+
+    .note {
+      background: var(--panel); border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 6px; padding: 14px 16px; margin-bottom: 16px;
+    }
+    .note p:last-child { margin-bottom: 0; }
+
+    footer {
+      margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--border);
+      color: var(--muted); font-size: 13px;
+    }
+
+    @media (max-width: 600px) {
+      body { font-size: 14px; }
+      main { padding: 20px 14px 48px; }
+      h1 { font-size: 20px; }
+      .flow li { flex-direction: column; gap: 2px; }
+      .flow time { width: auto; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <span class="brand">AI NEWS</span>
+    <a class="back" href="./">← ダイジェストへ戻る</a>
+  </header>
+
+  <main>
+    <h1>このサイトについて</h1>
+    <p class="lede">
+      AI に関するニュースを毎朝自動で収集し、日本語のダイジェストとして配信しています。
+      公式のリリースノート・企業ブログ・調査機関のレポートを情報源とし、全項目に出典 URL を付けています。
+    </p>
+
+    <h2>5つのタブの読み分け</h2>
+    <p>
+      上部のタブは「まとめ」と「元ソース」の2群に分かれています。
+      <strong>1日1回だけ見るなら「今日のまとめ」だけで足ります。</strong>
+      特定の分野を深く追いたいときに元ソース側を開いてください。
+    </p>
+    <div class="tw">
+      <table>
+        <thead>
+          <tr><th>タブ</th><th>扱う範囲</th><th>更新</th><th>こんな時に見る</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="tab">今日のまとめ</span></td>
+            <td>下の3ソースを1本に統合した当日分</td>
+            <td>毎朝 7:00</td>
+            <td>まず最初に開く場所</td>
+          </tr>
+          <tr>
+            <td><span class="tab">今週のまとめ</span></td>
+            <td>直近1週間の流れと帰結</td>
+            <td>毎週月曜 3:00</td>
+            <td>週明けの振り返り、数日空いたとき</td>
+          </tr>
+          <tr>
+            <td><span class="tab">開発ツール</span></td>
+            <td>Claude / OpenAI / Google / Cursor などの AI 開発ツール（26 ソース）</td>
+            <td>毎朝 4:10</td>
+            <td>使っているツールの変更を追う</td>
+          </tr>
+          <tr>
+            <td><span class="tab">Microsoft</span></td>
+            <td>M365 Copilot / Copilot Studio / Power Platform（24 ソース）</td>
+            <td>毎朝 6:10</td>
+            <td>Microsoft 案件の情報収集</td>
+          </tr>
+          <tr>
+            <td><span class="tab">業界</span></td>
+            <td>市場データ・調査・資金調達・規制の動向（18 ソース）</td>
+            <td>毎朝 5:10</td>
+            <td>提案資料の根拠を探す</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      左上の <strong>☰</strong>（スマートフォン）または左側の一覧から、過去の日付にさかのぼれます。
+    </p>
+
+    <h2>1日の流れ</h2>
+    <p>3つの元ソースが先に生成され、それをまとめたものが 7:00 に出ます。時刻はすべて日本時間です。</p>
+    <ul class="flow">
+      <li><time>4:10</time><span>「開発ツール」を生成</span></li>
+      <li><time>5:10</time><span>「業界」を生成</span></li>
+      <li><time>6:10</time><span>「Microsoft」を生成</span></li>
+      <li><time>7:00</time><span>3つを統合して「今日のまとめ」を生成</span></li>
+      <li><time>月曜 3:00</time><span>直近1週間分をまとめて「今週のまとめ」を生成</span></li>
+    </ul>
+
+    <h2>情報源</h2>
+    <p>
+      分野ごとに 18〜26 の情報源を毎朝巡回しています。中心になるのは次のような一次情報です。
+    </p>
+    <ul>
+      <li><strong>公式のリリースノート・変更履歴</strong>（Claude Code Changelog、Microsoft 365 Copilot Release Notes など）</li>
+      <li><strong>企業の公式ブログ・発表</strong>（Anthropic、OpenAI、Google、Microsoft など）</li>
+      <li><strong>調査機関・公的機関のレポート</strong>（総務省 情報通信白書、Similarweb、IDC、a16z など）</li>
+      <li><strong>技術メディア・開発者コミュニティ</strong>（一次情報が取得できない場合の補完として）</li>
+    </ul>
+    <p>
+      掲載する項目には<strong>必ず出典 URL を付けています</strong>。数値や仕様を引用するときは、
+      その URL から原文にあたれます。
+    </p>
+
+    <h2>どう作られているか</h2>
+    <p>
+      収集から記事の執筆までを <strong>Claude Code</strong> のスケジュールタスクが自動で行っています。
+      毎朝決まった時刻に各サイトを巡回し、前回からの差分を抽出して、日本語のダイジェストに書き起こし、
+      公開までを人手を介さずに済ませています。
+    </p>
+
+    <h2>読むときの注意</h2>
+    <div class="note">
+      <p>
+        <strong>ダイジェストは自動生成です。</strong>
+        要約の過程で細部が落ちたり、解釈が入ったりすることがあります。
+      </p>
+      <p>
+        提案資料への引用や、意思決定の根拠に使う場合は、
+        <strong>各項目の出典 URL から原文を確認してください。</strong>
+        特に数値・料金・提供開始日は、原文が更新されている可能性があります。
+      </p>
+    </div>
+    <p>
+      情報源が一時的に取得できなかった日は、その分の項目が欠けることがあります。
+      「特筆事項なし」と書かれている場合は、実際に更新がなかったことを意味します。
+    </p>
+
+    <h2>開発者向け</h2>
+    <p>
+      収集対象サイトの定義、フィルタリング基準、生成手順はすべてリポジトリで管理しています。
+      構成や自分用に fork する手順は README を参照してください。
+    </p>
+    <ul>
+      <li><a href="https://github.com/kit1132/01_ai-news-Master">kit1132/01_ai-news-Master</a> — 開発ツール ＋ ビューア本体</li>
+      <li><a href="https://github.com/kit1132/02_ai-news-Copilot">kit1132/02_ai-news-Copilot</a> — Microsoft</li>
+      <li><a href="https://github.com/kit1132/03_ai-news-industry">kit1132/03_ai-news-industry</a> — 業界</li>
+      <li><a href="https://github.com/kit1132/04_ai-news-weekly">kit1132/04_ai-news-weekly</a> — 今週のまとめ</li>
+      <li><a href="https://github.com/kit1132/05_ai-news-daily">kit1132/05_ai-news-daily</a> — 今日のまとめ</li>
+    </ul>
+
+    <footer>
+      <a href="./">← ダイジェストへ戻る</a>
+    </footer>
+  </main>
+</body>
+</html>
