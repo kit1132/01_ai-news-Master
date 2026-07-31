@@ -247,6 +247,10 @@
     .lbl > .k { font-size: 11px; font-weight: 700; color: var(--rail, var(--muted)); padding-top: 5px; letter-spacing: .06em; }
     .lbl > .v { line-height: 1.9; font-size: 15px; min-width: 0; }
     .lbl > .v > :last-child { margin-bottom: 0; }
+    /* 値に吸収した箇条書き・続きの段落は、地の文より詰めて「同じ話の続き」に見せる */
+    .lbl > .v > ul, .lbl > .v > ol { margin: 10px 0 14px; }
+    .lbl > .v > ul > li, .lbl > .v > ol > li { margin-bottom: 6px; }
+    .lbl > .v > p { margin-bottom: 14px; }
     .lbl-key    { --rail:#58a6ff; }  /* 要点 / 事実 */
     .lbl-detail { --rail:#8b949e; }  /* 詳細 / 根拠。#6e7681 は 4.12:1 で AA 未達だった */
     .lbl-mean   { --rail:#d29922; }  /* 意味 / 影響 */
@@ -809,7 +813,24 @@
     //   3) `**事実**: …\n**根拠**: …`  … 空行がないため marked が1段落にまとめる（週次）
     // 3) を取りこぼすと週次は1件目の「事実」しか組めないので、段落内を走査して分割する。
     // 変換するのは「段落がラベルで始まる」場合だけ。文中の強調を誤ってラベル化しないため。
+    // 段落がラベルで始まるか（`**詳細**: …` の形）
+    function isLabelHead(el) {
+      const n = el.firstChild;
+      return !!n && n.nodeName === 'STRONG' && !!LABELS[n.textContent.replace(SEP_TAIL, '').trim()];
+    }
+
+    // ラベルの値をどこまで伸ばすか。次のラベル段落・見出し・区切り線・出典チップの手前で止める。
+    // `**詳細**: 本文` の後ろに箇条書きを続ける書き方（「列挙の外形化」ルール）をすると、
+    // marked は <p> と <ul> を別要素にする。吸収しないと箇条書きがラベルの枠の外へ落ち、
+    // 「別の話題が始まった」ように見えてしまう（2026-07-31 の kit 指摘）。
+    const isLabelStop = (el) =>
+      !el || /^H[1-6]$/.test(el.tagName) || el.tagName === 'HR' ||
+      (el.tagName === 'UL' && el.classList.contains('src')) ||
+      (el.tagName === 'P' && isLabelHead(el));
+
     function decorateLabels(box) {
+      // 走査対象は開始時点のスナップショット。吸収した要素も後で回ってくるが、
+      // 吸収は「次のラベル段落の手前」で止まるのでラベルとして二重処理されることはない
       for (const el of [...box.querySelectorAll('p, li')]) {
         const nodes = [...el.childNodes];
         const marks = [];
@@ -821,6 +842,7 @@
         if (!marks.length || marks[0].i !== 0) continue;
 
         const frag = document.createDocumentFragment();
+        let lastV = null; // 最後のラベルの値。後続の兄弟要素はここへ吸収する
         marks.forEach((m, mi) => {
           const end = mi + 1 < marks.length ? marks[mi + 1].i : nodes.length;
           const wrap = document.createElement('div');
@@ -836,13 +858,19 @@
           if (v.lastChild?.nodeType === 3) v.lastChild.textContent = v.lastChild.textContent.replace(/\s+$/, '');
           wrap.append(k, v);
           frag.appendChild(wrap);
+          lastV = v;
         });
 
         if (el.tagName === 'LI') {
           el.replaceChildren(frag);
           el.parentElement?.classList.add('lbl-list');
         } else {
+          // 後続の兄弟（箇条書き・続きの段落）を最後のラベルの値に取り込む。
+          // 参照を先に控えてから差し替える（差し替え後は el が DOM から外れるため）
+          const cont = [];
+          for (let n = el.nextElementSibling; !isLabelStop(n); n = n.nextElementSibling) cont.push(n);
           el.replaceWith(frag);
+          for (const n of cont) lastV.appendChild(n);
         }
       }
     }
@@ -941,8 +969,9 @@
 
     function decorateItemFold(box) {
       for (const li of box.querySelectorAll('li')) {
-        // 出典チップ・ハイライトのラベル列・子リストの中の項目は対象外
-        if (li.closest('ul.src, ul.lbl-list')) continue;
+        // 出典チップ・ラベルの値の中（＝ハイライト本文）・子リストの中の項目は対象外。
+        // ハイライトは3件しかなく全部読む前提なので、畳むのはカテゴリ項目だけにする
+        if (li.closest('ul.src, ul.lbl-list, .lbl')) continue;
         if (li.parentElement?.parentElement?.closest('li')) continue;
         if (li.textContent.length < FOLD_MIN_HEAD + FOLD_MIN_REST) continue;
 
