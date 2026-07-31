@@ -27,8 +27,13 @@
     }
 
     /* --- 通知帯 --- */
+    /* ⚠️ 位置決めはラッパー側に持たせる。個々の .banner を fixed にすると
+       #fatal と #warn が同じ top:0 で完全に重なり、後から出る #warn が
+       **再読み込みボタンを持つ #fatal を隠す**（375px 実測・両方とも高さ59px）。
+       さらにバナーはトップバーの上に乗るため、モバイルでは ☰（y 23〜57px）が
+       押せなくなり、日付ドロワーを開く手段が無くなる。 */
+    #banners { position: fixed; top: 0; left: 0; right: 0; z-index: 99; }
     .banner {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 99;
       padding: 10px 14px; font-size: 13px; line-height: 1.5;
     }
     .b-err  { background: #da3633; color: #fff; }
@@ -40,7 +45,8 @@
 
     /* --- トップバー（2段：まとめ / 元ソース） --- */
     .topbar {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 40;
+      /* バナーが出ている間はその下へ退避する（--banner-h は syncTopbarHeight が測る） */
+      position: fixed; top: var(--banner-h, 0px); left: 0; right: 0; z-index: 40;
       background: var(--panel); border-bottom: 1px solid var(--border);
       display: flex; align-items: center; gap: 10px; padding: 8px 12px;
     }
@@ -314,7 +320,7 @@
        節の展開は JS の beforeprint で行う（CSS からは details の open を変えられないため）。
        提案資料の根拠として保存する用途があるので、本文が欠けないことを最優先にする */
     @media print {
-      .topbar, .sidebar, .scrim, #to-top, .main-tools, .banner { display: none !important; }
+      .topbar, .sidebar, .scrim, #to-top, .main-tools, #banners { display: none !important; }
       .layout { display: block; height: auto; padding-top: 0; }
       .main { overflow: visible; padding: 0; }
       .content { max-width: none; }
@@ -334,8 +340,10 @@
   </style>
 </head>
 <body>
-  <div id="fatal" class="banner b-err" hidden></div>
-  <div id="warn" class="banner b-warn" hidden></div>
+  <div id="banners">
+    <div id="fatal" class="banner b-err" hidden></div>
+    <div id="warn" class="banner b-warn" hidden></div>
+  </div>
 
   <header class="topbar">
     <button id="menu-btn" type="button" aria-label="日付の一覧を開く" aria-expanded="false" aria-controls="sidebar">☰</button>
@@ -479,12 +487,14 @@
       btn.addEventListener('click', () => location.reload());
       el.appendChild(btn);
       el.hidden = false;
+      syncTopbarHeight();   // バナーのぶんトップバー以下を押し下げる
     }
 
     function showWarn(msg) {
       const el = $('#warn');
       el.textContent = msg;
       el.hidden = false;
+      syncTopbarHeight();
     }
 
     async function loadIndex(sourceId) {
@@ -690,7 +700,18 @@
         t.className = 'sec-t';
         const body = kids.slice(start + 1, end);
         const n3 = body.filter((el) => el.tagName === 'H3').length;
-        const nli = body.reduce((a, el) => a + el.querySelectorAll('li').length, 0);
+        // ⚠️ 数えるのは「最上位のリスト項目」だけ。
+        // 旧実装は querySelectorAll('li') で**入れ子の内訳と出典チップまで**数えており、
+        // 2026-07-31 実測で 01 Master の「コーディングエージェント / 開発ツール」節が
+        // 本文4項目に対して「13件」と表示されていた（列挙の外形化で内訳が増えたため）。
+        // 畳んだ見出しは目次であり、この数字が開くかどうかの唯一の量的手がかりになる。
+        const nli = body.reduce((a, el) => {
+          const lists = [el, ...el.querySelectorAll('ul, ol')].filter((n) =>
+            (n.tagName === 'UL' || n.tagName === 'OL') &&
+            !n.classList.contains('src') &&          // 出典チップは項目ではない
+            !n.parentElement?.closest('li'));        // 入れ子の内訳は数えない
+          return a + lists.reduce((b, l) => b + l.querySelectorAll(':scope > li').length, 0);
+        }, 0);
         const cnt = n3 || nli;
         const c = document.createElement('span');
         c.className = 'sec-n';
@@ -783,10 +804,33 @@
         a.textContent = host;
         a.title = href;
         const li = a.closest('li');
-        // li の中身がそのリンクだけなら、その ul をチップの列にする
+        // li の中身がそのリンクだけなら「出典 li」として印を付ける。
+        // ul をチップ列にするかは、本文 li を巻き込まないよう2パス目で決める
         if (li && li.textContent.trim() === host && li.parentElement?.tagName === 'UL') {
-          li.parentElement.classList.add('src');
+          li.dataset.srcOnly = '1';
         }
+      }
+
+      // ⚠️ 2パス目。本文の箇条書きと出典URLが同じ ul に入る日がある。
+      // Markdown では項目間の空行はリストを終端しないため、
+      //     - 本文
+      //     （空行）
+      //     - https://example.com
+      // が1つの ul になる。1パス目で ul にクラスを付けていたときは、この日の
+      // **本文まで出典チップの見た目（中黒なし・インデント0・横並び）になっていた**。
+      // 2026-07-31 実測: 全5リポの 5,381 リストブロック中 705 箇所が混在。
+      // 当日の 03_industry だけで4箇所・本文13行が巻き添えになっていた。
+      for (const ul of box.querySelectorAll('ul')) {
+        const items = [...ul.children];
+        const srcItems = items.filter((li) => li.dataset.srcOnly === '1');
+        if (!srcItems.length) continue;
+        if (srcItems.length === items.length) { ul.classList.add('src'); continue; }
+        // 混在している ul は、出典 li だけを直後の ul.src へ切り出す。
+        // こうすると「崩れていない日」とまったく同じ描画に収束する
+        const out = document.createElement('ul');
+        out.className = 'src';
+        for (const li of srcItems) out.appendChild(li);
+        ul.after(out);
       }
     }
 
@@ -973,9 +1017,13 @@
     }
 
     // トップバーが2段になったため高さは固定値にできない。実測して CSS 変数に反映する。
+    // バナー（0〜2本）とトップバーの高さを測り、本文・サイドバー・スクリムの
+    // 上端をまとめて押し下げる。--topbar は .layout / .sidebar / .scrim が参照する
     function syncTopbarHeight() {
+      const bh = $('#banners').offsetHeight;
+      document.documentElement.style.setProperty('--banner-h', bh + 'px');
       const h = document.querySelector('.topbar').offsetHeight;
-      if (h) document.documentElement.style.setProperty('--topbar', h + 'px');
+      if (h) document.documentElement.style.setProperty('--topbar', (h + bh) + 'px');
     }
 
     function switchSource(id) {
@@ -983,6 +1031,7 @@
       state.sourceId = id;
       renderPills();
       $('#warn').hidden = true;
+      syncTopbarHeight();   // 消えたバナーのぶん押し戻す
       $('#content').innerHTML = '<div class="empty">読み込み中…</div>';
       history.replaceState(null, '', '#' + id);
       loadIndex(id).catch((e) => showFatal(String(e.message || e)));
