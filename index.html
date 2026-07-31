@@ -52,7 +52,10 @@
     }
     #menu-btn {
       display: none; background: none; border: 1px solid var(--border); color: var(--fg);
-      border-radius: 6px; width: 34px; height: 34px; font-size: 16px; cursor: pointer; flex: none;
+      /* 44px はタップ領域の下限。モバイルで他の日付へ行く唯一の入口なのに 34px だった。
+         トップバーの内寸はピル2段（29px×2 + gap 6px = 64px）で既に 44px を超えているので
+         バーの高さは変わらない。デスクトップでは display:none なので影響しない */
+      border-radius: 6px; width: 44px; height: 44px; font-size: 16px; cursor: pointer; flex: none;
     }
     .brand { font-size: 11px; color: #6e7681; letter-spacing: .12em; white-space: nowrap; flex: none; }
     .groups { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1; }
@@ -188,7 +191,14 @@
     .content h2.sec-t {
       font-size: 16px; font-weight: 700; color: var(--fg-strong); line-height: 1.4;
       letter-spacing: .02em; margin: 0; padding: 0; border: none; display: block;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      /* ⚠️ 折り返す。以前は nowrap + ellipsis で1行に収めていたが、既定表示は
+         「先頭節のみ開」なので**畳んだ見出しの列がそのまま目次**になる。
+         375px 実測（2026-07-31）で5節が省略されており、`Microsoft 365 Copilot /
+         Copilot Studio` は31px 欠けていた。title 属性も無いため全文を得る手段が無く、
+         @media print も white-space を戻していないので PDF でも切れていた。
+         overflow:hidden だけ残すのは、フレックス項目の自動最小サイズを0に保ち
+         summary を押し広げないため。高さは auto なので行が増えても欠けない */
+      overflow: hidden;
     }
     .content h2.sec-t::after { content: none; } /* h2 側の罫線は summary 側に任せる */
     .sec-n { font-size: 11px; font-weight: 400; color: var(--muted); flex: none; }
