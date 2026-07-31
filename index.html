@@ -150,6 +150,13 @@
     .content hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
     .content a { color: var(--link); text-decoration: none; overflow-wrap: anywhere; }
     .content a:hover { text-decoration: underline; }
+    /* `code` の既定 monospace は、日本語が混じると環境によって明朝系へフォールバックし、
+       本文（ゴシック）と書体が混在する（2026-07-31 実測: 日本語入り code が8箇所あった）。
+       欧文は等幅のまま、CJK だけ確実にゴシックへ落とす順序で指定する */
+    .content code, .content pre, .content kbd, .content samp {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Roboto Mono",
+                   "Hiragino Sans", "Noto Sans CJK JP", "Yu Gothic", sans-serif;
+    }
     .content code { background: var(--panel); padding: 2px 6px; border-radius: 4px; font-size: 13px; color: #e6edf3; }
     .content pre { background: var(--panel); padding: 12px; border-radius: 6px; overflow-x: auto; margin-bottom: 20px; }
     .content pre code { background: none; padding: 0; }
