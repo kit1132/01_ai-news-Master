@@ -14,19 +14,6 @@
 
 ## 提案中
 
-- **B-020: オープンウェイトモデルの「重み公開の有無」を二次情報から判定する手順を `fetch-flow.md` に追加する**（起票 2026-08-02 / 最終確認 2026-08-02 / 回数 1）
-  - 対象: `.claude/rules/sites/fetch-flow.md`（新規セクション「一次不通時の判定補助」として追加）
-  - 変更内容: 一次（`huggingface.co` / ベンダー公式）に到達できない状態でオープンウェイトモデルの公開可否を書く場合の手順を定める。① 二次情報が「重み公開済み」と「API 限定」で割れているときは**どちらか一方を採って断定しない** ② 第三者の量子化リポジトリ（`*-GGUF` / `*-AWQ` / `*-MLX`）が**当該チェックポイント名を含む形**で存在するかを WebSearch で確認し、存在すれば「重み公開側の傍証あり」と併記する ③ それでも確定しない場合はダイジェスト本文に「一次未到達のため未確定」と明記する
-  - 根拠: 2026-08-02 の最重要項目である DeepSeek-V4-Flash-0731 で、二次情報が正面から矛盾した。「HF の MIT ライセンス重みは4月 Preview のままで 0731 は API 限定」と書く記事がある一方、「DeepSeek は 0731 を HF に公開した」と書く記事もあり、検索結果には `deepseek-ai/DeepSeek-V4-Flash-0731` の HF URL と、第三者の `unsloth/DeepSeek-V4-Flash-0731-GGUF` / `bullerwins/DeepSeek-V4-Flash-0731-GGUF` が同時に現れた。**第三者が当該チェックポイント名の GGUF を公開できている事実は、重みが入手可能であることの傍証として強い**が、現行ルールには二次情報どうしの矛盾を扱う規定がなく、判断が書き手任せになっている。一次確認は `huggingface.co`（`/api/models/deepseek-ai/DeepSeek-V4-Flash-0731` で curl exit 56）・`www.deepseek.com`（同）・`api-docs.deepseek.com`（同）がいずれもゲートウェイ拒否で不可能だった
-  - 制約: 根本解決は B-015 / B-013（`huggingface.co` の許可リスト追加）に依存する。本提案は到達不可が続く間の判定手順に限定する
-
-- **B-019: Anthropic Blog / News 項に安全性・インシデント公表を拾う検索キーワードを追加する**（起票 2026-08-01 / 最終確認 2026-08-02 / 回数 2）
-  - 対象: `.claude/rules/sites/daily-sources.md`「最優先」の「Anthropic Blog / News」項の `検索キーワード（WebSearch用）` 欄および `注目点` 欄
-  - 変更内容: ① 検索キーワードに `Anthropic safety incident report 2026` と `Anthropic model evaluation incident 2026` の2本を追加する ② 注目点に「モデル評価・安全性に関するインシデント公表（`anthropic.com/news` 配下の incident / evaluation 系ポスト）」を追記する
-  - 根拠: 2026-07-30 に `www.anthropic.com/news/investigating-incidents-cybersecurity-evals` が公開され、サイバー評価中の Claude 3モデルが実在3組織へ侵入していた件（141,006 セッション精査・PyPI への悪意あるパッケージ公開を含む）が明らかになったが、**2026-07-31 のダイジェストでは検出できず、2026-08-01 に一般報道経由で初検出した**。現行の検索キーワードは `Anthropic news announcement 2026` の1本のみで、新モデル・新プロダクトなど product announcement 寄りの語彙に偏っており、インシデント公表・評価結果の語彙を含まない。`www.anthropic.com` はオリジン 403 で WebFetch 運用ができずキーワード検索が唯一の経路であるため、語彙の欠落がそのまま検出漏れになる
-  - 制約: `www.anthropic.com` のオリジン 403 が解消すれば WebFetch で一覧を直接読めるため本提案は不要になる。B-013 のゲートウェイ拒否とは別種の障害（オリジン側ブロック）である点に注意
-  - 追記（2026-08-02）: 語彙の欠落による取りこぼしが**インシデント以外にも及んでいた**ことを確認した。本日 `Anthropic Claude announcement August 2026` で検索したところ、① Claude Code の週次上限50%増が 7/19 期限から **8/19 まで延長**されていた（Pro / Max / Team / seat-based Enterprise 対象）② AI for Science の希少疾患グラント（6ヶ月最大 $50,000 分の Claude クレジット・応募締切 8/2）が 7/20 に開始していた——の2件が新たに判明した。いずれも `.last-check-state.md` に記録がなく、**約2週間にわたって未追跡だった**。①は kit が日常的に使うツールの利用上限が変わる話で影響が直接的である。よって変更内容①の追加キーワードに `Claude Code usage limits change 2026` と `Anthropic grant program application 2026` の2本を加える（インシデント系2本と合わせて計4本）。注目点にも「利用上限・プラン枠の変更、研究助成等のプログラム開始と応募期限」を追記する
-
 - **B-018: OpenAI 系ソースが全て到達不可である実態を `daily-sources.md` に明記し、料金変更の検知手段を補う**（起票 2026-07-31 / 最終確認 2026-08-01 / 回数 2）
   - 対象: `.claude/rules/sites/daily-sources.md`「最優先」の OpenAI 系4項目（OpenAI Blog / News・OpenAI Developer Community Announcements・OpenAI Platform Changelog・ChatGPT Release Notes）と「高優先」の OpenAI Developer Blog、計5項目の取得方法欄・備考欄
   - 変更内容: ① 5項目すべての取得方法を「WebSearch（一次は実行環境から到達不可）」に統一し、2026-07-08 の B-011 で「WebFetch 一次に昇格」と書いた `developers.openai.com` 配下2項目の記載を実態に戻す ② OpenAI Blog / News 項の検索キーワードに料金変更検知用の `OpenAI price cut API pricing 2026` を追加する ③ 各項目の備考に「ゲートウェイ拒否のため許可リスト追加まで WebFetch は不可（B-013）」と明記する
@@ -87,3 +74,5 @@
 - B-009: Apple 関連ソースの追加 — **採用済み（2026-06-10）**。`daily-sources.md` 高優先に追加（秋 GA 後に頻度見直し）
 - B-010: Anthropic ↔ Harvey 提携の月次トラッキング — **採用済み（2026-06-10）**。`interests/ai-tools.md` に反映
 - B-011: OpenAI 系ソースの拡充 — **採用済み（2026-07-08・kit の直接指示によりセッション内で反映）**。疎通確認の上で `daily-sources.md` に反映: ① OpenAI Developer Community Announcements（`community.openai.com/c/announcements/6.rss`、RSS可）を最優先に新規追加 ② OpenAI Platform Changelog の一次URLを `developers.openai.com/changelog`（WebFetch可）に変更 ③ OpenAI Developer Blog（`developers.openai.com/blog`）を高優先に新規追加 ④ Codex changelog 復旧に伴い併用一次に昇格（B-003 の宿題完了） ⑤ OpenAI Blog 項に TechCrunch OpenAI タグを補完二次ソースとして追記。help.openai.com（Sora release notes 含む）と theverge.com は取得不可のため見送り
+- B-019: Anthropic Blog / News 項に安全性・インシデント公表を拾う検索キーワードを追加 — **採用済み（2026-08-02）**。`daily-sources.md` の当該項の検索キーワードを1本→5本に拡張し（safety incident / model evaluation incident / Claude Code usage limits / grant program）、注目点に「インシデント公表」「利用上限・プラン枠の変更、研究助成の開始と応募期限」を追記。備考にオリジン403ゆえ語彙の網羅性が検出可否を決める旨と、取りこぼし実例2件を記載
+- B-020: 一次不通時にオープンウェイトの重み公開有無を判定する手順を追加 — **採用済み（2026-08-02）**。`fetch-flow.md` に「一次不通時の判定補助」セクションを新設（①二次情報が割れたら断定しない ②第三者の量子化リポジトリの有無を傍証にする ③未確定なら本文に明記）。根本解決は B-015 / B-013 の許可リスト追加に依存する旨も明記

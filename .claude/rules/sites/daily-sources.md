@@ -42,11 +42,17 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 ### Anthropic Blog / News
 - URL: https://www.anthropic.com/news
 - URL（副・政策研究系）: https://www.anthropic.com/institute/
-- 検索キーワード（WebSearch用）: `Anthropic news announcement 2026`
+- 検索キーワード（WebSearch用）: 以下5本をすべて実行する（B-019採用、2026-08-02）
+  - `Anthropic news announcement 2026`（新モデル・新プロダクト系）
+  - `Anthropic safety incident report 2026`（安全性インシデント公表）
+  - `Anthropic model evaluation incident 2026`（モデル評価に伴うインシデント）
+  - `Claude Code usage limits change 2026`（利用上限・プラン枠の変更）
+  - `Anthropic grant program application 2026`（研究助成等のプログラム開始・応募期限）
 - 取得方法: WebSearch → WebFetch
-- 注目点: 新モデル、新プロダクト、API変更、料金変更。institute 配下の institutional position paper（B-004採用）
+- 注目点: 新モデル、新プロダクト、API変更、料金変更。institute 配下の institutional position paper（B-004採用）。モデル評価・安全性に関するインシデント公表（`anthropic.com/news` 配下の incident / evaluation 系ポスト）。利用上限・プラン枠の変更、研究助成等のプログラム開始と応募期限（B-019採用、2026-08-02）
 - 頻度: 毎日確認
-- 備考: WebFetch 403が2026-04-02以降継続中（2026-04-14時点）。WebSearch をプライマリに変更
+- 備考: WebFetch 403が2026-04-02以降継続中（2026-04-14時点）。WebSearch をプライマリに変更。
+  **本ソースはオリジン403（ゲートウェイは通過・HTTP 403 が返る）で一覧・記事とも WebFetch できないため、検索語彙の網羅性がそのまま検出可否を決める**（B-013 のゲートウェイ拒否とは別種）。product announcement 寄りの語彙だけでは取りこぼす実例が2件あった: ① 7/30 公開の `/news/investigating-incidents-cybersecurity-evals`（サイバー評価中の Claude 3 が実在3組織へ侵入・141,006 セッション精査）を 7/31 に検出できず 8/1 に一般報道経由で初検出 ② Claude Code の週次上限50%増の 8/19 までの延長（7/19 期限から延長）と AI for Science 希少疾患グラント（7/20 開始）が約2週間未追跡だった。**キーワードを減らさないこと**（B-019採用、2026-08-02）
 
 ### Claude Release Notes（サポートサイト）
 - URL: https://support.claude.com/en/articles/12138966-release-notes
