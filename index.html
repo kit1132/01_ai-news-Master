@@ -171,6 +171,15 @@
     .content pre code { background: none; padding: 0; }
     .content em { color: var(--muted); }
     .content blockquote { border-left: 2px solid var(--border); padding-left: 14px; color: var(--muted); margin: 0 0 24px; font-size: 13px; line-height: 1.8; }
+    /* 冒頭注記は 96% の日が定型文（2026-08-01 実測: 76日中ソース欠損は3日）。
+       通常日は圧縮する。欠損があった日は .note-slim が付かず通常表示に戻る（decorateNote 参照） */
+    /* ⚠️ 内側の <p> にも当てる。marked は blockquote の中身を <p> で包むので、
+       blockquote だけに font-size を指定しても `.content p`（15px）に上書きされる */
+    .content blockquote.note-slim { margin: 0 0 16px; padding-left: 10px; border-left-width: 1px; }
+    .content blockquote.note-slim, .content blockquote.note-slim p {
+      font-size: 11px; line-height: 1.6;
+    }
+    .content blockquote.note-slim p { margin-bottom: 0; }
     .content table { border-collapse: collapse; margin: 18px 0; display: block; overflow-x: auto; }
     .content th, .content td { border: 1px solid var(--border); padding: 6px 12px; text-align: left; }
     .content th { background: var(--panel); color: var(--fg-strong); }
@@ -703,6 +712,7 @@
       decorateBold(box);
       decorateHeadings(box);
       decorateListTitles(box);
+      decorateNote(box);
       decorateLede(box);
       groupSections(box); // ノードを移動するので必ず最後に実行する
       // groupSections は節が1つ以下だと早期 return するため、
@@ -1083,6 +1093,23 @@
           break; // 1項目につき1回だけ
         }
       }
+    }
+
+    // 冒頭注記（h1 直後の blockquote）を圧縮する。
+    // 「本サマリーは 01_…・02_…・03_… の3ソース（M/D分）を統合して作成。」は
+    // 仕様上**欠損があった日だけ情報を持つ**注記で、2026-08-01 の実測では
+    // 76日中 欠損は3日（4%）。残る96%は定型文が 375px 幅で 86px を占めていた。
+    // 欠損の合図があれば圧縮しない（そこが読ませたい情報なので）。
+    // ⚠️ 「欠損なし」を「欠損」で拾ってはいけない。04 weekly の定型行が
+    // `入力: 取得成功 21 / 21（欠損なし）` で、素朴に /欠損/ と書くと**正常な週まで通常表示**になる。
+    const NOTE_ALERT = /※|未取得|取得できず|欠損(?!なし)/;
+
+    function decorateNote(box) {
+      const h1 = box.querySelector('h1');
+      if (!h1) return;
+      const n = h1.nextElementSibling;
+      if (!n || n.tagName !== 'BLOCKQUOTE') return;
+      if (!NOTE_ALERT.test(n.textContent)) n.classList.add('note-slim');
     }
 
     // H1 直後の導入段落はリード文として落ち着かせる
