@@ -212,6 +212,32 @@
     .sec > summary:hover .sec-t { color: var(--link); }
     .sec > summary:hover::before { color: var(--link); }
 
+    /* --- `### 見出し` の折りたたみ（節の中の第2階層・groupSubsections 参照） --- */
+    /* 節より一段弱く見せる。アクセントバーは節だけの記号なので、こちらは使わない */
+    .sub > summary {
+      list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px;
+      margin: 18px 0 10px; padding: 8px 10px; border-radius: 6px;
+      background: var(--border2); border: 1px solid var(--border);
+      min-height: 44px;   /* タップ領域 */
+    }
+    .sub > summary::-webkit-details-marker { display: none; }
+    .sub > summary::before {
+      content: "▶"; font-size: 9px; color: var(--muted); flex: none;
+      transition: transform .15s; display: inline-block; width: 1em; text-align: center;
+    }
+    .sub[open] > summary::before { transform: rotate(90deg); }
+    .sub > summary:hover .sub-t { color: var(--link); }
+    .sub > summary:hover::before { color: var(--link); }
+    /* `.content h3`（特異性 0,1,1）に勝つため `.content h3.sub-t` で指定する */
+    .content h3.sub-t {
+      font-size: 15px; font-weight: 700; color: var(--fg-strong); line-height: 1.4;
+      margin: 0; padding: 0; flex: 1; min-width: 0; overflow: hidden;
+    }
+    .sub-n { font-size: 11px; font-weight: 400; color: var(--muted); flex: none; }
+    /* 開いたときは中身を少し内側に寄せて、どこまでが1つの見出しの中かを示す */
+    .sub[open] > :not(summary) { padding-left: 10px; border-left: 1px solid var(--border); }
+    .sub[open] > :not(summary):last-child { padding-bottom: 4px; }
+
     /* --- 先頭へ戻る（画面幅によらず、スクロールしたときだけ出す） --- */
     #to-top {
       display: none; position: fixed; right: 18px; bottom: 20px; z-index: 45;
@@ -731,16 +757,74 @@
         h2.replaceWith(det);
         det.appendChild(sum);
         for (const el of body) det.appendChild(el);
+        groupSubsections(det, n);
       });
 
       applySectionOpen(box);
+    }
+
+    // 節の中の `### 見出し` も畳む。
+    // 節を1つ畳めても、開いた瞬間に中身が全部出るのでは目次にならない。
+    // 2026-08-01 実測（375×812）: 05 daily の「カテゴリ別まとめ」は H3 が9個・13.7画面あり、
+    // 節を開くと 13.7画面が一度に展開されていた。
+    //
+    // ⚠️ H3 の意味はソースによって違う。安易に全部畳むと逆効果になる。
+    //   05 daily「カテゴリ別まとめ」→ H3 は**カテゴリ名**（9個）。畳むと9行の目次になる
+    //   04 weekly のカテゴリ節      → H3 は**個別ニュース**（2〜6個）。畳むと見出し一覧になる
+    //   03 industry のカテゴリ節    → H3 は個別ニュース（1〜2個）。畳んでも1クリック増えるだけ
+    //   01/02 のカテゴリ節          → H3 なし（項目は箇条書き）
+    // そこで「H3 が3個以上ある節」だけを対象にする。
+    // 先頭節（ハイライト）は**読むためのもの**なので、件数にかかわらず畳まない。
+    const SUB_MIN = 3;
+
+    function groupSubsections(det, n) {
+      if (n === 0) return;                       // 先頭節（ハイライト）は畳まない
+      const kids = [...det.children].filter((el) => el.tagName !== 'SUMMARY');
+      const idx = kids.map((el, i) => (el.tagName === 'H3' ? i : -1)).filter((i) => i >= 0);
+      if (idx.length < SUB_MIN) return;          // 少数なら畳む価値がない（fail-open）
+
+      idx.forEach((start, m) => {
+        const end = m + 1 < idx.length ? idx[m + 1] : kids.length;
+        const h3 = kids[start];
+
+        const sub = document.createElement('details');
+        sub.className = 'sub';
+
+        const sum = document.createElement('summary');
+        sum.className = 'sub-h';
+        // h2 と同じ理由で h3 を「置き換えない」。見出し階層を保つため要素ごと summary に入れる
+        const t = h3.cloneNode(true);
+        t.className = 'sub-t';
+
+        const body = kids.slice(start + 1, end);
+        // 数え方は節バッジと同じ（最上位のリスト項目のみ・出典チップと入れ子は除く）
+        const cnt = body.reduce((a, el) => {
+          const lists = [el, ...el.querySelectorAll('ul, ol')].filter((x) =>
+            (x.tagName === 'UL' || x.tagName === 'OL') &&
+            !x.classList.contains('src') &&
+            !x.parentElement?.closest('li'));
+          return a + lists.reduce((b, l) => b + l.querySelectorAll(':scope > li').length, 0);
+        }, 0);
+        const c = document.createElement('span');
+        c.className = 'sub-n';
+        if (cnt) c.textContent = `${cnt}件`;
+        sum.append(t, c);
+
+        h3.replaceWith(sub);
+        sub.appendChild(sum);
+        for (const el of body) sub.appendChild(el);
+      });
     }
 
     // 節の開閉。既定は「先頭の節だけ開く」で、画面幅によらず同じ挙動にする。
     // デスクトップでも週次は 14.8画面（1440x900 実測）あり、畳む価値はモバイルと変わらない。
     // 「全開」を選んだ場合はその選択を localStorage に覚えて次回以降も維持する。
     // localStorage はプライベートブラウズ等で例外を投げることがあるのでメモリに退避する
-    const EXPAND_KEY = 'ai-news-expand-all';
+    // ⚠️ キーに v2 が付いているのは意図的。2026-07-31 に項目単位の折りたたみを入れたとき、
+    // 既に「すべて開く」を保存していた利用者には**新機能が最初から開いた状態で描画され、
+    // 機能していないように見えた**（同日撤去）。第2階層（.sub）の導入でも同じことが起きるため、
+    // キー名を変えて保存値を一度リセットし、全員が既定（先頭節のみ開・.sub は閉）から始まるようにする。
+    const EXPAND_KEY = 'ai-news-expand-all-v2';
     let expandMem = false;
     const wantExpandAll = () => {
       try { return localStorage.getItem(EXPAND_KEY) === '1'; } catch { return expandMem; }
@@ -752,13 +836,16 @@
 
     function applySectionOpen(box) {
       const all = wantExpandAll();
-      for (const det of (box || document).querySelectorAll('details.sec')) {
+      // .sub は dataset.n を持たないので「全開のときだけ開く」に落ちる（既定は閉じ）
+      for (const det of (box || document).querySelectorAll('details.sec, details.sub')) {
         det.open = all || det.dataset.n === '0';
       }
       syncExpandBtn();
     }
 
-    const allSections = () => [...document.querySelectorAll('details.sec')];
+    // 「すべて開く」は第2階層（.sub）も対象にする。
+    // 畳んだ中身はブラウザのページ内検索に掛からないため、検索前に全部開ける必要がある
+    const allSections = () => [...document.querySelectorAll('details.sec, details.sub')];
     const isAllOpen = () => { const s = allSections(); return s.length > 0 && s.every((d) => d.open); };
 
     // ボタンの表示は保存値ではなく「今の DOM の状態」から導く。
@@ -1104,7 +1191,7 @@
       // CSS からは details の open を変えられないので JS で行い、印刷後に元へ戻す
       let printClosed = [];
       window.addEventListener('beforeprint', () => {
-        printClosed = [...document.querySelectorAll('details.sec:not([open]), details.month:not([open])')];
+        printClosed = [...document.querySelectorAll('details.sec:not([open]), details.sub:not([open]), details.month:not([open])')];
         printClosed.forEach((d) => { d.open = true; });
       });
       window.addEventListener('afterprint', () => {
