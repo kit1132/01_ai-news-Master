@@ -222,13 +222,17 @@
     .sec > summary:hover::before { color: var(--link); }
 
     /* --- `### 見出し` の折りたたみ（節の中の第2階層・groupSubsections 参照） --- */
-    /* 節より一段弱く見せる。アクセントバーは節だけの記号なので、こちらは使わない */
+    /* ⚠️ 塗り＋枠線＋角丸の「カード」にしない。
+       初版はそれで作ったが、9個並ぶと灰色のボタンが縦に連なる見た目になり、
+       **下位階層なのに節見出し（アクセントバー＋罫線だけ）より重い**という逆転が起きた。
+       階層はインデントと文字の強さで示し、区切りは罫線1本に留める。 */
     .sub > summary {
-      list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px;
-      margin: 18px 0 10px; padding: 8px 10px; border-radius: 6px;
-      background: var(--border2); border: 1px solid var(--border);
-      min-height: 44px;   /* タップ領域 */
+      list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px;
+      margin: 0; padding: 8px 2px; min-height: 36px;
+      border-bottom: 1px solid var(--border2);
     }
+    /* 開いている見出しは本文と地続きに見せる（罫線で切らない） */
+    .sub[open] > summary { border-bottom-color: transparent; }
     .sub > summary::-webkit-details-marker { display: none; }
     .sub > summary::before {
       content: "▶"; font-size: 9px; color: var(--muted); flex: none;
@@ -237,15 +241,17 @@
     .sub[open] > summary::before { transform: rotate(90deg); }
     .sub > summary:hover .sub-t { color: var(--link); }
     .sub > summary:hover::before { color: var(--link); }
-    /* `.content h3`（特異性 0,1,1）に勝つため `.content h3.sub-t` で指定する */
+    /* `.content h3`（特異性 0,1,1）に勝つため `.content h3.sub-t` で指定する。
+       閉じているときは本文と同じ色。開いたときだけ強い色にして「今ここ」を示す */
     .content h3.sub-t {
-      font-size: 15px; font-weight: 700; color: var(--fg-strong); line-height: 1.4;
+      font-size: 14px; font-weight: 600; color: var(--fg); line-height: 1.4;
       margin: 0; padding: 0; flex: 1; min-width: 0; overflow: hidden;
     }
+    .sub[open] > summary .sub-t { color: var(--fg-strong); }
     .sub-n { font-size: 11px; font-weight: 400; color: var(--muted); flex: none; }
-    /* 開いたときは中身を少し内側に寄せて、どこまでが1つの見出しの中かを示す */
-    .sub[open] > :not(summary) { padding-left: 10px; border-left: 1px solid var(--border); }
-    .sub[open] > :not(summary):last-child { padding-bottom: 4px; }
+    /* 開いた中身はインデントだけで示す。罫線を足すと線が二重になって重くなる */
+    .sub[open] > :not(summary) { padding-left: 14px; }
+    .sub[open] > :not(summary):last-child { padding-bottom: 10px; }
 
     /* --- 先頭へ戻る（画面幅によらず、スクロールしたときだけ出す） --- */
     #to-top {
@@ -343,6 +349,7 @@
 
       /* 畳んだ見出しがそのまま目次になる。タップ領域を44px確保する */
       .sec > summary { display: flex; margin-top: 20px; margin-bottom: 12px; padding: 12px 10px; min-height: 44px; }
+      .sub > summary { padding: 11px 2px; min-height: 44px; }
       .sec:not([open]) > summary { background: var(--panel); border: 1px solid var(--border); }
       .sec:not([open]) > summary::after { display: none; }
     }
