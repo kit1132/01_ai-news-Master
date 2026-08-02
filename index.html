@@ -71,9 +71,10 @@
     .pill:hover { border-color: var(--muted); }
     .pill[aria-current="true"] { background: #1f6feb33; border-color: var(--accent); color: var(--link); font-weight: 600; }
 
-    /* 節の一括開閉。折りたたみで本文がページ内検索に出ない問題の回避手段も兼ねる */
+    /* 節の一括開閉。折りたたみで本文がページ内検索に出ない問題の回避手段も兼ねる。
+       ⚠️ ボタン枠を付けると H1 より先に「操作列」が主役になるので、枠なしの補助操作に留める */
     .main-tools {
-      max-width: 760px; margin: 0 auto 14px;
+      max-width: 760px; margin: 0 auto 10px;
       display: flex; justify-content: space-between; align-items: center; gap: 10px;
     }
     /* 折りたたむ節が無い日に消すのは「すべて開く」ボタンだけ。
@@ -83,21 +84,22 @@
     #expand-all.hide { display: none; }
     .about-link {
       color: var(--muted); text-decoration: none; font-size: 12px;
-      border: 1px solid var(--border); border-radius: 6px; padding: 7px 12px;
+      border: none; background: none; padding: 6px 0;
       min-height: 36px; display: inline-flex; align-items: center; gap: 6px;
       white-space: nowrap; flex: none;
     }
-    .about-link:hover, .about-link:focus-visible { color: var(--link); background: var(--border2); }
+    .about-link:hover, .about-link:focus-visible { color: var(--link); text-decoration: underline; }
     #expand-all {
-      background: var(--border2); border: 1px solid var(--border); color: var(--fg);
-      font: inherit; font-size: 12px; padding: 7px 12px; border-radius: 6px; cursor: pointer;
+      background: none; border: none; color: var(--muted);
+      font: inherit; font-size: 12px; padding: 6px 0; border-radius: 0; cursor: pointer;
       min-height: 36px; white-space: nowrap; display: inline-flex; align-items: center; gap: 7px;
     }
-    /* 押すとどちらへ向かうかを三角で示す。閉じている状態＝これから開く＝▼ */
+    /* 押すとどちらへ向かうかを三角で示す。閉じている状態＝これから開く＝▼
+       選択ピルと同じ青塗りにしない（操作トグル ≠ ナビ選択） */
     #expand-all::before { content: "▼"; font-size: 9px; color: var(--muted); }
-    #expand-all[aria-pressed="true"]::before { content: "▲"; color: var(--link); }
-    #expand-all[aria-pressed="true"] { background: #1f6feb33; border-color: var(--accent); color: var(--link); }
-    #expand-all:hover { border-color: var(--muted); }
+    #expand-all[aria-pressed="true"]::before { content: "▲"; color: var(--fg-strong); }
+    #expand-all[aria-pressed="true"] { color: var(--fg-strong); }
+    #expand-all:hover { color: var(--fg); }
 
     /* --- レイアウト --- */
     .layout { display: flex; height: 100dvh; padding-top: var(--topbar); }
@@ -148,7 +150,8 @@
     .content h2 {
       font-size: 16px; font-weight: 700; color: var(--fg-strong); letter-spacing: .02em; line-height: 1.4;
       margin-top: 44px; margin-bottom: 18px; display: flex; align-items: center; gap: 10px;
-      border-left: 3px solid var(--accent); padding: 2px 0 2px 10px;
+      /* 構造区切りは中立色。青はナビ選択・リンク専用（1色1意味） */
+      border-left: 3px solid var(--border); padding: 2px 0 2px 10px;
     }
     .content h2::after { content: ""; flex: 1; height: 1px; background: var(--border); }
     .content h3 { font-size: 20px; line-height: 1.55; color: var(--fg-strong); font-weight: 700; margin-top: 34px; margin-bottom: 14px; }
@@ -190,8 +193,8 @@
     .sec > summary {
       list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px;
       margin-top: 44px; margin-bottom: 18px; border-radius: 0 6px 6px 0;
-      /* 左のアクセントバーで節の始まりを明示する */
-      border-left: 3px solid var(--accent); padding: 2px 0 2px 10px;
+      /* 左バーは構造の合図。操作色（青）と分離する */
+      border-left: 3px solid var(--border); padding: 2px 0 2px 10px;
     }
     .sec > summary::-webkit-details-marker { display: none; }
     .sec > summary::after { content: ""; flex: 1; height: 1px; background: var(--border); }
@@ -299,7 +302,8 @@
     .lbl > .v > ul, .lbl > .v > ol { margin: 10px 0 14px; }
     .lbl > .v > ul > li, .lbl > .v > ol > li { margin-bottom: 6px; }
     .lbl > .v > p { margin-bottom: 14px; }
-    .lbl-key    { --rail:#58a6ff; }  /* 要点 / 事実 */
+    /* ラベル色は「情報の種類」。リンク青(#58a6ff)・選択青(#1f6feb)とは共用しない */
+    .lbl-key    { --rail:#39c5cf; }  /* 要点 / 事実（シアン＝情報種別） */
     .lbl-detail { --rail:#8b949e; }  /* 詳細 / 根拠。#6e7681 は 4.12:1 で AA 未達だった */
     .lbl-mean   { --rail:#d29922; }  /* 意味 / 影響 */
     .lbl-act    { --rail:#3fb950; }  /* 行動指針（旧フォーマットのみ） */
@@ -345,7 +349,8 @@
 
       /* 本文上の操作子もタップ領域を44px確保する（設計書の合格条件）。
          デスクトップはマウス操作なので 36px のままでよい */
-      .about-link, #expand-all { min-height: 44px; }
+      /* 枠なしでもタップ領域は44px確保する */
+      .about-link, #expand-all { min-height: 44px; padding: 10px 0; }
 
       /* 畳んだ見出しがそのまま目次になる。タップ領域を44px確保する */
       .sec > summary { display: flex; margin-top: 20px; margin-bottom: 12px; padding: 12px 10px; min-height: 44px; }
@@ -378,8 +383,8 @@
       .content { max-width: none; }
       body { background: #fff; color: #000; }
       .content h1, .content h2, .content h3, .content h4, .content th, .content strong { color: #000; }
-      .content h2, .content h2.sec-t { border-left-color: #666; }
-      .sec > summary { border-left-color: #666; }
+      .content h2, .content h2.sec-t { border-left-color: #999; }
+      .sec > summary { border-left-color: #999; }
       .sec > summary::before { content: none; }        /* 開閉の三角は印刷しない */
       .content a { color: #00e; text-decoration: underline; }
       .content strong.long { background: none; font-weight: 600; }
@@ -1169,7 +1174,8 @@
           b.className = 'pill';
           b.dataset.id = s.id;
           b.textContent = s.name;
-          b.setAttribute('aria-current', String(s.id === state.sourceId));
+          // aria-current="false" でも AT が current と読む実装があるので、非選択時は属性自体を外す
+          if (s.id === state.sourceId) b.setAttribute('aria-current', 'true');
           nav.appendChild(b);
         }
       }
