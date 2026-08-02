@@ -549,7 +549,25 @@
       syncTopbarHeight();
     }
 
-    async function loadIndex(sourceId) {
+    // ハッシュは `#daily`（後方互換）または `#daily/2026-08-02` / `#weekly/2026-W30`
+    function parseHash() {
+      const raw = location.hash.replace(/^#/, '');
+      if (!raw) return { sourceId: null, entryId: null };
+      const i = raw.indexOf('/');
+      const sourcePart = i === -1 ? raw : raw.slice(0, i);
+      const source = SOURCES.find((s) => s.id === sourcePart);
+      if (!source) return { sourceId: null, entryId: null };
+      const entryId = i === -1 ? null : decodeURIComponent(raw.slice(i + 1));
+      return { sourceId: source.id, entryId: entryId || null };
+    }
+
+    function writeHash(sourceId, entryId) {
+      const h = entryId ? `#${sourceId}/${encodeURIComponent(entryId)}` : `#${sourceId}`;
+      if (location.hash === h) return;
+      history.replaceState(null, '', h);
+    }
+
+    async function loadIndex(sourceId, preferId) {
       const my = ++state.token;
       const base = baseOf(sourceId);
       // Pages はプリフライトを拒否するためカスタムヘッダは付けられない。
@@ -565,8 +583,13 @@
       state.activeId = null;
       renderList();
       if (state.entries.length) {
-        await selectEntry(state.entries[0].id);
+        const hit = preferId && state.entries.some((e) => e.id === preferId);
+        if (preferId && !hit) {
+          showWarn(`指定の日付（${preferId}）は見つかりませんでした。最新を表示します。`);
+        }
+        await selectEntry(hit ? preferId : state.entries[0].id);
       } else {
+        writeHash(sourceId, null);
         $('#content').innerHTML = '<div class="empty">表示できるファイルがありません</div>';
       }
     }
@@ -690,8 +713,14 @@
       } else {
         box.innerHTML = marked.parse(md);
         // 装飾は失敗しても素の本文を残す（本文が消えるより崩れたまま出す方が安全）
-        try { decorate(box); } catch (err) { console.warn('装飾に失敗:', err); }
+        try {
+          decorate(box);
+        } catch (err) {
+          console.warn('装飾に失敗:', err);
+          showWarn('本文の装飾に失敗しました。素の表示のまま読めます。');
+        }
       }
+      writeHash(state.sourceId, id);
       $('.main').scrollTop = 0;
     }
 
@@ -1164,7 +1193,8 @@
       $('#warn').hidden = true;
       syncTopbarHeight();   // 消えたバナーのぶん押し戻す
       $('#content').innerHTML = '<div class="empty">読み込み中…</div>';
-      history.replaceState(null, '', '#' + id);
+      // ソース切替では日付を持ち越さない（ソースごとに存在する日付が違うため）
+      writeHash(id, null);
       loadIndex(id).catch((e) => showFatal(String(e.message || e)));
     }
 
@@ -1190,8 +1220,8 @@
     }
 
     function boot() {
-      const fromHash = SOURCES.find((s) => s.id === location.hash.slice(1));
-      if (fromHash) state.sourceId = fromHash.id;
+      const { sourceId, entryId } = parseHash();
+      if (sourceId) state.sourceId = sourceId;
       renderPills();
 
       // イベント委譲。要素を作り直しても listener を張り直さなくてよい
@@ -1248,7 +1278,7 @@
         }
       });
 
-      loadIndex(state.sourceId).catch((e) => showFatal(String(e.message || e)));
+      loadIndex(state.sourceId, entryId).catch((e) => showFatal(String(e.message || e)));
     }
 
     // Node からパーサだけを検証できるようブラウザ判定で囲む
