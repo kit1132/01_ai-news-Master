@@ -16,9 +16,28 @@
     :root {
       color-scheme: dark;
       --bg:#0d1117; --panel:#161b22; --border:#30363d; --border2:#21262d;
-      --fg:#c9d1d9; --fg-strong:#f0f6fc; --muted:#8b949e; --link:#58a6ff;
-      --accent:#1f6feb; --side:260px;
+      --fg:#c9d1d9; --fg-strong:#f0f6fc; --muted:#8b949e;
+      --side:260px;
       --topbar:78px;   /* 実際の高さは JS で測って上書きする */
+
+      /* --- 意味別色（1色1意味）。新規 UI はここから選ぶ。生の #hex を増やさない --- */
+      --link:#58a6ff;                 /* リンク・hover の操作示唆 */
+      --nav-selected:#1f6feb;         /* ナビの「今ここ」（枠）。本文より立てない */
+      --nav-selected-bg:#1f6feb1a;    /* 選択の地。ピルには使わずサイドバー等のみ */
+      --accent:var(--nav-selected);   /* 旧名互換。新規は --nav-selected */
+
+      --status-today:#238636;         /* 日付バッジ: 今日 */
+      --status-week:#8957e5;          /* 日付バッジ: 今週（選択青と共用しない） */
+      --status-part:#30363d;          /* 日付バッジ: 今週(途中) */
+
+      --info-key:#39c5cf;             /* 要点 / 事実 */
+      --info-detail:#8b949e;          /* 詳細 / 根拠（#6e7681 は AA 未達だった） */
+      --info-mean:#d29922;            /* 意味 / 影響 */
+      --info-act:#3fb950;             /* 行動指針（旧フォーマットのみ） */
+
+      --alert-err:#da3633;
+      --alert-warn:#9e6a03;
+      --emphasis-mark:#8b949e55;      /* strong.long の下線。ナビ青を流用しない */
     }
 
     body {
@@ -36,8 +55,8 @@
     .banner {
       padding: 10px 14px; font-size: 13px; line-height: 1.5;
     }
-    .b-err  { background: #da3633; color: #fff; }
-    .b-warn { background: #9e6a03; color: #fff; }
+    .b-err  { background: var(--alert-err); color: #fff; }
+    .b-warn { background: var(--alert-warn); color: #fff; }
     .banner button {
       margin-left: 10px; background: #0003; color: inherit;
       border: 1px solid #fff6; border-radius: 5px; padding: 3px 9px; cursor: pointer; font: inherit;
@@ -69,7 +88,11 @@
       flex: none; white-space: nowrap; line-height: 1.4;
     }
     .pill:hover { border-color: var(--muted); }
-    .pill[aria-current="true"] { background: #1f6feb33; border-color: var(--accent); color: var(--link); font-weight: 600; }
+    /* 選択は枠＋字の太さだけ。塗り＋リンク青だと H1 より先に目が吸われる（A） */
+    .pill[aria-current="true"] {
+      background: transparent; border-color: var(--nav-selected);
+      color: var(--fg-strong); font-weight: 600;
+    }
 
     /* 節の一括開閉。折りたたみで本文がページ内検索に出ない問題の回避手段も兼ねる。
        ⚠️ ボタン枠を付けると H1 より先に「操作列」が主役になるので、枠なしの補助操作に留める */
@@ -108,7 +131,9 @@
       border-right: 1px solid var(--border); overflow-y: auto;
     }
     .main { flex: 1; overflow-y: auto; padding: 30px 32px 80px; }
-    .empty { display: flex; align-items: center; justify-content: center; height: 100%; color: #484f58; font-size: 15px; }
+    /* #484f58 は背景比 ~2.2:1 で「読み込み中／0件」が消えて見える。
+       失敗時バナー（赤）より前に出る状態表示なので、本文 muted まで上げる */
+    .empty { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--muted); font-size: 15px; }
 
     /* --- 月アコーディオン --- */
     #file-list { padding: 6px; }
@@ -132,15 +157,16 @@
       padding: 9px 12px; border-radius: 6px; cursor: pointer;
     }
     .item:hover { background: var(--border2); }
-    .item.is-active { background: #1f6feb33; color: var(--link); font-weight: 600; }
+    .item.is-active { background: var(--nav-selected-bg); color: var(--fg-strong); font-weight: 600; }
     .i-body { display: flex; flex-direction: column; min-width: 0; }
     .i-title { font-size: 14px; }
     .i-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
     .badge { margin-left: auto; font-size: 10px; padding: 2px 7px; border-radius: 999px; white-space: nowrap; flex: none; }
-    .b-today { background: #238636; color: #fff; }
-    .b-week  { background: #1f6feb; color: #fff; }
-    .b-part  { background: #30363d; color: #c9d1d9; }
+    /* バッジは「日付の状態」。--nav-selected / --link とは共用しない */
+    .b-today { background: var(--status-today); color: #fff; }
+    .b-week  { background: var(--status-week); color: #fff; }
+    .b-part  { background: var(--status-part); color: var(--fg); }
 
     /* --- 本文 --- */
     .content { max-width: 760px; margin: 0 auto; }
@@ -287,7 +313,7 @@
     .content strong { color: var(--fg-strong); font-weight: 700; }
     .content strong.long {
       font-weight: 400; color: #dfe7ef;
-      background: linear-gradient(transparent 62%, #1f6feb2e 62%);
+      background: linear-gradient(transparent 62%, var(--emphasis-mark) 62%);
     }
 
     /* 要点/詳細/意味（旧: 事実/根拠/影響/行動指針）をラベル列＋色罫に組み替える */
@@ -302,11 +328,11 @@
     .lbl > .v > ul, .lbl > .v > ol { margin: 10px 0 14px; }
     .lbl > .v > ul > li, .lbl > .v > ol > li { margin-bottom: 6px; }
     .lbl > .v > p { margin-bottom: 14px; }
-    /* ラベル色は「情報の種類」。リンク青(#58a6ff)・選択青(#1f6feb)とは共用しない */
-    .lbl-key    { --rail:#39c5cf; }  /* 要点 / 事実（シアン＝情報種別） */
-    .lbl-detail { --rail:#8b949e; }  /* 詳細 / 根拠。#6e7681 は 4.12:1 で AA 未達だった */
-    .lbl-mean   { --rail:#d29922; }  /* 意味 / 影響 */
-    .lbl-act    { --rail:#3fb950; }  /* 行動指針（旧フォーマットのみ） */
+    /* ラベル色は「情報の種類」。--link / --nav-selected とは共用しない */
+    .lbl-key    { --rail: var(--info-key); }
+    .lbl-detail { --rail: var(--info-detail); }
+    .lbl-mean   { --rail: var(--info-mean); }
+    .lbl-act    { --rail: var(--info-act); }
     ul.lbl-list { list-style: none; padding: 0; margin: 0 0 20px; }
     ul.lbl-list > li { margin: 0; }
 
