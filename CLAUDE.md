@@ -13,7 +13,8 @@
 - `.last-check-state.md` — 各ソースの前回チェック状態（差分判定用）
 - `IMPROVEMENT-BACKLOG.md` — 改善提案・取得障害の台帳（改善メモの単一情報源。運用ルールはファイル冒頭参照）
 - `index.html` — **5ソース統合ビューア**（marked.js使用、GitHub Pagesで公開）。02_ai-news-Copilot / 03_ai-news-industry / 04_ai-news-weekly / 05_ai-news-daily のビューアはこのファイルへのリダイレクトなので、ビューアの修正はこの1ファイルだけで完結する。各ソースのデータは相対パス `../<リポジトリ名>/files.json` で取得する（5リポとも同一オリジンのため CORS 不要）
-- `files.json` — ビューアが参照するダイジェストファイル一覧（新しい順、パスはルートからの相対）
+- `files.json` — ビューアが参照するダイジェストファイル一覧（新しい順、パスはルートからの相対）。**手動編集しない**。`scripts/generate_files_json.py` で `digests/**/*.md` から自動生成する
+- `scripts/generate_files_json.py` — `files.json` の生成・検証スクリプト（`--check` で CI 検証、`--report-gaps` で日付欠落の可視化）
 
 ## 実行環境
 
@@ -62,7 +63,7 @@ git push origin HEAD:main           # ← 必ず main に直接 push する
 1. `digests/YYYY/MM/ai-news-YYYY-MM-DD.md` を生成（ディレクトリがなければ作成）
 2. `.last-check-state.md` を更新
 3. `IMPROVEMENT-BACKLOG.md` を更新（新規提案の起票・既出提案の回数更新・障害の最終確認日更新。`output-style.md` の改善メモ規定参照）
-4. `files.json` の配列先頭に新ファイルのパス（`digests/YYYY/MM/ai-news-YYYY-MM-DD.md`）を追加
+4. `python3 scripts/generate_files_json.py` を実行して `files.json` を再生成する（`digests/**/*.md` を走査し日付降順で自動生成。手動追記は不要・追記漏れ防止）
 5. **`git push origin HEAD:main` で main に直接 push する**（上の絶対ルール参照）
 
 ## ルール参照
