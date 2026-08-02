@@ -1,0 +1,24 @@
+# ビューア(index.html)の純粋関数の回帰テスト。日付/週番号の解釈や運用節の除去は
+# 過去に無言故障(04/05 が全件スキップ等)を起こしている箇所なので、CI で常時検証する。
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  viewer-unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: ビューアの純粋関数をテスト
+        run: node --test
