@@ -7,17 +7,24 @@
        未宣言だと OS がライトモードのときスクロールバーやフォーム部品だけ明色で描画される -->
   <meta name="color-scheme" content="dark">
   <title>AI News</title>
+  <link rel="stylesheet" href="theme.css">
   <script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js"
           integrity="sha384-948ahk4ZmxYVYOc+rxN1H2gM1EJ2Duhp7uHtZ4WSLkV4Vtx5MUqnV+l7u9B+jFv+"
           crossorigin="anonymous"></script>
+  <!-- CDN が落ちた/SRI 不一致で marked を読めなかったときの自己ホスト fallback。
+       これが無いと本文が整形なしのプレーン表示に落ちる（CDN 単一障害点の排除）。
+       document.write は head 解析中の同期実行なので文書を消さず、vendor 版を続けて読み込める。 -->
+  <script>
+    if (typeof marked === 'undefined') {
+      document.write('<script src="vendor/marked.min.js" integrity="sha384-948ahk4ZmxYVYOc+rxN1H2gM1EJ2Duhp7uHtZ4WSLkV4Vtx5MUqnV+l7u9B+jFv+"><\/script>');
+    }
+  </script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
+    /* 配色は theme.css（共通パレット）で定義する。ここには index 固有のレイアウト変数だけ残す */
     :root {
-      color-scheme: dark;
-      --bg:#0d1117; --panel:#161b22; --border:#30363d; --border2:#21262d;
-      --fg:#c9d1d9; --fg-strong:#f0f6fc; --muted:#8b949e; --link:#58a6ff;
-      --accent:#1f6feb; --side:260px;
+      --side:260px;
       --topbar:78px;   /* 実際の高さは JS で測って上書きする */
     }
 

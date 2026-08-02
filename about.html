@@ -5,16 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>このサイトについて — AI News</title>
   <meta name="description" content="AI の新機能や発表を毎朝自動で集め、日本語で短くまとめたサイトです。開発ツール・Microsoft・業界動向の3分野を追い、どの項目にも公式発表へのリンクが付きます。">
+  <!-- 配色は index.html と共有の theme.css で定義する（片方だけ更新するドリフトを防ぐ） -->
+  <link rel="stylesheet" href="theme.css">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    /* ビューア（index.html）と同一のパレット。ビューアは dark 固定のためライトテーマは持たない */
-    :root {
-      color-scheme: dark;
-      --bg:#0d1117; --panel:#161b22; --border:#30363d; --border2:#21262d;
-      --fg:#c9d1d9; --fg-strong:#f0f6fc; --muted:#8b949e; --link:#58a6ff;
-      --accent:#1f6feb;
-    }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans CJK JP", sans-serif;

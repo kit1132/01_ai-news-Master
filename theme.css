@@ -1,0 +1,9 @@
+/* index.html と about.html で共有するカラーパレット。
+   ダーク固定（ライトテーマは持たない）。ここが唯一の定義元。
+   片方の HTML だけ更新して配色がドリフトするのを防ぐため 1 箇所に集約している。 */
+:root {
+  color-scheme: dark;
+  --bg:#0d1117; --panel:#161b22; --border:#30363d; --border2:#21262d;
+  --fg:#c9d1d9; --fg-strong:#f0f6fc; --muted:#8b949e; --link:#58a6ff;
+  --accent:#1f6feb;
+}
