@@ -18,6 +18,8 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 > WebFetch安定が確認されている一次ソース: Claude Code Changelog、GitHub Copilot CLI Releases、OpenAI Codex CLI Releases。これらは毎日WebFetchで一次取得する。
 >
 > **2026-07-08更新（B-011採用）**: OpenAI系ソースを拡充。`developers.openai.com` 配下（changelog / codex/changelog / blog）はWebFetch疎通を確認し一次取得に昇格。`community.openai.com/c/announcements/6.rss` はRSS取得可能な公式一次ソースとして新規追加。openai.com / help.openai.com / platform.openai.com の403は継続中。
+>
+> **2026-08-03更新（許可リスト追加）**: 実行環境のネットワーク許可リストにドメインが追加され、クラウドセッションでゲートウェイ拒否（`CONNECT tunnel failed` / exit 56）が解消（`recentRelayFailures: []`）。到達可になった一次ソースとして Model Context Protocol Blog / 仕様（B-016）と AWS What's New を新規追加した。**既存ソースの一次取得（WebFetch/RSS）への復帰は月曜の復旧チェックで実測後に判断する**（`fetch-flow.md`）。⚠️ `openai.com` / `platform.openai.com` / `help.openai.com` はゲートウェイ通過後も**オリジン403**（curl を弾く。`www.anthropic.com` と同種）のため、許可リスト追加だけでは curl 一次取得できない。WebFetch で通るかを月曜チェックで実測してから戻すこと。
 
 ---
 
@@ -30,6 +32,16 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 - 注目点: 新バージョンリリース、破壊的変更、新機能
 - 頻度: 毎日確認
 - 備考: WebFetch安定。GitHub版は大きいため429になることがある。サードパーティ集約ページ `claudefa.st/blog/guide/changelog`・`claudeupdates.dev` は一次ソース不通時の補完として利用可（B-007採用、2026-06-10）
+
+### Model Context Protocol Blog / 仕様
+- URL（優先）: https://blog.modelcontextprotocol.io/
+- RSS URL: https://blog.modelcontextprotocol.io/index.xml
+- URL（仕様・最新リビジョン）: https://modelcontextprotocol.io/specification/2026-07-28
+- 検索キーワード（WebSearch用）: `Model Context Protocol specification 2026`
+- 取得方法: RSS（index.xml）→ WebFetch → WebSearch
+- 注目点: 仕様リビジョンの公開・破壊的変更（stateless 化等）・Extensions（Tasks / MCP Apps / EMA）・SDK 対応状況
+- 頻度: 毎日確認
+- 備考: 2026-08-03 追加（B-016・許可リスト追加で到達可）。curl 実測: `index.xml` → 200 / `application/xml`（ソフト200の罠を通過）。**`blog.` サブドメインは到達可だが `modelcontextprotocol.io` 本体は従来ゲートウェイ拒否だった**点に注意。仕様ページは `/specification`（307）→ `/specification/2026-07-28` へ転送されるため転送先を直書きする。MCP は Claude Code / Copilot CLI / Codex CLI が依存する基盤仕様
 
 ### Claude モデルドキュメント（Fable 5 / Mythos 5）
 - URL: https://platform.claude.com/docs/en/about-claude/models/introducing-claude-fable-5-and-claude-mythos-5
@@ -264,6 +276,14 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 - 注目点: Apple Intelligence Extensions の API 仕様・Claude 統合の続報、iOS 27 / macOS 27 の AI 機能
 - 頻度: 毎日確認（秋の iOS 27 GA まで。GA 後に頻度見直し）
 - 備考: WWDC 2026 を機に追加（B-009採用、2026-06-10）。`apple.com/newsroom` は 403 のため WebSearch プライマリ
+
+### AWS What's New（生成AI / Bedrock 関連）
+- URL: https://aws.amazon.com/new/
+- 検索キーワード（WebSearch用）: `AWS Bedrock generative AI announcement 2026`
+- 取得方法: WebFetch → WebSearch
+- 注目点: Amazon Bedrock のモデル追加（Anthropic / OpenAI 等の提供開始）、Nova モデル、生成AI関連サービスの GA・料金変更
+- 頻度: 毎日確認
+- 備考: 2026-08-03 追加（許可リスト追加で到達可）。curl 実測 200 / `text/html`。**正しい URL は `aws.amazon.com/new/`**。`aws.amazon.com/about-aws/whats-new/recent/` は 301 で転送されるため転送先を直書きする。クラウドパートナー発表（Bedrock × Anthropic / OpenAI のモデル提供開始）の検出に有効（従来 `openai.com/index/` 経由で初検出していた類の発表）
 
 ### X (トレンド検索)
 - 取得方法: WebSearch
