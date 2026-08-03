@@ -31,7 +31,22 @@ RSS/Atom は **HTTP 200 が返っただけでは成功と判断しない**。次
 
 実例（2026-08-02・DeepSeek-V4-Flash-0731）: 「HF の MIT ライセンス重みは4月 Preview のままで 0731 は API 限定」と書く記事と「DeepSeek は 0731 を HF に公開した」と書く記事が正面から矛盾した。一方で検索結果には `deepseek-ai/DeepSeek-V4-Flash-0731` の HF URL と、第三者の `unsloth/DeepSeek-V4-Flash-0731-GGUF` / `bullerwins/DeepSeek-V4-Flash-0731-GGUF` が同時に現れていた。**第三者が当該チェックポイント名の GGUF を公開できている事実は、重みが入手可能であることの傍証として強い。** 一次確認は `huggingface.co`（`/api/models/deepseek-ai/DeepSeek-V4-Flash-0731`）・`www.deepseek.com`・`api-docs.deepseek.com` がいずれも curl exit 56（ゲートウェイ拒否）で不可能だった。
 
-⚠️ 本節は到達不可が続く間の**暫定手順**である。根本解決は `huggingface.co` の許可リスト追加（B-015 / B-013）に依存する。疎通が回復したら一次確認に戻すこと。
+## ⚠️ 上記の暫定手順は 2026-08-03 に終了した
+
+**`huggingface.co` の疎通が回復したため、上節の「一次不通時の判定補助」は原則として使わない。**
+環境のネットワークポリシーを `Custom` に変更し許可ドメインに `huggingface.co` を追加した結果、
+`curl` 200 を確認した（B-013 / B-015 が要請していた許可リスト追加が実施された）。
+本節冒頭の「疎通が回復したら一次確認に戻すこと」の条件を満たしたため、以後は次のとおり扱う。
+
+- **重み公開の有無は `huggingface.co` で直接確認する。** モデルカードのほか
+  `https://huggingface.co/api/models/<org>/<model>` が JSON を返すので、`siblings` のファイル一覧と
+  `lastModified` で公開状態を機械的に判定できる
+- **第三者の量子化リポジトリ（`*-GGUF` / `*-AWQ` / `*-MLX`）を傍証にする運用は畳む。**
+  傍証は一次に到達できないときの代替であり、一次が読める状態で使うと精度を落とす
+
+**ただし上節を削除はしない。** ベンダー公式サイト側が到達不可のまま HF も読めない状況
+（例: `www.deepseek.com` / `api-docs.deepseek.com` は 2026-08-03 時点でゲートウェイ拒否が継続）では
+同じ判断が再び必要になる。その場合に限り上節の①〜③を適用し、適用したことをダイジェスト本文に明記する。
 
 ## フォールバック発生時の記録ルール
 
