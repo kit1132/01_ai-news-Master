@@ -5,15 +5,41 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>このサイトについて — AI News</title>
   <meta name="description" content="AI の新機能や発表を毎朝自動で集め、日本語で短くまとめたサイトです。開発ツール・Microsoft・業界動向の3分野を追い、どの項目にも公式発表へのリンクが付きます。">
+  <!-- 実効テーマ（dark/light）に合わせて JS が書き換える。初期値は暗色（既定プリファレンス） -->
+  <meta name="color-scheme" content="dark">
+  <!-- 初回描画前にテーマを確定し、フラッシュを防ぐ。localStorage キーは index.html と共用 -->
+  <script>
+    (function () {
+      var KEY = 'ai-news-theme';
+      var pref = localStorage.getItem(KEY) || 'dark';
+      if (pref !== 'light' && pref !== 'dark' && pref !== 'system') pref = 'dark';
+      var theme = pref === 'system'
+        ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+        : pref;
+      var root = document.documentElement;
+      root.setAttribute('data-theme', theme);
+      root.setAttribute('data-theme-pref', pref);
+      var meta = document.querySelector('meta[name="color-scheme"]');
+      if (meta) meta.content = theme;
+    })();
+  </script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
-    /* ビューア（index.html）と同一のパレット。ビューアは dark 固定のためライトテーマは持たない */
-    :root {
+    /* ビューア（index.html）と同一のパレット */
+    :root, [data-theme="dark"] {
       color-scheme: dark;
       --bg:#0d1117; --panel:#161b22; --border:#30363d; --border2:#21262d;
       --fg:#c9d1d9; --fg-strong:#f0f6fc; --muted:#8b949e; --link:#58a6ff;
-      --accent:#1f6feb;
+      --accent:#1f6feb; --brand:#6e7681;
+      --active-bg:#1f6feb33;
+    }
+    [data-theme="light"] {
+      color-scheme: light;
+      --bg:#ffffff; --panel:#f6f8fa; --border:#d0d7de; --border2:#eaeef2;
+      --fg:#1f2328; --fg-strong:#1f2328; --muted:#656d76; --link:#0969da;
+      --accent:#0969da; --brand:#656d76;
+      --active-bg:#ddf4ff;
     }
 
     body {
@@ -26,9 +52,25 @@
       background: var(--panel); border-bottom: 1px solid var(--border);
       padding: 10px 16px; display: flex; align-items: center; gap: 12px;
     }
-    .brand { font-size: 11px; color: #6e7681; letter-spacing: .12em; white-space: nowrap; }
+    .brand { font-size: 11px; color: var(--brand); letter-spacing: .12em; white-space: nowrap; }
+    .theme-switch {
+      display: inline-flex; border: 1px solid var(--border); border-radius: 6px;
+      overflow: hidden; flex: none; background: var(--bg); margin-left: auto;
+    }
+    .theme-opt {
+      background: none; border: none; color: var(--muted); cursor: pointer;
+      font: inherit; padding: 0; width: 36px; height: 36px;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .theme-opt + .theme-opt { border-left: 1px solid var(--border); }
+    .theme-opt:hover { color: var(--fg); background: var(--border2); }
+    .theme-opt[aria-checked="true"] {
+      color: var(--link); background: var(--active-bg);
+    }
+    .theme-opt:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; z-index: 1; }
+    .theme-opt svg { width: 16px; height: 16px; display: block; }
     .back {
-      margin-left: auto; color: var(--link); text-decoration: none;
+      color: var(--link); text-decoration: none;
       font-size: 13px; border: 1px solid var(--border); border-radius: 6px;
       padding: 7px 12px; min-height: 44px; display: inline-flex; align-items: center;
     }
@@ -85,12 +127,32 @@
       h1 { font-size: 20px; }
       .flow li { flex-direction: column; gap: 2px; }
       .flow time { width: auto; }
+      .theme-opt { width: 44px; height: 44px; }
     }
   </style>
 </head>
 <body>
   <header class="topbar">
     <span class="brand">AI NEWS</span>
+    <div class="theme-switch" role="radiogroup" aria-label="表示モード">
+      <button type="button" class="theme-opt" data-theme-set="light" role="radio" aria-checked="false" title="ライト" aria-label="ライト">
+        <svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <circle cx="8" cy="8" r="2.6"/>
+          <path d="M8 1.5v1.7M8 12.8v1.7M1.5 8h1.7M12.8 8h1.7M3.4 3.4l1.2 1.2M11.4 11.4l1.2 1.2M12.6 3.4l-1.2 1.2M4.6 11.4l-1.2 1.2"/>
+        </svg>
+      </button>
+      <button type="button" class="theme-opt" data-theme-set="system" role="radio" aria-checked="false" title="システム" aria-label="システム">
+        <svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="3" width="12" height="8" rx="1.2"/>
+          <path d="M5.5 13.5h5M8 11v2.5"/>
+        </svg>
+      </button>
+      <button type="button" class="theme-opt" data-theme-set="dark" role="radio" aria-checked="false" title="ダーク" aria-label="ダーク">
+        <svg viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">
+          <path d="M10.8 1.6A6.5 6.5 0 1 0 14.4 9a5.2 5.2 0 0 1-3.6-7.4Z"/>
+        </svg>
+      </button>
+    </div>
     <a class="back" href="./">← ダイジェストへ戻る</a>
   </header>
 
@@ -218,5 +280,47 @@
       <a href="./">← ダイジェストへ戻る</a>
     </footer>
   </main>
+
+  <script>
+    const THEME_KEY = 'ai-news-theme';
+    const THEME_PREFS = ['light', 'system', 'dark'];
+
+    function resolveTheme(pref) {
+      if (pref === 'light' || pref === 'dark') return pref;
+      return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+
+    function readThemePref() {
+      const pref = localStorage.getItem(THEME_KEY) || 'dark';
+      return THEME_PREFS.includes(pref) ? pref : 'dark';
+    }
+
+    function applyTheme(pref) {
+      const theme = resolveTheme(pref);
+      const root = document.documentElement;
+      root.setAttribute('data-theme', theme);
+      root.setAttribute('data-theme-pref', pref);
+      const meta = document.querySelector('meta[name="color-scheme"]');
+      if (meta) meta.content = theme;
+      document.querySelectorAll('.theme-opt').forEach((btn) => {
+        btn.setAttribute('aria-checked', String(btn.dataset.themeSet === pref));
+      });
+    }
+
+    function setThemePref(pref) {
+      if (!THEME_PREFS.includes(pref)) return;
+      localStorage.setItem(THEME_KEY, pref);
+      applyTheme(pref);
+    }
+
+    applyTheme(readThemePref());
+    document.querySelector('.theme-switch')?.addEventListener('click', (ev) => {
+      const btn = ev.target.closest('.theme-opt');
+      if (btn) setThemePref(btn.dataset.themeSet);
+    });
+    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      if (readThemePref() === 'system') applyTheme('system');
+    });
+  </script>
 </body>
 </html>

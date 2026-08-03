@@ -3,22 +3,53 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- ダーク固定の配色なので OS 側にもそう伝える。
-       未宣言だと OS がライトモードのときスクロールバーやフォーム部品だけ明色で描画される -->
+  <!-- 実効テーマ（dark/light）に合わせて JS が書き換える。初期値は暗色（既定プリファレンス） -->
   <meta name="color-scheme" content="dark">
   <title>AI News</title>
+  <!-- 初回描画前にテーマを確定し、フラッシュを防ぐ。localStorage キーは about.html と共用 -->
+  <script>
+    (function () {
+      var KEY = 'ai-news-theme';
+      var pref = localStorage.getItem(KEY) || 'dark';
+      if (pref !== 'light' && pref !== 'dark' && pref !== 'system') pref = 'dark';
+      var theme = pref === 'system'
+        ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+        : pref;
+      var root = document.documentElement;
+      root.setAttribute('data-theme', theme);
+      root.setAttribute('data-theme-pref', pref);
+      var meta = document.querySelector('meta[name="color-scheme"]');
+      if (meta) meta.content = theme;
+    })();
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js"
           integrity="sha384-948ahk4ZmxYVYOc+rxN1H2gM1EJ2Duhp7uHtZ4WSLkV4Vtx5MUqnV+l7u9B+jFv+"
           crossorigin="anonymous"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
-    :root {
+    /* 既定はダーク。data-theme は head の即時スクリプトが必ず付ける */
+    :root, [data-theme="dark"] {
       color-scheme: dark;
       --bg:#0d1117; --panel:#161b22; --border:#30363d; --border2:#21262d;
       --fg:#c9d1d9; --fg-strong:#f0f6fc; --muted:#8b949e; --link:#58a6ff;
-      --accent:#1f6feb; --side:260px;
+      --accent:#1f6feb;
+      --brand:#6e7681; --empty:#484f58; --heading-soft:#e6edf3;
+      --strong-long:#dfe7ef; --strong-hl:#1f6feb2e; --active-bg:#1f6feb33;
+      --badge-part-bg:#30363d; --badge-part-fg:#c9d1d9;
+      --shadow:#0007; --scrim:#0008;
+      --side:260px;
       --topbar:78px;   /* 実際の高さは JS で測って上書きする */
+    }
+    [data-theme="light"] {
+      color-scheme: light;
+      --bg:#ffffff; --panel:#f6f8fa; --border:#d0d7de; --border2:#eaeef2;
+      --fg:#1f2328; --fg-strong:#1f2328; --muted:#656d76; --link:#0969da;
+      --accent:#0969da;
+      --brand:#656d76; --empty:#8c959f; --heading-soft:#1f2328;
+      --strong-long:#1f2328; --strong-hl:#ddf4ff; --active-bg:#ddf4ff;
+      --badge-part-bg:#eaeef2; --badge-part-fg:#57606a;
+      --shadow:#1f232840; --scrim:#1f232866;
     }
 
     body {
@@ -57,10 +88,10 @@
          バーの高さは変わらない。デスクトップでは display:none なので影響しない */
       border-radius: 6px; width: 44px; height: 44px; font-size: 16px; cursor: pointer; flex: none;
     }
-    .brand { font-size: 11px; color: #6e7681; letter-spacing: .12em; white-space: nowrap; flex: none; }
+    .brand { font-size: 11px; color: var(--brand); letter-spacing: .12em; white-space: nowrap; flex: none; }
     .groups { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1; }
     .grp { display: flex; align-items: center; gap: 8px; min-width: 0; }
-    .glabel { font-size: 10px; color: #6e7681; flex: none; width: 46px; text-align: right; letter-spacing: .04em; }
+    .glabel { font-size: 10px; color: var(--brand); flex: none; width: 46px; text-align: right; letter-spacing: .04em; }
     .pills { display: flex; gap: 6px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
     .pills::-webkit-scrollbar { display: none; }
     .pill {
@@ -69,13 +100,16 @@
       flex: none; white-space: nowrap; line-height: 1.4;
     }
     .pill:hover { border-color: var(--muted); }
-    .pill[aria-current="true"] { background: #1f6feb33; border-color: var(--accent); color: var(--link); font-weight: 600; }
+    .pill[aria-current="true"] { background: var(--active-bg); border-color: var(--accent); color: var(--link); font-weight: 600; }
 
     /* 節の一括開閉。折りたたみで本文がページ内検索に出ない問題の回避手段も兼ねる。
        ⚠️ ボタン枠を付けると H1 より先に「操作列」が主役になるので、枠なしの補助操作に留める */
     .main-tools {
       max-width: 760px; margin: 0 auto 10px;
       display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    }
+    .main-tools-end {
+      display: flex; align-items: center; gap: 14px; margin-left: auto; min-width: 0;
     }
     /* 折りたたむ節が無い日に消すのは「すべて開く」ボタンだけ。
        以前はこの行ごと（.main-tools）消していたが、概要リンクを同居させたため
@@ -89,6 +123,26 @@
       white-space: nowrap; flex: none;
     }
     .about-link:hover, .about-link:focus-visible { color: var(--link); text-decoration: underline; }
+
+    /* 表示モード（ライト / システム / ダーク）。枠なし操作子と並べてもナビ選択に見えないよう
+       セグメント枠で「設定」であることを示す */
+    .theme-switch {
+      display: inline-flex; border: 1px solid var(--border); border-radius: 6px;
+      overflow: hidden; flex: none; background: var(--panel);
+    }
+    .theme-opt {
+      background: none; border: none; color: var(--muted); cursor: pointer;
+      font: inherit; padding: 0; width: 36px; height: 36px;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .theme-opt + .theme-opt { border-left: 1px solid var(--border); }
+    .theme-opt:hover { color: var(--fg); background: var(--border2); }
+    .theme-opt[aria-checked="true"] {
+      color: var(--link); background: var(--active-bg);
+    }
+    .theme-opt:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; z-index: 1; }
+    .theme-opt svg { width: 16px; height: 16px; display: block; }
+
     #expand-all {
       background: none; border: none; color: var(--muted);
       font: inherit; font-size: 12px; padding: 6px 0; border-radius: 0; cursor: pointer;
@@ -108,7 +162,7 @@
       border-right: 1px solid var(--border); overflow-y: auto;
     }
     .main { flex: 1; overflow-y: auto; padding: 30px 32px 80px; }
-    .empty { display: flex; align-items: center; justify-content: center; height: 100%; color: #484f58; font-size: 15px; }
+    .empty { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--empty); font-size: 15px; }
 
     /* --- 月アコーディオン --- */
     #file-list { padding: 6px; }
@@ -132,7 +186,7 @@
       padding: 9px 12px; border-radius: 6px; cursor: pointer;
     }
     .item:hover { background: var(--border2); }
-    .item.is-active { background: #1f6feb33; color: var(--link); font-weight: 600; }
+    .item.is-active { background: var(--active-bg); color: var(--link); font-weight: 600; }
     .i-body { display: flex; flex-direction: column; min-width: 0; }
     .i-title { font-size: 14px; }
     .i-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
@@ -140,7 +194,7 @@
     .badge { margin-left: auto; font-size: 10px; padding: 2px 7px; border-radius: 999px; white-space: nowrap; flex: none; }
     .b-today { background: #238636; color: #fff; }
     .b-week  { background: #1f6feb; color: #fff; }
-    .b-part  { background: #30363d; color: #c9d1d9; }
+    .b-part  { background: var(--badge-part-bg); color: var(--badge-part-fg); }
 
     /* --- 本文 --- */
     .content { max-width: 760px; margin: 0 auto; }
@@ -155,7 +209,7 @@
     }
     .content h2::after { content: ""; flex: 1; height: 1px; background: var(--border); }
     .content h3 { font-size: 20px; line-height: 1.55; color: var(--fg-strong); font-weight: 700; margin-top: 34px; margin-bottom: 14px; }
-    .content h4 { font-size: 15px; color: #e6edf3; margin-top: 22px; margin-bottom: 8px; }
+    .content h4 { font-size: 15px; color: var(--heading-soft); margin-top: 22px; margin-bottom: 8px; }
     .content p  { line-height: 1.9; margin-bottom: 20px; font-size: 15px; }
     .content ul, .content ol { padding-left: 20px; margin-bottom: 20px; }
     .content li { line-height: 1.9; margin-bottom: 8px; }
@@ -169,7 +223,7 @@
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Roboto Mono",
                    "Hiragino Sans", "Noto Sans CJK JP", "Yu Gothic", sans-serif;
     }
-    .content code { background: var(--panel); padding: 2px 6px; border-radius: 4px; font-size: 13px; color: #e6edf3; }
+    .content code { background: var(--panel); padding: 2px 6px; border-radius: 4px; font-size: 13px; color: var(--heading-soft); }
     .content pre { background: var(--panel); padding: 12px; border-radius: 6px; overflow-x: auto; margin-bottom: 20px; }
     .content pre code { background: none; padding: 0; }
     .content em { color: var(--muted); }
@@ -261,7 +315,7 @@
       display: none; position: fixed; right: 18px; bottom: 20px; z-index: 45;
       width: 44px; height: 44px; border-radius: 50%; cursor: pointer;
       background: var(--panel); border: 1px solid var(--border); color: var(--fg);
-      font-size: 17px; line-height: 1; box-shadow: 0 3px 12px #0007;
+      font-size: 17px; line-height: 1; box-shadow: 0 3px 12px var(--shadow);
     }
     #to-top.show { display: block; }
     #to-top:hover { border-color: var(--muted); }
@@ -286,8 +340,8 @@
     /* 太字の減圧: 短い語は太字のまま、20字を超えるものは「文の強調」なのでウェイトを落とす */
     .content strong { color: var(--fg-strong); font-weight: 700; }
     .content strong.long {
-      font-weight: 400; color: #dfe7ef;
-      background: linear-gradient(transparent 62%, #1f6feb2e 62%);
+      font-weight: 400; color: var(--strong-long);
+      background: linear-gradient(transparent 62%, var(--strong-hl) 62%);
     }
 
     /* 要点/詳細/意味（旧: 事実/根拠/影響/行動指針）をラベル列＋色罫に組み替える */
@@ -330,7 +384,7 @@
       .sidebar {
         position: fixed; top: var(--topbar); bottom: 0; left: 0; z-index: 30;
         transform: translateX(-100%); transition: transform .2s ease, visibility .2s;
-        box-shadow: 0 0 24px #0008;
+        box-shadow: 0 0 24px var(--scrim);
         /* visibility:hidden は支援技術のツリーとヒットテストの両方から外れる。
            JS で aria-hidden を張り替えるとイベントの発火漏れで
            デスクトップにも残る事故が起きるため、CSS だけで完結させる */
@@ -340,7 +394,7 @@
       /* ⚠️ hidden 属性ではなくクラスで出し分ける。
          `.scrim { display:block }` は UA スタイルの `[hidden]{display:none}` に勝つため、
          hidden を付けても消えず、本文を覆って画面が暗くなりタッチも奪われる（2026-07-27 に発生） */
-      .scrim.show { display: block; position: fixed; inset: var(--topbar) 0 0 0; background: #0008; z-index: 20; }
+      .scrim.show { display: block; position: fixed; inset: var(--topbar) 0 0 0; background: var(--scrim); z-index: 20; }
       .main { padding: 18px 16px 76px; }
       .content h1 { font-size: 24px; }
       .content h3 { font-size: 18px; }
@@ -351,6 +405,10 @@
          デスクトップはマウス操作なので 36px のままでよい */
       /* 枠なしでもタップ領域は44px確保する */
       .about-link, #expand-all { min-height: 44px; padding: 10px 0; }
+      .theme-opt { width: 44px; height: 44px; }
+      /* テーマ切替を足すと1行に収まらない（375px 実測）。折り返して操作を落とさない */
+      .main-tools { flex-wrap: wrap; gap: 6px 10px; }
+      .main-tools-end { gap: 10px; }
 
       /* 畳んだ見出しがそのまま目次になる。タップ領域を44px確保する */
       .sec > summary { display: flex; margin-top: 20px; margin-bottom: 12px; padding: 12px 10px; min-height: 44px; }
@@ -427,7 +485,28 @@
       <!-- トップバーに置くとピルの幅を奪って「業界」が見えなくなったため本文側に置く -->
       <div class="main-tools">
         <a class="about-link" href="about.html">? このサイトについて</a>
-        <button id="expand-all" type="button" aria-pressed="false">すべて開く</button>
+        <div class="main-tools-end">
+          <div class="theme-switch" role="radiogroup" aria-label="表示モード">
+            <button type="button" class="theme-opt" data-theme-set="light" role="radio" aria-checked="false" title="ライト" aria-label="ライト">
+              <svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                <circle cx="8" cy="8" r="2.6"/>
+                <path d="M8 1.5v1.7M8 12.8v1.7M1.5 8h1.7M12.8 8h1.7M3.4 3.4l1.2 1.2M11.4 11.4l1.2 1.2M12.6 3.4l-1.2 1.2M4.6 11.4l-1.2 1.2"/>
+              </svg>
+            </button>
+            <button type="button" class="theme-opt" data-theme-set="system" role="radio" aria-checked="false" title="システム" aria-label="システム">
+              <svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="12" height="8" rx="1.2"/>
+                <path d="M5.5 13.5h5M8 11v2.5"/>
+              </svg>
+            </button>
+            <button type="button" class="theme-opt" data-theme-set="dark" role="radio" aria-checked="false" title="ダーク" aria-label="ダーク">
+              <svg viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">
+                <path d="M10.8 1.6A6.5 6.5 0 1 0 14.4 9a5.2 5.2 0 0 1-3.6-7.4Z"/>
+              </svg>
+            </button>
+          </div>
+          <button id="expand-all" type="button" aria-pressed="false">すべて開く</button>
+        </div>
       </div>
       <div id="content" class="content">
         <div class="empty">読み込み中…</div>
@@ -438,6 +517,51 @@
   <script>
     const DAYS = ['日', '月', '火', '水', '木', '金', '土'];
     const p2 = (n) => String(n).padStart(2, '0');
+
+    // ============ 表示モード（ライト / システム / ダーク） ============
+    // head の即時スクリプトと同じキー・解決規則。ここは UI 同期と OS 変更の追従を担当する
+    const THEME_KEY = 'ai-news-theme';
+    const THEME_PREFS = ['light', 'system', 'dark'];
+
+    function resolveTheme(pref) {
+      if (pref === 'light' || pref === 'dark') return pref;
+      return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+
+    function readThemePref() {
+      const pref = localStorage.getItem(THEME_KEY) || 'dark';
+      return THEME_PREFS.includes(pref) ? pref : 'dark';
+    }
+
+    function applyTheme(pref) {
+      const theme = resolveTheme(pref);
+      const root = document.documentElement;
+      root.setAttribute('data-theme', theme);
+      root.setAttribute('data-theme-pref', pref);
+      const meta = document.querySelector('meta[name="color-scheme"]');
+      if (meta) meta.content = theme;
+      document.querySelectorAll('.theme-opt').forEach((btn) => {
+        btn.setAttribute('aria-checked', String(btn.dataset.themeSet === pref));
+      });
+    }
+
+    function setThemePref(pref) {
+      if (!THEME_PREFS.includes(pref)) return;
+      localStorage.setItem(THEME_KEY, pref);
+      applyTheme(pref);
+    }
+
+    function initThemeControls() {
+      applyTheme(readThemePref());
+      document.querySelector('.theme-switch')?.addEventListener('click', (ev) => {
+        const btn = ev.target.closest('.theme-opt');
+        if (btn) setThemePref(btn.dataset.themeSet);
+      });
+      // システム選択中だけ OS の配色変更を追従する
+      matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if (readThemePref() === 'system') applyTheme('system');
+      });
+    }
 
     // 表示順は「まとめ → 元ソース」。リポジトリ番号順ではなく実際に読む順に並べる。
     const SOURCES = [
@@ -1228,6 +1352,7 @@
     function boot() {
       const { sourceId, entryId } = parseHash();
       if (sourceId) state.sourceId = sourceId;
+      initThemeControls();
       renderPills();
 
       // イベント委譲。要素を作り直しても listener を張り直さなくてよい
