@@ -17,6 +17,9 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 > **2026-06-10更新（B-001採用）**: WebFetch/RSSの復旧チェックは**週1回（月曜）**に実施する。手順は `fetch-flow.md`「復旧チェック」を参照（06-04時点の「月1回程度」から変更）。
 > WebFetch安定が確認されている一次ソース: Claude Code Changelog、GitHub Copilot CLI Releases、OpenAI Codex CLI Releases。これらは毎日WebFetchで一次取得する。
 >
+> **2026-08-06更新（B-023採用）**: 2026-04-14 の「全ソース WebSearch プライマリ」一括変更を**一部撤回**する。08-04 にゲートウェイ拒否が8ホストで解消し（`cursor.com` / `forum.cursor.com` / `claude.com` / `support.claude.com` / `community.openai.com` / `github.blog` / `aws.amazon.com` / `devblogs.microsoft.com`）、08-05・08-06 も本文取得に成功して復旧が定着したため、**下記5ソースの取得方法欄を一次（WebFetch / RSS）へ戻した**: Claude Release Notes / OpenAI Developer Community Announcements / GitHub Copilot Changelog / Cursor Changelog / Cursor Forum Announcements。
+> 未復旧ホスト（`www.testingcatalog.com` / `simonwillison.net` / `obsidian.md` / `blog.google` / `workspaceupdates.googleblog.com` / `deepmind.google` / `support.google.com` / `docs.devin.ai` / `x.ai` / `learn.chatgpt.com` / `techcrunch.com`）と**オリジン403**（`www.anthropic.com` / `openai.com` / `platform.openai.com` / `help.openai.com`）の記載は変更していない。オリジン403は許可リスト追加では解決しないため WebSearch 運用を継続する。
+>
 > **2026-07-08更新（B-011採用）**: OpenAI系ソースを拡充。`developers.openai.com` 配下（changelog / codex/changelog / blog）はWebFetch疎通を確認し一次取得に昇格。`community.openai.com/c/announcements/6.rss` はRSS取得可能な公式一次ソースとして新規追加。openai.com / help.openai.com / platform.openai.com の403は継続中。
 
 ---
@@ -57,10 +60,10 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 ### Claude Release Notes（サポートサイト）
 - URL: https://support.claude.com/en/articles/12138966-release-notes
 - 検索キーワード（WebSearch用）: `Claude release notes update 2026`
-- 取得方法: WebSearch → WebFetch
+- 取得方法: WebFetch → 失敗時 WebSearch
 - 注目点: Claudeプロダクト全体のリリースノート（Web/Desktop/Mobile/API含む）。Changelogとは別軸の情報源
 - 頻度: 毎日確認
-- 備考: WebFetch 403が2026-04-02以降継続中（2026-04-14時点）。WebSearch をプライマリに変更
+- 備考: 2026-04-02〜08-03 は取得不可で WebSearch プライマリ運用だったが、**2026-08-04 のゲートウェイ拒否解消により WebFetch 一次へ復帰**（B-023採用、2026-08-06）。08-06 に本文取得を再確認（最上位は 7/24 の Claude Opus 5 launch）。日付降順ページなので `fetch-flow.md`「WebFetch の要約取りこぼし対策」の列挙形式で問うこと
 
 ### OpenAI Blog / News
 - URL: https://openai.com/news
@@ -75,11 +78,11 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 ### OpenAI Developer Community Announcements（公式フォーラム）
 - URL: https://community.openai.com/c/announcements/6
 - RSS URL: https://community.openai.com/c/announcements/6.rss
-- 取得方法: RSS（疎通確認済み・2026-07-08）→ 失敗時 WebSearch
+- 取得方法: RSS（疎通確認済み・2026-08-06）→ 失敗時 WebSearch
 - フィード本文: 要約＋本文あり（Discourse標準RSS）
-- 注目点: 新モデル（GPT-5.6シリーズ等）・API新機能（Realtime等）・DevDay告知の公式アナウンス。openai.com/news が403継続の中、**RSSで直接取得できる貴重なOpenAI一次ソース**
+- 注目点: 新モデル（GPT-5.6シリーズ等）・API新機能（Realtime等）・DevDay告知の公式アナウンス。openai.com/news がオリジン403継続の中、**RSSで直接取得できる貴重なOpenAI一次ソース**
 - 頻度: 毎日確認
-- 備考: 2026-07-08追加（B-011）。openai.com/news と重複する内容も多いが、API寄りの発表はこちらが先行・詳細な場合がある
+- 備考: 2026-07-08追加（B-011）。openai.com/news と重複する内容も多いが、API寄りの発表はこちらが先行・詳細な場合がある。2026-07-27〜08-03 はゲートウェイ拒否で到達不可だったが **08-04 に復旧し RSS 一次で確定**（B-023採用、2026-08-06。08-06 に item 取得を再確認・最上位は 7/30 の GPT-5.6 値下げ告知）。**登録済み OpenAI 系ソースで唯一到達できる一次**なので、ここが落ちると OpenAI は全て二次情報依存になる
 
 ### OpenAI Platform Changelog
 - URL（一次）: https://developers.openai.com/changelog
@@ -139,10 +142,10 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 - URL: https://github.blog/changelog/
 - URL（Copilot ラベル）: https://github.blog/changelog/label/copilot/
 - 検索キーワード（WebSearch用）: `GitHub Copilot changelog update 2026`
-- 取得方法: WebSearch → WebFetch
+- 取得方法: WebFetch（Copilot ラベル URL）→ 失敗時 WebSearch
 - 注目点: Copilot App / CLI / 対応モデル追加（Fable 5 GA 等）の大型アップデート。公式一次ソースの中で最速の傾向
 - 頻度: 毎日確認
-- 備考: 2026-06-05〜06-10 の改善メモで3回提案され採用（B-002、2026-06-10）。WebSearch で安定取得可
+- 備考: 2026-06-05〜06-10 の改善メモで3回提案され採用（B-002、2026-06-10）。2026-07-29〜08-03 はゲートウェイ拒否だったが **08-04 に復旧し WebFetch 一次へ復帰**（B-023採用、2026-08-06）。08-04 の復旧直後に Copilot からの Gemini 2.5 Pro / Gemini 3 Flash 廃止と Enterprise teams model policy targeting を検出しており、**WebSearch 運用では取りこぼしていた項目が一次取得で拾えている**。08-06 に本文取得を再確認（最上位は 8/4 の Billing Preview app 退役）。ラベル URL のほうが Copilot 項目に絞れるので一次はそちらを使う
 
 ### OpenAI Codex CLI Releases
 - URL（一次）: https://github.com/openai/codex/releases
@@ -195,7 +198,8 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 - 注目点: 新機能、エージェント改善（Subagents / Cloud Agents / Router）、IDE統合、料金変更、Team/Enterprise 管理機能
 - 頻度: 毎日確認
 - 備考: **公式RSS を 2026-07-26 に発見**（B-012採用）。curl 実測 200 / `application/rss+xml` / 138,344 bytes / item 50件 / `content:encoded` に本文全文（＝RSS 1回で要約まで完結し追加 WebFetch は不要）。HTML 側に `<link rel="alternate" type="application/rss+xml">` 宣言がないため自動検出では見つからない。
-  **403 は未復旧扱いとする**: 2026-07-26 にローカルからは WebFetch 200 で取得できたが、同日のクラウドルーチンは 403 を記録している（`.last-check-state.md`）。ローカル200とクラウド403が併存するため復旧とはしない。復旧判定は月曜の復旧チェック（`fetch-flow.md`）でルーチン自身が成功したときに行う。それまでは WebSearch が実質の一次。
+  **2026-08-04 に復旧し RSS 一次で確定**（B-023採用、2026-08-06）。07-26〜08-03 は「ローカル200・クラウド403」の併存で未復旧扱いとしていたが、08-04 にスケジュールタスク側の環境で 200 を確認し、以降 08-05 / 08-06 も本文取得に成功している（08-06 実測 131,910 bytes・最上位は 8/3 の Google Workspace Plugins）。
+  ⚠️ この 8/3 エントリは 08-04 のセッションで取りこぼし 08-05 に1日遅れで検出した。降順ページなので `fetch-flow.md`「WebFetch の要約取りこぼし対策」を必ず適用する。
   `cursor-changelog.com/feed`（旧・代替候補）は**削除した**。応答なし（curl exit 92 / HTTPコード 000）で、DNS がドメインパーキング系への CNAME になっており内容を信頼できない。
 
 ### Cursor Forum Announcements
@@ -207,6 +211,7 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 - 注目点: **新モデルの Cursor 提供開始告知**とその価格・CursorBench スコア・Zero Data Retention 対応可否。changelog と重複する記事（Cursor Router 等）は片方に統合する
 - 頻度: 毎日確認
 - 備考: 2026-07-26 追加（B-012採用）。curl 実測 200 / `application/rss+xml` / 81,504 bytes / item 25件。投稿者は Cursor スタッフのみで一次情報。
+  2026-07-27〜08-03 はゲートウェイ拒否で到達不可だったが、**08-04 に復旧し RSS 一次で確定**（B-023採用、2026-08-06。08-06 に Announcements カテゴリの item 取得を再確認）。
   **changelog との役割が違う**: changelog RSS 全50件を全文検索して `Opus 5` 0件 / `GPT-5.6` 0件 / `Sonnet 5` 0件 / `Zero Data Retention` 0件。**モデル提供開始告知はフォーラム側にしか出ない**（例: `Claude Opus 5 now available!` 2026-07-24）。changelog だけでは「Cursor で Opus 5 が使えるようになった」を取り逃す。
   ⚠️ カテゴリIDは **11**。`/c/announcements/8.rss` は 301 で `/c/support/help/8.rss` に転送され Help カテゴリが 200 で返るため、バイト数だけ見ると成功に見える。IDは https://forum.cursor.com/categories.json で確認できる。
 
