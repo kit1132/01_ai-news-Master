@@ -20,6 +20,10 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 > **2026-08-06更新（B-023採用）**: 2026-04-14 の「全ソース WebSearch プライマリ」一括変更を**一部撤回**する。08-04 にゲートウェイ拒否が8ホストで解消し（`cursor.com` / `forum.cursor.com` / `claude.com` / `support.claude.com` / `community.openai.com` / `github.blog` / `aws.amazon.com` / `devblogs.microsoft.com`）、08-05・08-06 も本文取得に成功して復旧が定着したため、**下記5ソースの取得方法欄を一次（WebFetch / RSS）へ戻した**: Claude Release Notes / OpenAI Developer Community Announcements / GitHub Copilot Changelog / Cursor Changelog / Cursor Forum Announcements。
 > 未復旧ホスト（`www.testingcatalog.com` / `simonwillison.net` / `obsidian.md` / `blog.google` / `workspaceupdates.googleblog.com` / `deepmind.google` / `support.google.com` / `docs.devin.ai` / `x.ai` / `learn.chatgpt.com` / `techcrunch.com`）と**オリジン403**（`www.anthropic.com` / `openai.com` / `platform.openai.com` / `help.openai.com`）の記載は変更していない。オリジン403は許可リスト追加では解決しないため WebSearch 運用を継続する。
 >
+> **2026-08-07更新（B-022 / B-026採用）**: `developers.openai.com/codex/changelog` が **308 恒久リダイレクト**で `learn.chatgpt.com/docs/changelog` へ移設された。転送先は ChatGPT と Codex を1ページで扱う統合 changelog なので、**最優先に「ChatGPT & Codex Changelog」を新設**し、Codex CLI Releases 項の併用一次を新 URL に差し替えた。
+> これに伴い下の **2026-07-08更新の「codex/changelog を一次取得に昇格」は撤回する**（URL 自体が存在しない）。`developers.openai.com/changelog`（Codex なしの本体側）は 08-07 時点でも WebFetch 200 で、こちらは変更しない。
+> 恒久リダイレクトは取得障害ではなくソース定義の陳腐化として扱う（`fetch-flow.md`「恒久リダイレクト（301 / 308）を検出したときの扱い」を新設。02 / 03 にも移植済み）。
+>
 > **2026-07-08更新（B-011採用）**: OpenAI系ソースを拡充。`developers.openai.com` 配下（changelog / codex/changelog / blog）はWebFetch疎通を確認し一次取得に昇格。`community.openai.com/c/announcements/6.rss` はRSS取得可能な公式一次ソースとして新規追加。openai.com / help.openai.com / platform.openai.com の403は継続中。
 
 ---
@@ -99,7 +103,21 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 - 取得方法: WebSearch → WebFetch
 - 注目点: ChatGPTの新機能（Canvas、Deep Research、Memory、Voice Mode等）、UI変更、プラン別機能開放（Plus/Pro/Team/Enterprise）、モバイル対応
 - 頻度: 毎日確認
-- 備考: WebFetch 403が2026-04-02以降継続中（2026-04-14時点、help.openai.com 配下は Sora release notes 含め全滅を2026-07-08に再確認）。WebSearch をプライマリに変更。ChatGPTアプリ更新は `developers.openai.com/codex/changelog` にも載ることがある（例: ChatGPT for iOS）ため併読すること
+- 備考: WebFetch 403が2026-04-02以降継続中（2026-04-14時点、help.openai.com 配下は Sora release notes 含め全滅を2026-07-08に再確認）。WebSearch をプライマリに変更。ChatGPTアプリ更新は下の **ChatGPT & Codex Changelog**（`learn.chatgpt.com/docs/changelog`）にも載ることがある（例: ChatGPT for iOS）ため併読すること
+
+### ChatGPT & Codex Changelog
+- URL: https://learn.chatgpt.com/docs/changelog
+- RSS URL: https://learn.chatgpt.com/docs/changelog/rss.xml
+- URL（プラグイン別）: https://learn.chatgpt.com/docs/security/plugin/changelog
+- URL（日付指定形式）: https://learn.chatgpt.com/docs/changelog?date=YYYY-MM-DD
+- 検索キーワード（WebSearch用）: `site:learn.chatgpt.com changelog 2026` / `ChatGPT Codex changelog <月> 2026` / `Codex model deprecation retirement 2026`（退役期限の検知用）
+- 取得方法: WebSearch（一次はゲートウェイ拒否のため到達不可）→ 到達回復時に RSS を一次へ昇格
+- 注目点: ChatGPT 本体の機能追加とプラン別開放、Codex アプリ / プラグイン / クラウドの更新、**Codex で使えるモデルの追加・除外（退役期限）**
+- 頻度: 毎日確認
+- 備考: 2026-08-07 追加（B-022 / B-026 を統合して採用）。`developers.openai.com/codex/changelog` の **308 転送先**であり、登録済みソースの後継にあたる。
+  ⚠️ **`github.com/openai/codex/releases` では代替できない。** あちらは CLI リポジトリのリリースのみで、アプリ / プラグイン / クラウド / モデル提供の変更は載らない。
+  **ゲートウェイ拒否でも WebSearch なら本文相当が取れる**（`learn.chatgpt.com` は 2026-08-03 以降拒否が継続。08-06 の許可ドメイン追加13件は 08-07 に無効と確定＝B-013）。実例として 8/31 の GPT-5.4 / 5.4 mini の Codex 除外・DigitalOcean Droplet プラグイン・Codex の ChatGPT Voice はいずれも WebSearch で検出できている。**許可リストを待たず毎日 WebSearch で確認すること。**
+  RSS が存在するので、到達が回復した日に本文取得を確認したうえで RSS 一次へ切り替える（`fetch-flow.md`「復旧チェック」手順2と同じ扱い）。
 
 ### Google Workspace Updates Blog
 - URL: https://workspaceupdates.googleblog.com/
@@ -149,11 +167,15 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 
 ### OpenAI Codex CLI Releases
 - URL（一次）: https://github.com/openai/codex/releases
-- URL（併用一次）: https://developers.openai.com/codex/changelog
-- 取得方法: WebFetch（毎日・両URL）→ 失敗時 WebSearch
+- URL（併用一次）: https://learn.chatgpt.com/docs/changelog （→ 上の「ChatGPT & Codex Changelog」項を参照）
+- 取得方法: WebFetch（GitHub releases・毎日）→ 失敗時 WebSearch。併用一次は「ChatGPT & Codex Changelog」項の手順（WebSearch）に従う
 - 注目点: Codex CLI の新バージョン、機能追加、モデル切替
+  - ⚠️ **このページは CLI リポジトリのリリースのみ。** Codex アプリ / プラグイン / クラウド / モデル提供の変更は載らないので、併用一次と必ず両方見る
 - 頻度: 毎日確認
-- 備考: WebFetch安定。`developers.openai.com/codex/changelog` は2026-04-02以降403だったが**2026-07-08に復旧確認**（最新7/8エントリまで取得可）→ B-003の宿題どおり併用一次に昇格。changelog側はリリースノートが整理済みで、ChatGPTアプリ更新も載るため、GitHub releases（pre-release検出用）と使い分ける
+- 備考: GitHub releases は WebFetch 安定。併用一次は 2026-07-08 に `developers.openai.com/codex/changelog` を昇格させたが（B-003 / B-011）、**2026-08-07 に同 URL が `learn.chatgpt.com/docs/changelog` へ 308 恒久リダイレクトしたため差し替えた**（B-022 / B-026）。
+  ⚠️ **台帳が 2026-07-15 以降書いていた「Codex CLI 情報は GitHub releases で完全代替可・情報欠落なし」は成り立たない。** それは changelog が併用一次として生きている間の話で、8/31 の GPT-5.4 除外・DigitalOcean Droplet プラグイン・Codex の ChatGPT Voice はいずれも CLI releases に載っていない。
+  `raw.githubusercontent.com/openai/codex/main/CHANGELOG.md` も代替にならない（releases へのリンクだけで中身がない・2026-08-07 実測）。
+  GitHub releases 側は pre-release（`-alpha` 系）の検出に使う。
 
 ### OpenAI Developer Blog
 - URL: https://developers.openai.com/blog
