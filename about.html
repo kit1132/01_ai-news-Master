@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>このサイトについて — AI News</title>
-  <meta name="description" content="AI の新機能や発表を毎朝自動で集め、日本語で短くまとめたサイトです。開発ツール・Microsoft・業界動向の3分野を追い、どの項目にも公式発表へのリンクが付きます。">
+  <meta name="description" content="AI の新機能や公式発表を毎朝自動で集め、日本語で短くまとめたサイトです。開発ツール・Microsoft・業界の3分野を追い、ハイライトは要点と詳細、各項目には出典リンクが付きます。">
   <!-- 実効テーマ（dark/light）に合わせて JS が書き換える。初期値は暗色（既定プリファレンス） -->
   <meta name="color-scheme" content="dark">
   <!-- 初回描画前にテーマを確定し、フラッシュを防ぐ。localStorage キーは index.html と共用 -->
@@ -79,7 +79,7 @@
     main { max-width: 820px; margin: 0 auto; padding: 28px 16px 64px; }
 
     h1 { font-size: 24px; color: var(--fg-strong); line-height: 1.4; margin-bottom: 8px; }
-    .lede { color: var(--muted); font-size: 14px; margin-bottom: 32px; }
+    .lede { color: var(--fg); font-size: 14px; margin-bottom: 32px; }
 
     h2 {
       font-size: 17px; color: var(--fg-strong); margin: 40px 0 12px;
@@ -159,10 +159,11 @@
   <main>
     <h1>このサイトについて</h1>
     <p class="lede">
-      ChatGPT や Copilot をはじめ、AI の新機能や発表は毎日のように出てきます。
-      このサイトは、それを毎朝自動で集めて日本語で短くまとめたものです。
-      追っているのは開発ツール・Microsoft・業界動向の3分野。
-      どの項目にも公式発表へのリンクが付くので、気になったものはその場で元の情報にあたれます。
+      AI の新機能や公式発表を、毎朝自動で集めて日本語で短くまとめたサイトです。
+      追っているのは開発ツール（Claude / Cursor / OpenAI / Google など）、
+      Microsoft 365 Copilot 周辺、業界の市場・規制の3分野です。
+      1日1回見るなら「今日のまとめ」だけで足ります。
+      どの項目にも出典へのリンクが付くので、気になったものはその場で原文にあたれます。
     </p>
 
     <h2>5つのタブの読み分け</h2>
@@ -185,13 +186,13 @@
           </tr>
           <tr>
             <td><span class="tab">今週のまとめ</span></td>
-            <td>直近1週間の流れと帰結</td>
+            <td>直近で完了した1週間の流れと帰結</td>
             <td>毎週月曜 3:00</td>
             <td>週明けの振り返り、数日空いたとき</td>
           </tr>
           <tr>
             <td><span class="tab">開発ツール</span></td>
-            <td>Claude / OpenAI / Google / Cursor などの AI 開発ツール</td>
+            <td>Claude / Cursor / OpenAI / Google などの AI 開発ツール</td>
             <td>毎朝 4:10</td>
             <td>使っているツールの変更を追う</td>
           </tr>
@@ -214,6 +215,27 @@
       左上の <strong>☰</strong>（スマートフォン）または左側の一覧から、過去の日付にさかのぼれます。
     </p>
 
+    <h2>画面の見方</h2>
+    <p>
+      開いた直後は「今日のまとめ」で、その日の先頭の節だけが展開されています。
+      見出しを押すと節の開閉ができます。ページ内検索をするときは、本文上の
+      <strong>すべて開く</strong> を先に押してください（閉じている節は検索に出ません）。
+    </p>
+    <ul>
+      <li>
+        <strong>今日のハイライト</strong>は、各件が
+        <strong>要点</strong>（何が変わったか）と
+        <strong>詳細</strong>（根拠と数字）の2段です。
+        カテゴリ別の項目は箇条書きで、ハイライトより短くまとめています。
+      </li>
+      <li>
+        項目の下に並ぶ小さなラベルは<strong>出典のドメイン</strong>です。押すと公式ページへ飛びます。
+      </li>
+      <li>
+        表示はライト / システム / ダークを切り替えられます。選択は次回も残ります。
+      </li>
+    </ul>
+
     <h2>1日の流れ</h2>
     <p>3つの元ソースが先に生成され、それをまとめたものが 7:00 に出ます。時刻はすべて日本時間です。</p>
     <ul class="flow">
@@ -229,8 +251,8 @@
       分野ごとに公式・調査・メディアなどの情報源を毎朝巡回しています。中心になるのは次のような一次情報です。
     </p>
     <ul>
-      <li><strong>公式のリリースノート・変更履歴</strong>（Claude Code Changelog、Microsoft 365 Copilot Release Notes など）</li>
-      <li><strong>企業の公式ブログ・発表</strong>（Anthropic、OpenAI、Google、Microsoft など）</li>
+      <li><strong>公式のリリースノート・変更履歴</strong>（Claude Code Changelog、Cursor Changelog、Microsoft 365 Copilot Release Notes など）</li>
+      <li><strong>企業の公式ブログ・発表</strong>（Anthropic、OpenAI、Google、Microsoft、xAI など）</li>
       <li><strong>調査機関・公的機関のレポート</strong>（総務省 情報通信白書、Similarweb、IDC、a16z など）</li>
       <li><strong>技術メディア・開発者コミュニティ</strong>（一次情報が取得できない場合の補完として）</li>
     </ul>
@@ -242,8 +264,8 @@
     <h2>どう作られているか</h2>
     <p>
       収集から記事の執筆までを <strong>Claude Code</strong> のスケジュールタスクが自動で行っています。
-      毎朝決まった時刻に各サイトを巡回し、前回からの差分を抽出して、日本語のダイジェストに書き起こし、
-      公開までを人手を介さずに済ませています。
+      毎朝決まった時刻に各サイトを巡回し、前回からの差分を抽出して日本語のダイジェストに書き起こします。
+      生成された本文が、このサイト（<a href="https://01-ai-news.vercel.app">01-ai-news.vercel.app</a>）に載ります。
     </p>
 
     <h2>読むときの注意</h2>
@@ -254,8 +276,9 @@
       </p>
       <p>
         提案資料への引用や、意思決定の根拠に使う場合は、
-        <strong>各項目の出典 URL から原文を確認してください。</strong>
-        特に数値・料金・提供開始日は、原文が更新されている可能性があります。
+        <strong>各項目の出典から原文を確認してください。</strong>
+        「要点」は何が変わったかの要約で、数字・料金・提供開始日は「詳細」と原文側が正です。
+        特に数値は、原文が更新されている可能性があります。
       </p>
     </div>
     <p>
