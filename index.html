@@ -35,7 +35,7 @@
       --fg:#c9d1d9; --fg-strong:#f0f6fc; --muted:#8b949e; --link:#58a6ff;
       --accent:#1f6feb;
       --brand:#6e7681; --empty:#484f58; --heading-soft:#e6edf3;
-      --strong-long:#dfe7ef; --strong-hl:#1f6feb2e; --active-bg:#1f6feb33;
+      --strong-long:#dfe7ef; --strong-hl:#58a6ff66; --active-bg:#1f6feb33;
       --badge-part-bg:#30363d; --badge-part-fg:#c9d1d9;
       --shadow:#0007; --scrim:#0008;
       --side:260px;
@@ -346,7 +346,10 @@
     .content strong { color: var(--fg-strong); font-weight: 700; }
     .content strong.long {
       font-weight: 400; color: var(--strong-long);
+      /* 行の下側だけ塗る（下線に見えるマーカー）。折り返し行にも付ける */
       background: linear-gradient(transparent 62%, var(--strong-hl) 62%);
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
     }
 
     /* 要点/詳細/意味（旧: 事実/根拠/影響/行動指針）をラベル列＋色罫に組み替える */
