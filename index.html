@@ -213,7 +213,7 @@
     .content p  { line-height: 1.9; margin-bottom: 20px; font-size: 15px; }
     .content ul, .content ol { padding-left: 20px; margin-bottom: 20px; }
     .content li { line-height: 1.9; margin-bottom: 8px; }
-    /* 閉じた丸数字列挙の表示分割。入れ子の内訳なので本体リストより詰める */
+    /* 表示時の列挙分割。入れ子の内訳なので本体リストより詰める */
     .content ul.enum-split { margin: 8px 0 10px; padding-left: 20px; }
     .content ul.enum-split > li { margin-bottom: 6px; }
     .content hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
@@ -1181,10 +1181,15 @@
       }
     }
 
-    // 閉じた丸数字列挙（①〜⑨ が2個以上、末項が `。` で閉じる）を表示時だけ子リストへ分ける。
-    // git の Markdown は触らない。中黒・読点は切らない。
-    // `、の` が末項に含まれる型（「④ …、の4領域に掛かる」）は切らない。
+    // 表示時の列挙分割。git の Markdown は触らない。
+    // 丸数字: ①〜⑨ が2個以上、末項が `。` で閉じる。`、の` が末項に含まれる型は切らない。
+    // 中黒: measure-density.py の NAKAGURO3（6字×3、空白・読点・句点・括弧なし）に加え、
+    // マッチした終端列の直後が `。` のときだけ切る。JetBrains 型（で A・B・Cを統制する）と
+    // 読点の目的語内並列は切らない。
     const CIRCLED_RE = /[①-⑨]/g;
+    const NAKAGURO3_RE = /[^・\s、。（）()]{6,}・[^・\s、。（）()]{6,}・[^・\s、。（）()]{6,}/g;
+    const NAKAGURO_CHUNK_RE = /[^・\s、。（）()]{6,}/g;
+    const NAKAGURO_MORE_RE = /・[^・\s、。（）()]{6,}/y;
 
     function splitClosedCircledLists(box) {
       const hosts = [];
@@ -1200,6 +1205,9 @@
         const backup = el.cloneNode(true);
         try {
           splitOneCircledHost(el);
+          if (!el.querySelector(':scope > ul.enum-split')) {
+            splitOneNakaguroHost(el);
+          }
         } catch (err) {
           console.warn('列挙分割に失敗:', err);
           el.replaceChildren(...backup.childNodes);
@@ -1263,6 +1271,103 @@
         el.appendChild(coda);
       }
       restoreSrc();
+    }
+
+    // NAKAGURO3 と同じ文字クラス・6字×3。3つ目以降の6字句の直後が `。` の終端列だけ切る。
+    function findNakaguroEndList(text) {
+      NAKAGURO3_RE.lastIndex = 0;
+      let m;
+      while ((m = NAKAGURO3_RE.exec(text))) {
+        let end = m.index + m[0].length;
+        while (true) {
+          NAKAGURO_MORE_RE.lastIndex = end;
+          const more = NAKAGURO_MORE_RE.exec(text);
+          if (!more) break;
+          end = NAKAGURO_MORE_RE.lastIndex;
+        }
+        let period = end;
+        while (period < text.length && /\s/.test(text[period])) period++;
+        if (text[period] !== '。') continue;
+
+        const run = text.slice(m.index, end);
+        NAKAGURO_CHUNK_RE.lastIndex = 0;
+        const chunks = [];
+        let cm;
+        while ((cm = NAKAGURO_CHUNK_RE.exec(run))) {
+          chunks.push({
+            from: m.index + cm.index,
+            to: m.index + cm.index + cm[0].length,
+          });
+        }
+        if (chunks.length < 3) continue;
+        return { chunks, period };
+      }
+      return null;
+    }
+
+    function splitOneNakaguroHost(el) {
+      const srcLists = [...el.children].filter((c) => c.matches?.('ul.src, ol.src'));
+      for (const s of srcLists) s.remove();
+      const restoreSrc = () => { for (const s of srcLists) el.appendChild(s); };
+
+      const text = el.textContent || '';
+      const hit = findNakaguroEndList(text);
+      if (!hit) { restoreSrc(); return; }
+
+      const { chunks, period } = hit;
+      const last = chunks[chunks.length - 1];
+      const coda = extractOffsetRange(el, period + 1, text.length);
+      const itemFrags = [];
+      itemFrags.unshift(extractOffsetRange(el, last.from, period + 1));
+      for (let i = chunks.length - 2; i >= 0; i--) {
+        extractOffsetRange(el, chunks[i].to, chunks[i + 1].from);
+        itemFrags.unshift(extractOffsetRange(el, chunks[i].from, chunks[i].to));
+      }
+
+      const parentFrag = document.createDocumentFragment();
+      while (el.firstChild) parentFrag.appendChild(el.firstChild);
+      trimTrailingNakaguro(parentFrag);
+
+      const ul = document.createElement('ul');
+      ul.className = 'enum-split';
+      for (const f of itemFrags) {
+        trimNodeEdges(f);
+        if (!f.textContent.replace(/\s/g, '')) continue;
+        const item = document.createElement('li');
+        item.appendChild(f);
+        ul.appendChild(item);
+      }
+      if (ul.childElementCount < 3) {
+        throw new Error('enum-split: fewer than 3 nakaguro items');
+      }
+
+      trimNodeEdges(parentFrag);
+      if (parentFrag.textContent.replace(/\s/g, '')) el.appendChild(parentFrag);
+      el.appendChild(ul);
+      if (coda.textContent.replace(/\s/g, '')) {
+        trimNodeEdges(coda);
+        el.appendChild(coda);
+      }
+      restoreSrc();
+    }
+
+    function trimTrailingNakaguro(node) {
+      const walk = (n) => {
+        const kids = [...n.childNodes].reverse();
+        for (const c of kids) {
+          if (c.nodeType === 3) {
+            c.nodeValue = c.nodeValue.replace(/[・\s]+$/, '');
+            if (!c.nodeValue) { c.remove(); continue; }
+            return;
+          }
+          if (c.nodeType === 1) {
+            walk(c);
+            if (!c.textContent) { c.remove(); continue; }
+            return;
+          }
+        }
+      };
+      walk(node);
     }
 
     function extractOffsetRange(root, start, end) {
