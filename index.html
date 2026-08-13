@@ -34,7 +34,10 @@
       --bg:#0d1117; --panel:#161b22; --border:#30363d; --border2:#21262d;
       --fg:#c9d1d9; --fg-strong:#f0f6fc; --muted:#8b949e; --link:#58a6ff;
       --accent:#1f6feb;
-      --brand:#6e7681; --empty:#484f58; --heading-soft:#e6edf3;
+      /* --brand は本文補助より落とさない。#6e7681 は 4.12:1 で AA 未達だった */
+      --brand:#8b949e; --empty:#8b949e; --heading-soft:#e6edf3;
+      --muted-strong:#b1bac4;
+      --code-bg:#21262d; --code-border:#6e7681; --rule:#6e7681;
       --strong-long:#dfe7ef; --strong-hl:#58a6ff66; --active-bg:#1f6feb33;
       --badge-part-bg:#30363d; --badge-part-fg:#c9d1d9;
       --shadow:#0007; --scrim:#0008;
@@ -46,7 +49,9 @@
       --bg:#ffffff; --panel:#f6f8fa; --border:#d0d7de; --border2:#eaeef2;
       --fg:#1f2328; --fg-strong:#1f2328; --muted:#656d76; --link:#0969da;
       --accent:#0969da;
-      --brand:#656d76; --empty:#8c959f; --heading-soft:#1f2328;
+      --brand:#57606a; --empty:#57606a; --heading-soft:#1f2328;
+      --muted-strong:#57606a;
+      --code-bg:#eef2f6; --code-border:#8c959f; --rule:#8c959f;
       --strong-long:#1f2328; --strong-hl:#ddf4ff; --active-bg:#ddf4ff;
       --badge-part-bg:#eaeef2; --badge-part-fg:#57606a;
       --shadow:#1f232840; --scrim:#1f232866;
@@ -117,7 +122,7 @@
        hidden 属性ではなくクラスで制御する */
     #expand-all.hide { display: none; }
     .about-link {
-      color: var(--muted); text-decoration: none; font-size: 12px;
+      color: var(--fg); text-decoration: none; font-size: 12px;
       border: none; background: none; padding: 6px 0;
       min-height: 36px; display: inline-flex; align-items: center; gap: 6px;
       white-space: nowrap; flex: none;
@@ -144,13 +149,13 @@
     .theme-opt svg { width: 16px; height: 16px; display: block; }
 
     #expand-all {
-      background: none; border: none; color: var(--muted);
+      background: none; border: none; color: var(--fg);
       font: inherit; font-size: 12px; padding: 6px 0; border-radius: 0; cursor: pointer;
       min-height: 36px; white-space: nowrap; display: inline-flex; align-items: center; gap: 7px;
     }
     /* 押すとどちらへ向かうかを三角で示す。閉じている状態＝これから開く＝▼
        選択ピルと同じ青塗りにしない（操作トグル ≠ ナビ選択） */
-    #expand-all::before { content: "▼"; font-size: 9px; color: var(--muted); }
+    #expand-all::before { content: "▼"; font-size: 9px; color: var(--fg); }
     #expand-all[aria-pressed="true"]::before { content: "▲"; color: var(--fg-strong); }
     #expand-all[aria-pressed="true"] { color: var(--fg-strong); }
     #expand-all:hover { color: var(--fg); }
@@ -168,15 +173,15 @@
     #file-list { padding: 6px; }
     .month > summary {
       list-style: none; cursor: pointer; display: flex; align-items: center; gap: 6px;
-      padding: 9px 10px; border-radius: 6px; font-size: 12px; color: var(--muted);
+      padding: 9px 10px; border-radius: 6px; font-size: 12px; color: var(--fg);
       position: sticky; top: 0; background: var(--panel); z-index: 1;
     }
     .month > summary::-webkit-details-marker { display: none; }
     .month > summary:hover { background: var(--border2); }
-    .chev { display: inline-block; transition: transform .15s; color: var(--muted); }
+    .chev { display: inline-block; transition: transform .15s; color: var(--muted-strong); }
     .month[open] > summary .chev { transform: rotate(90deg); }
     .m-label { font-weight: 600; }
-    .m-count { margin-left: auto; font-size: 11px; color: var(--muted); }
+    .m-count { margin-left: auto; font-size: 11px; color: var(--muted-strong); }
 
     /* 入れ子 ul に padding が二重に付かないよう .items だけで完結させる */
     .items { list-style: none; padding: 0 0 6px 0; margin: 0; }
@@ -189,7 +194,7 @@
     .item.is-active { background: var(--active-bg); color: var(--link); font-weight: 600; }
     .i-body { display: flex; flex-direction: column; min-width: 0; }
     .i-title { font-size: 14px; }
-    .i-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .i-sub { font-size: 11px; color: var(--muted-strong); margin-top: 2px; }
 
     .badge { margin-left: auto; font-size: 10px; padding: 2px 7px; border-radius: 999px; white-space: nowrap; flex: none; }
     .b-today { background: #238636; color: #fff; }
@@ -205,9 +210,9 @@
       font-size: 16px; font-weight: 700; color: var(--fg-strong); letter-spacing: .02em; line-height: 1.4;
       margin-top: 44px; margin-bottom: 18px; display: flex; align-items: center; gap: 10px;
       /* 構造区切りは中立色。青はナビ選択・リンク専用（1色1意味） */
-      border-left: 3px solid var(--border); padding: 2px 0 2px 10px;
+      border-left: 3px solid var(--rule); padding: 2px 0 2px 10px;
     }
-    .content h2::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+    .content h2::after { content: ""; flex: 1; height: 1px; background: var(--rule); }
     .content h3 { font-size: 20px; line-height: 1.55; color: var(--fg-strong); font-weight: 700; margin-top: 34px; margin-bottom: 14px; }
     .content h4 { font-size: 15px; color: var(--heading-soft); margin-top: 22px; margin-bottom: 8px; }
     .content p  { line-height: 1.9; margin-bottom: 20px; font-size: 15px; }
@@ -217,8 +222,11 @@
     .content ul.enum-split { margin: 8px 0 10px; padding-left: 20px; }
     .content ul.enum-split > li { margin-bottom: 6px; }
     /* 長い項目を句点で視覚ブロックに分ける。li は1つのまま件数は増やさない */
-    .content .sent + .sent { margin-top: 10px; }
-    .content hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+    .content .sent + .sent {
+      margin-top: 12px; padding-top: 10px;
+      border-top: 1px solid var(--rule);
+    }
+    .content hr { border: none; border-top: 1px solid var(--rule); margin: 32px 0; }
     .content a { color: var(--link); text-decoration: none; overflow-wrap: anywhere; }
     .content a:hover { text-decoration: underline; }
     /* `code` の既定 monospace は、日本語が混じると環境によって明朝系へフォールバックし、
@@ -228,11 +236,21 @@
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Roboto Mono",
                    "Hiragino Sans", "Noto Sans CJK JP", "Yu Gothic", sans-serif;
     }
-    .content code { background: var(--panel); padding: 2px 6px; border-radius: 4px; font-size: 13px; color: var(--heading-soft); }
-    .content pre { background: var(--panel); padding: 12px; border-radius: 6px; overflow-x: auto; margin-bottom: 20px; }
-    .content pre code { background: none; padding: 0; }
-    .content em { color: var(--muted); }
-    .content blockquote { border-left: 2px solid var(--border); padding-left: 14px; color: var(--muted); margin: 0 0 24px; font-size: 13px; line-height: 1.8; }
+    .content code {
+      background: var(--code-bg); border: 1px solid var(--code-border);
+      padding: 1px 6px; border-radius: 4px; font-size: 13px; color: var(--heading-soft);
+      overflow-wrap: anywhere;
+    }
+    .content pre {
+      background: var(--code-bg); border: 1px solid var(--code-border);
+      padding: 12px; border-radius: 6px; overflow-x: auto; margin-bottom: 20px;
+    }
+    .content pre code { background: none; border: none; padding: 0; }
+    .content em { color: var(--fg); font-style: italic; }
+    .content blockquote {
+      border-left: 2px solid var(--rule); padding-left: 14px; color: var(--fg);
+      margin: 0 0 24px; font-size: 13px; line-height: 1.8;
+    }
     /* 冒頭注記は 96% の日が定型文（2026-08-01 実測: 76日中ソース欠損は3日）。
        通常日は圧縮する。欠損があった日は .note-slim が付かず通常表示に戻る（decorateNote 参照） */
     /* ⚠️ 内側の <p> にも当てる。marked は blockquote の中身を <p> で包むので、
@@ -253,10 +271,10 @@
       list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px;
       margin-top: 44px; margin-bottom: 18px; border-radius: 0 6px 6px 0;
       /* 左バーは構造の合図。操作色（青）と分離する */
-      border-left: 3px solid var(--border); padding: 2px 0 2px 10px;
+      border-left: 3px solid var(--rule); padding: 2px 0 2px 10px;
     }
     .sec > summary::-webkit-details-marker { display: none; }
-    .sec > summary::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+    .sec > summary::after { content: ""; flex: 1; height: 1px; background: var(--rule); }
     /* 節見出しは h2 要素のまま summary の中に入っている（見出し階層を壊さないため）。
        `.content h2`（特異性 0,1,1）に勝つ必要があるので `.content h2.sec-t` で指定する */
     .content h2.sec-t {
@@ -272,11 +290,11 @@
       overflow: hidden;
     }
     .content h2.sec-t::after { content: none; } /* h2 側の罫線は summary 側に任せる */
-    .sec-n { font-size: 11px; font-weight: 400; color: var(--muted); flex: none; }
+    .sec-n { font-size: 11px; font-weight: 400; color: var(--muted-strong); flex: none; }
     /* 開閉の三角は全幅で出す。デスクトップで出していなかったため、
        節が畳まれていても「押せる」ことが分からなかった */
     .sec > summary::before {
-      content: "▶"; font-size: 10px; color: var(--muted); flex: none;
+      content: "▶"; font-size: 10px; color: var(--muted-strong); flex: none;
       transition: transform .15s; display: inline-block; width: 1em; text-align: center;
     }
     .sec[open] > summary::before { transform: rotate(90deg); }
@@ -291,13 +309,13 @@
     .sub > summary {
       list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px;
       margin: 0; padding: 8px 2px; min-height: 36px;
-      border-bottom: 1px solid var(--border2);
+      border-bottom: 1px solid var(--rule);
     }
     /* 開いている見出しは本文と地続きに見せる（罫線で切らない） */
     .sub[open] > summary { border-bottom-color: transparent; }
     .sub > summary::-webkit-details-marker { display: none; }
     .sub > summary::before {
-      content: "▶"; font-size: 9px; color: var(--muted); flex: none;
+      content: "▶"; font-size: 9px; color: var(--muted-strong); flex: none;
       transition: transform .15s; display: inline-block; width: 1em; text-align: center;
     }
     .sub[open] > summary::before { transform: rotate(90deg); }
@@ -310,7 +328,7 @@
       margin: 0; padding: 0; flex: 1; min-width: 0; overflow: hidden;
     }
     .sub[open] > summary .sub-t { color: var(--fg-strong); }
-    .sub-n { font-size: 11px; font-weight: 400; color: var(--muted); flex: none; }
+    .sub-n { font-size: 11px; font-weight: 400; color: var(--muted-strong); flex: none; }
     /* 開いた中身はインデントだけで示す。罫線を足すと線が二重になって重くなる */
     .sub[open] > :not(summary) { padding-left: 14px; }
     .sub[open] > :not(summary):last-child { padding-bottom: 10px; }
@@ -328,14 +346,14 @@
 
     /* 導入段落はリード文として落ち着かせる */
     .content .lede {
-      color: var(--muted); font-size: 14px; line-height: 1.9;
-      margin-bottom: 32px; padding-bottom: 20px; border-bottom: 1px solid var(--border);
+      color: var(--fg); font-size: 14px; line-height: 1.9;
+      margin-bottom: 32px; padding-bottom: 20px; border-bottom: 1px solid var(--rule);
     }
 
     /* 見出しの「— 含意」側を落として、タイトルを相対的に立てる。
        h3 は既に 700 なのでタイトル側を太くする余地がない（decorateHeadings 参照） */
     .content h3 .h3-sub {
-      font-weight: 400; color: var(--muted); font-size: .82em; letter-spacing: 0;
+      font-weight: 400; color: var(--fg); font-size: .88em; letter-spacing: 0;
     }
 
     /* 箇条書きは逆に、タイトル側を太くする（li の基本ウェイトは 400 なので余地がある）。
@@ -366,7 +384,7 @@
     .lbl > .v > p { margin-bottom: 14px; }
     /* ラベル色は「情報の種類」。リンク青(#58a6ff)・選択青(#1f6feb)とは共用しない */
     .lbl-key    { --rail:#39c5cf; }  /* 要点 / 事実（シアン＝情報種別） */
-    .lbl-detail { --rail:#8b949e; }  /* 詳細 / 根拠。#6e7681 は 4.12:1 で AA 未達だった */
+    .lbl-detail { --rail: var(--muted-strong); }  /* 詳細 / 根拠。旧 #6e7681 は AA 未達、#8b949e は種別として沈んでいた */
     .lbl-mean   { --rail:#d29922; }  /* 意味 / 影響 */
     .lbl-act    { --rail:#3fb950; }  /* 行動指針（旧フォーマットのみ） */
     ul.lbl-list { list-style: none; padding: 0; margin: 0 0 20px; }
@@ -376,10 +394,10 @@
     ul.src { list-style: none; padding: 0; margin: 4px 0 20px; display: flex; flex-wrap: wrap; gap: 6px; }
     ul.src > li { margin: 0; line-height: 1; }
     ul.src a {
-      display: inline-block; font-size: 11px; color: var(--muted); text-decoration: none;
-      background: var(--border2); border: 1px solid var(--border); border-radius: 999px; padding: 4px 10px;
+      display: inline-block; font-size: 12px; color: var(--fg); text-decoration: none;
+      background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 999px; padding: 4px 10px;
     }
-    ul.src a::before { content: "↗ "; opacity: .5; }
+    ul.src a::before { content: "↗ "; opacity: .85; }
     ul.src a:hover { color: var(--link); border-color: var(--link); text-decoration: none; }
 
     /* --- モバイル：ドロワー --- */
@@ -457,6 +475,9 @@
       .lbl { border-left-color: #999; page-break-inside: avoid; }
       .lbl > .k { color: #000; }
       .content blockquote { color: #333; border-left-color: #999; }
+      .content code { background: #eee; border-color: #999; color: #000; }
+      .content em, .content .lede, .content h3 .h3-sub { color: #333; }
+      .content .sent + .sent { border-top-color: #ccc; }
       ul.src a { color: #333; background: none; border-color: #999; }
       .content h1, .content h2, .content h3, .sec > summary { page-break-after: avoid; }
     }
