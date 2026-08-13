@@ -213,6 +213,9 @@
     .content p  { line-height: 1.9; margin-bottom: 20px; font-size: 15px; }
     .content ul, .content ol { padding-left: 20px; margin-bottom: 20px; }
     .content li { line-height: 1.9; margin-bottom: 8px; }
+    /* 閉じた丸数字列挙の表示分割。入れ子の内訳なので本体リストより詰める */
+    .content ul.enum-split { margin: 8px 0 10px; padding-left: 20px; }
+    .content ul.enum-split > li { margin-bottom: 6px; }
     .content hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
     .content a { color: var(--link); text-decoration: none; overflow-wrap: anywhere; }
     .content a:hover { text-decoration: underline; }
@@ -874,6 +877,7 @@
     function decorate(box) {
       decorateLinks(box);
       decorateLabels(box);
+      splitClosedCircledLists(box);
       decorateBold(box);
       decorateHeadings(box);
       decorateListTitles(box);
@@ -1175,6 +1179,156 @@
           for (const n of cont) lastV.appendChild(n);
         }
       }
+    }
+
+    // 閉じた丸数字列挙（①〜⑨ が2個以上、末項が `。` で閉じる）を表示時だけ子リストへ分ける。
+    // git の Markdown は触らない。中黒・読点は切らない。
+    // `、の` が末項に含まれる型（「④ …、の4領域に掛かる」）は切らない。
+    const CIRCLED_RE = /[①-⑨]/g;
+
+    function splitClosedCircledLists(box) {
+      const hosts = [];
+      for (const el of box.querySelectorAll('li, .lbl .v')) {
+        if (el.closest('ul.src, ul.enum-split')) continue;
+        if (el.tagName === 'LI' && el.querySelector(':scope > .lbl')) continue;
+        // 出典チップ（ul.src）は「既に子リストがある」とみなさない。08-12 の成功サンプルは
+        // 本文 li の直下に出典 ul を持つので、それを除外すると割れなくなる
+        if (el.querySelector(':scope > ul:not(.src):not(.enum-split), :scope > ol')) continue;
+        hosts.push(el);
+      }
+      for (const el of hosts) {
+        const backup = el.cloneNode(true);
+        try {
+          splitOneCircledHost(el);
+        } catch (err) {
+          console.warn('列挙分割に失敗:', err);
+          el.replaceChildren(...backup.childNodes);
+        }
+      }
+    }
+
+    function splitOneCircledHost(el) {
+      // 出典 ul はオフセット計算と抽出の対象外。いったん外し、組み立て後に末尾へ戻す
+      const srcLists = [...el.children].filter((c) => c.matches?.('ul.src, ol.src'));
+      for (const s of srcLists) s.remove();
+      const restoreSrc = () => { for (const s of srcLists) el.appendChild(s); };
+
+      const text = el.textContent || '';
+      const marks = [];
+      CIRCLED_RE.lastIndex = 0;
+      let m;
+      while ((m = CIRCLED_RE.exec(text))) marks.push(m.index);
+      if (marks.length < 2) { restoreSrc(); return; }
+
+      const lastMark = marks[marks.length - 1];
+      const period = text.indexOf('。', lastMark + 1);
+      if (period < 0) { restoreSrc(); return; }
+      if (text.slice(lastMark, period).includes('、の')) { restoreSrc(); return; }
+
+      const slices = [];
+      for (let i = 0; i < marks.length; i++) {
+        const from = marks[i] + 1;
+        const to = (i === marks.length - 1) ? period + 1 : marks[i + 1];
+        if (to <= from) { restoreSrc(); return; }
+        slices.push({ from, to });
+      }
+
+      const coda = extractOffsetRange(el, period + 1, text.length);
+      const itemFrags = [];
+      for (let i = slices.length - 1; i >= 0; i--) {
+        itemFrags.unshift(extractOffsetRange(el, slices[i].from, slices[i].to));
+        extractOffsetRange(el, marks[i], marks[i] + 1);
+      }
+      const parentFrag = document.createDocumentFragment();
+      while (el.firstChild) parentFrag.appendChild(el.firstChild);
+
+      const ul = document.createElement('ul');
+      ul.className = 'enum-split';
+      for (const f of itemFrags) {
+        trimNodeEdges(f);
+        if (!f.textContent.replace(/\s/g, '')) continue;
+        const item = document.createElement('li');
+        item.appendChild(f);
+        ul.appendChild(item);
+      }
+      if (ul.childElementCount < 2) {
+        throw new Error('enum-split: fewer than 2 items');
+      }
+
+      trimNodeEdges(parentFrag);
+      if (parentFrag.textContent.replace(/\s/g, '')) el.appendChild(parentFrag);
+      el.appendChild(ul);
+      if (coda.textContent.replace(/\s/g, '')) {
+        trimNodeEdges(coda);
+        el.appendChild(coda);
+      }
+      restoreSrc();
+    }
+
+    function extractOffsetRange(root, start, end) {
+      const frag = document.createDocumentFragment();
+      if (end <= start) return frag;
+      const r = rangeFromTextOffsets(root, start, end);
+      if (!r || r.collapsed) return frag;
+      return r.extractContents();
+    }
+
+    function rangeFromTextOffsets(root, start, end) {
+      const points = [];
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+      let pos = 0;
+      let n;
+      while ((n = walker.nextNode())) {
+        const len = n.nodeValue.length;
+        points.push({ n, pos, len });
+        pos += len;
+      }
+      if (!points.length) return null;
+      const total = pos;
+      if (start < 0) start = 0;
+      if (end > total) end = total;
+      if (end <= start) return null;
+
+      const at = (off, asEnd) => {
+        if (off >= total) {
+          const last = points[points.length - 1];
+          return { n: last.n, o: last.len };
+        }
+        for (const p of points) {
+          if (off < p.pos + p.len || (asEnd && off === p.pos + p.len)) {
+            return { n: p.n, o: off - p.pos };
+          }
+        }
+        const last = points[points.length - 1];
+        return { n: last.n, o: last.len };
+      };
+
+      const a = at(start, false);
+      const b = at(end, true);
+      const r = document.createRange();
+      r.setStart(a.n, a.o);
+      r.setEnd(b.n, b.o);
+      return r;
+    }
+
+    function trimNodeEdges(node) {
+      const walk = (n, fromEnd) => {
+        const kids = [...n.childNodes];
+        const seq = fromEnd ? kids.reverse() : kids;
+        for (const c of seq) {
+          if (c.nodeType === 3) {
+            c.nodeValue = fromEnd ? c.nodeValue.replace(/\s+$/, '') : c.nodeValue.replace(/^\s+/, '');
+            if (!c.nodeValue) c.remove();
+            else return;
+          } else if (c.nodeType === 1) {
+            walk(c, fromEnd);
+            if (!c.textContent) c.remove();
+            else return;
+          }
+        }
+      };
+      walk(node, false);
+      walk(node, true);
     }
 
     // 20字を超える太字は「キーワード強調」ではなく「文まるごとの強調」なのでウェイトを落とす。
