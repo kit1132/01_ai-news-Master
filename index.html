@@ -37,7 +37,7 @@
       /* --brand は本文補助より落とさない。#6e7681 は 4.12:1 で AA 未達だった */
       --brand:#8b949e; --empty:#8b949e; --heading-soft:#e6edf3;
       --muted-strong:#b1bac4;
-      --code-bg:#21262d; --code-border:#6e7681; --rule:#6e7681;
+      --code-bg:#21262d; --code-border:#6e7681;
       --strong-long:#dfe7ef; --strong-hl:#58a6ff66; --active-bg:#1f6feb33;
       --badge-part-bg:#30363d; --badge-part-fg:#c9d1d9;
       --shadow:#0007; --scrim:#0008;
@@ -51,7 +51,7 @@
       --accent:#0969da;
       --brand:#57606a; --empty:#57606a; --heading-soft:#1f2328;
       --muted-strong:#57606a;
-      --code-bg:#eef2f6; --code-border:#8c959f; --rule:#8c959f;
+      --code-bg:#eef2f6; --code-border:#8c959f;
       --strong-long:#1f2328; --strong-hl:#ddf4ff; --active-bg:#ddf4ff;
       --badge-part-bg:#eaeef2; --badge-part-fg:#57606a;
       --shadow:#1f232840; --scrim:#1f232866;
@@ -210,9 +210,9 @@
       font-size: 16px; font-weight: 700; color: var(--fg-strong); letter-spacing: .02em; line-height: 1.4;
       margin-top: 44px; margin-bottom: 18px; display: flex; align-items: center; gap: 10px;
       /* 構造区切りは中立色。青はナビ選択・リンク専用（1色1意味） */
-      border-left: 3px solid var(--rule); padding: 2px 0 2px 10px;
+      border-left: 3px solid var(--border); padding: 2px 0 2px 10px;
     }
-    .content h2::after { content: ""; flex: 1; height: 1px; background: var(--rule); }
+    .content h2::after { content: ""; flex: 1; height: 1px; background: var(--border); }
     .content h3 { font-size: 20px; line-height: 1.55; color: var(--fg-strong); font-weight: 700; margin-top: 34px; margin-bottom: 14px; }
     .content h4 { font-size: 15px; color: var(--heading-soft); margin-top: 22px; margin-bottom: 8px; }
     .content p  { line-height: 1.9; margin-bottom: 20px; font-size: 15px; }
@@ -222,11 +222,8 @@
     .content ul.enum-split { margin: 8px 0 10px; padding-left: 20px; }
     .content ul.enum-split > li { margin-bottom: 6px; }
     /* 長い項目を句点で視覚ブロックに分ける。li は1つのまま件数は増やさない */
-    .content .sent + .sent {
-      margin-top: 12px; padding-top: 10px;
-      border-top: 1px solid var(--rule);
-    }
-    .content hr { border: none; border-top: 1px solid var(--rule); margin: 32px 0; }
+    .content .sent + .sent { margin-top: 12px; }
+    .content hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
     .content a { color: var(--link); text-decoration: none; overflow-wrap: anywhere; }
     .content a:hover { text-decoration: underline; }
     /* `code` の既定 monospace は、日本語が混じると環境によって明朝系へフォールバックし、
@@ -248,7 +245,7 @@
     .content pre code { background: none; border: none; padding: 0; }
     .content em { color: var(--fg); font-style: italic; }
     .content blockquote {
-      border-left: 2px solid var(--rule); padding-left: 14px; color: var(--fg);
+      border-left: 2px solid var(--border); padding-left: 14px; color: var(--fg);
       margin: 0 0 24px; font-size: 13px; line-height: 1.8;
     }
     /* 冒頭注記は 96% の日が定型文（2026-08-01 実測: 76日中ソース欠損は3日）。
@@ -271,10 +268,10 @@
       list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px;
       margin-top: 44px; margin-bottom: 18px; border-radius: 0 6px 6px 0;
       /* 左バーは構造の合図。操作色（青）と分離する */
-      border-left: 3px solid var(--rule); padding: 2px 0 2px 10px;
+      border-left: 3px solid var(--border); padding: 2px 0 2px 10px;
     }
     .sec > summary::-webkit-details-marker { display: none; }
-    .sec > summary::after { content: ""; flex: 1; height: 1px; background: var(--rule); }
+    .sec > summary::after { content: ""; flex: 1; height: 1px; background: var(--border); }
     /* 節見出しは h2 要素のまま summary の中に入っている（見出し階層を壊さないため）。
        `.content h2`（特異性 0,1,1）に勝つ必要があるので `.content h2.sec-t` で指定する */
     .content h2.sec-t {
@@ -309,7 +306,7 @@
     .sub > summary {
       list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px;
       margin: 0; padding: 8px 2px; min-height: 36px;
-      border-bottom: 1px solid var(--rule);
+      border-bottom: 1px solid var(--border2);
     }
     /* 開いている見出しは本文と地続きに見せる（罫線で切らない） */
     .sub[open] > summary { border-bottom-color: transparent; }
@@ -347,7 +344,7 @@
     /* 導入段落はリード文として落ち着かせる */
     .content .lede {
       color: var(--fg); font-size: 14px; line-height: 1.9;
-      margin-bottom: 32px; padding-bottom: 20px; border-bottom: 1px solid var(--rule);
+      margin-bottom: 32px; padding-bottom: 20px; border-bottom: 1px solid var(--border);
     }
 
     /* 見出しの「— 含意」側を落として、タイトルを相対的に立てる。
@@ -477,7 +474,6 @@
       .content blockquote { color: #333; border-left-color: #999; }
       .content code { background: #eee; border-color: #999; color: #000; }
       .content em, .content .lede, .content h3 .h3-sub { color: #333; }
-      .content .sent + .sent { border-top-color: #ccc; }
       ul.src a { color: #333; background: none; border-color: #999; }
       .content h1, .content h2, .content h3, .sec > summary { page-break-after: avoid; }
     }
