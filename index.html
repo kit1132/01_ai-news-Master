@@ -216,6 +216,8 @@
     /* 表示時の列挙分割。入れ子の内訳なので本体リストより詰める */
     .content ul.enum-split { margin: 8px 0 10px; padding-left: 20px; }
     .content ul.enum-split > li { margin-bottom: 6px; }
+    /* 長い項目を句点で視覚ブロックに分ける。li は1つのまま件数は増やさない */
+    .content .sent + .sent { margin-top: 10px; }
     .content hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
     .content a { color: var(--link); text-decoration: none; overflow-wrap: anywhere; }
     .content a:hover { text-decoration: underline; }
@@ -881,6 +883,7 @@
       decorateBold(box);
       decorateHeadings(box);
       decorateListTitles(box);
+      splitLongItemsByPeriod(box);
       decorateNote(box);
       decorateLede(box);
       groupSections(box); // ノードを移動するので必ず最後に実行する
@@ -1434,6 +1437,81 @@
       };
       walk(node, false);
       walk(node, true);
+    }
+
+    // 長い項目を句点 `。` で視覚ブロックに分ける。ラッパー li は残す（件数を増やさない）。
+    // 下限 160 は industry の項目平均上限（161）に合わせ、それを超える項目だけ対象にする。
+    // 列挙分割済み（ul.enum-split）は既に改行があるので触らない。Markdown は触らない。
+    const PERIOD_MIN_LEN = 160;
+
+    function splitLongItemsByPeriod(box) {
+      const hosts = [];
+      for (const el of box.querySelectorAll('li, .lbl .v')) {
+        if (el.closest('ul.src, ul.enum-split, .sent')) continue;
+        if (el.tagName === 'LI' && el.querySelector(':scope > .lbl')) continue;
+        if (el.querySelector(':scope > ul.enum-split')) continue;
+        if (el.querySelector(':scope > ul:not(.src), :scope > ol')) continue;
+        hosts.push(el);
+      }
+      for (const el of hosts) {
+        const backup = el.cloneNode(true);
+        try {
+          splitOnePeriodHost(el);
+        } catch (err) {
+          console.warn('句点分割に失敗:', err);
+          el.replaceChildren(...backup.childNodes);
+        }
+      }
+    }
+
+    function periodSlices(text) {
+      const cuts = [];
+      for (let i = 0; i < text.length; i++) {
+        if (text[i] === '。') cuts.push(i + 1);
+      }
+      if (!cuts.length) return null;
+      const slices = [];
+      let from = 0;
+      for (const to of cuts) {
+        if (to > from) slices.push({ from, to });
+        from = to;
+      }
+      if (from < text.length && text.slice(from).replace(/\s/g, '')) {
+        slices.push({ from, to: text.length });
+      }
+      if (slices.length < 2) return null;
+      return slices;
+    }
+
+    function splitOnePeriodHost(el) {
+      const srcLists = [...el.children].filter((c) => c.matches?.('ul.src, ol.src'));
+      for (const s of srcLists) s.remove();
+      const restoreSrc = () => { for (const s of srcLists) el.appendChild(s); };
+
+      const text = el.textContent || '';
+      if (text.replace(/\s/g, '').length < PERIOD_MIN_LEN) { restoreSrc(); return; }
+      const slices = periodSlices(text);
+      if (!slices) { restoreSrc(); return; }
+
+      const later = [];
+      for (let i = slices.length - 1; i >= 1; i--) {
+        later.unshift(extractOffsetRange(el, slices[i].from, slices[i].to));
+      }
+      const first = document.createDocumentFragment();
+      while (el.firstChild) first.appendChild(el.firstChild);
+
+      const blocks = [];
+      for (const f of [first, ...later]) {
+        trimNodeEdges(f);
+        if (!f.textContent.replace(/\s/g, '')) continue;
+        const d = document.createElement('div');
+        d.className = 'sent';
+        d.appendChild(f);
+        blocks.push(d);
+      }
+      if (blocks.length < 2) throw new Error('period-split: fewer than 2 sentences');
+      for (const d of blocks) el.appendChild(d);
+      restoreSrc();
     }
 
     // 20字を超える太字は「キーワード強調」ではなく「文まるごとの強調」なのでウェイトを落とす。
