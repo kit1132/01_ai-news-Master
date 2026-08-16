@@ -1,0 +1,15 @@
+.git
+**/.git
+**/.github
+**/.claude
+**/.DS_Store
+**/IMPROVEMENT-BACKLOG.md
+**/.last-check-state.md
+**/CLAUDE.md
+**/README.md
+docs
+files
+scripts
+daily_archive-2026-0617to0726_旧フォーマット
+.claude
+node_modules

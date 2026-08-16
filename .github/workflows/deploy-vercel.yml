@@ -1,0 +1,116 @@
+# 5リポを兄弟配置して Vercel 本番へアップロードする。
+# 正のデプロイ経路。Mac の launchd はローカル pull 専用。
+name: deploy-vercel
+
+on:
+  workflow_call:
+    secrets:
+      VERCEL_TOKEN:
+        required: true
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'digests/**'
+      - 'files.json'
+      - 'index.html'
+      - 'about.html'
+      - '.github/vercel/**'
+      - '.github/workflows/deploy-vercel.yml'
+
+concurrency:
+  group: vercel-prod-01-ai-news
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: team_PajIuAwY0ZCidEskmPExQLKL
+      VERCEL_PROJECT_ID: prj_X5LKwy942RrmOxAbpoKpBAfYB7mG
+    steps:
+      - name: 01_ai-news-Master
+        uses: actions/checkout@v6
+        with:
+          repository: kit1132/01_ai-news-Master
+          ref: main
+          path: 01_ai-news-Master
+
+      - name: 02_ai-news-Copilot
+        uses: actions/checkout@v6
+        with:
+          repository: kit1132/02_ai-news-Copilot
+          ref: main
+          path: 02_ai-news-Copilot
+
+      - name: 03_ai-news-industry
+        uses: actions/checkout@v6
+        with:
+          repository: kit1132/03_ai-news-industry
+          ref: main
+          path: 03_ai-news-industry
+
+      - name: 04_ai-news-weekly
+        uses: actions/checkout@v6
+        with:
+          repository: kit1132/04_ai-news-weekly
+          ref: main
+          path: 04_ai-news-weekly
+
+      - name: 05_ai-news-daily
+        uses: actions/checkout@v6
+        with:
+          repository: kit1132/05_ai-news-daily
+          ref: main
+          path: 05_ai-news-daily
+
+      - name: Vercel 設定を組み立てルートへ置く
+        run: |
+          set -euo pipefail
+          cp 01_ai-news-Master/.github/vercel/vercel.json ./vercel.json
+          cp 01_ai-news-Master/.github/vercel/.vercelignore ./.vercelignore
+          mkdir -p .vercel
+          printf '%s\n' '{"projectId":"prj_X5LKwy942RrmOxAbpoKpBAfYB7mG","orgId":"team_PajIuAwY0ZCidEskmPExQLKL","projectName":"01-ai-news"}' > .vercel/project.json
+          test -s vercel.json
+          test -s .vercelignore
+          test -s .vercel/project.json
+
+      - name: 本番デプロイ
+        run: |
+          set -euo pipefail
+          if [ -z "${VERCEL_TOKEN:-}" ]; then
+            echo "VERCEL_TOKEN が空です。リポジトリシークレットを設定してください。" >&2
+            exit 1
+          fi
+          MAX_ATTEMPTS=3
+          RETRY_WAIT=30
+          for attempt in $(seq 1 "$MAX_ATTEMPTS"); do
+            if npx --yes vercel@latest deploy --yes --prod --token "$VERCEL_TOKEN"; then
+              echo "デプロイ成功 (attempt=${attempt})"
+              exit 0
+            fi
+            echo "デプロイ失敗 (attempt=${attempt}/${MAX_ATTEMPTS})" >&2
+            if [ "$attempt" -lt "$MAX_ATTEMPTS" ]; then
+              echo "${RETRY_WAIT}秒後に再試行…"
+              sleep "$RETRY_WAIT"
+            fi
+          done
+          echo "デプロイ最終失敗 (attempts=${MAX_ATTEMPTS})" >&2
+          exit 1
+
+      - name: 本番 files.json を確認
+        run: |
+          set -euo pipefail
+          code="$(curl -sS -o /tmp/daily-files.json -w '%{http_code}' 'https://01-ai-news.vercel.app/05_ai-news-daily/files.json')"
+          echo "HTTP ${code}"
+          if [ "$code" != "200" ]; then
+            echo "files.json が 200 ではありません" >&2
+            exit 1
+          fi
+          head -c 200 /tmp/daily-files.json
+          echo
