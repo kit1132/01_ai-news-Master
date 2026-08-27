@@ -25,6 +25,14 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 > 恒久リダイレクトは取得障害ではなくソース定義の陳腐化として扱う（`fetch-flow.md`「恒久リダイレクト（301 / 308）を検出したときの扱い」を新設。02 / 03 にも移植済み）。
 >
 > **2026-07-08更新（B-011採用）**: OpenAI系ソースを拡充。`developers.openai.com` 配下（changelog / codex/changelog / blog）はWebFetch疎通を確認し一次取得に昇格。`community.openai.com/c/announcements/6.rss` はRSS取得可能な公式一次ソースとして新規追加。openai.com / help.openai.com / platform.openai.com の403は継続中。
+>
+> **2026-08-26更新（B-016採用）**: MCP 公式ブログを最優先に追加。RSS は `https://blog.modelcontextprotocol.io/index.xml`（同日実測 200 / `application/xml` / 442,024 bytes / RSS 2.0）。`/rss.xml` は 404 なので使わない。本体ホスト `modelcontextprotocol.io` はゲートウェイ拒否のまま。`blog.` サブドメインは一覧・RSSとも到達可。
+>
+> **2026-08-26更新（B-017採用）**: Claude 製品ブログ（`https://claude.com/blog`）を最優先に追加。取得方法は WebFetch 一次（同日実測: 一覧 200 / 個別記事 200、RSS なし）。一覧は日付降順ではないので「最上部から N 件」は使わず、前回チェック日以降を URL 付きで全件列挙する。
+>
+> **2026-08-26更新（B-015 / B-032採用）**: Hugging Face を高優先のオープンウェイト一次として追加。公開判定は org 一覧 API が一次で、製品名から ID を推測して 401 を「未公開」としない。同日実測: `author=Qwen` 一覧 200（`Qwen/Qwen3.8-2.4T-A95B` が公開済み）、`Qwen/Qwen3.8-Max` 直指定は 401。
+>
+> **2026-08-26更新（B-034採用）**: Gemini API changelog（`https://ai.google.dev/gemini-api/docs/changelog`）を最優先に追加。同日実測 200。登録済み Google 系5ソースはゲートウェイ拒否のままなので、これが到達できる Google 一次になる。既存5ソースの置き換えではない。
 
 ---
 
@@ -61,6 +69,19 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 - 備考: WebFetch 403が2026-04-02以降継続中（2026-04-14時点）。WebSearch をプライマリに変更。
   **本ソースはオリジン403（ゲートウェイは通過・HTTP 403 が返る）で一覧・記事とも WebFetch できないため、検索語彙の網羅性がそのまま検出可否を決める**（B-013 のゲートウェイ拒否とは別種）。product announcement 寄りの語彙だけでは取りこぼす実例が2件あった: ① 7/30 公開の `/news/investigating-incidents-cybersecurity-evals`（サイバー評価中の Claude 3 が実在3組織へ侵入・141,006 セッション精査）を 7/31 に検出できず 8/1 に一般報道経由で初検出 ② Claude Code の週次上限50%増の 8/19 までの延長（7/19 期限から延長）と AI for Science 希少疾患グラント（7/20 開始）が約2週間未追跡だった。**キーワードを減らさないこと**（B-019採用、2026-08-02）
 
+### Model Context Protocol Blog
+- URL（優先）: https://blog.modelcontextprotocol.io/
+- RSS URL: https://blog.modelcontextprotocol.io/index.xml
+- 検索キーワード（WebSearch用）: `MCP specification revision 2026` / `Model Context Protocol breaking change 2026`
+- 取得方法: RSS → WebFetch → WebSearch
+- フィード本文: 要検証（RSS 2.0。詳細が必要な項目は記事 URL を WebFetch）
+- 注目点: 仕様リビジョンの公開、破壊的変更、Extensions（Tasks / MCP Apps / EMA）、SDK 対応状況
+- 頻度: 毎日確認
+- 備考: 2026-08-26追加（B-016採用）。Claude Code / Copilot CLI / Codex CLI が依存する基盤仕様の一次。登録ソースが無かったため 2026-07-28 仕様（stateless 化）は汎用 WebSearch の副産物でしか検出できなかった。
+  ⚠️ **RSS パスは `index.xml`。`rss.xml` は 404**（2026-08-26 実測）。Industry 側の `/rss.xml` 記載と混同しないこと。
+  ⚠️ **本体 `modelcontextprotocol.io` はゲートウェイ拒否。** `blog.` サブドメインは一覧・RSSとも到達可（同日実測: `index.xml` 200 / `application/xml` / 442,024 bytes）。
+  WebFetch フォールバック時は日付つきエントリを漏れなく列挙する（件数固定にしない）。
+
 ### Claude Release Notes（サポートサイト）
 - URL: https://support.claude.com/en/articles/12138966-release-notes
 - 検索キーワード（WebSearch用）: `Claude release notes update 2026`
@@ -68,6 +89,17 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 - 注目点: Claudeプロダクト全体のリリースノート（Web/Desktop/Mobile/API含む）。Changelogとは別軸の情報源
 - 頻度: 毎日確認
 - 備考: 2026-04-02〜08-03 は取得不可で WebSearch プライマリ運用だったが、**2026-08-04 のゲートウェイ拒否解消により WebFetch 一次へ復帰**（B-023採用、2026-08-06）。08-06 に本文取得を再確認（最上位は 7/24 の Claude Opus 5 launch）。日付降順ページなので `fetch-flow.md`「WebFetch の要約取りこぼし対策」の列挙形式で問うこと
+
+### Claude Blog（製品側発表）
+- URL: https://claude.com/blog
+- 検索キーワード（WebSearch用）: `site:claude.com/blog 2026` / `Claude blog announcement <月> 2026`
+- 取得方法: WebFetch（一次・疎通確認 2026-08-08、2026-08-26 再確認）→ 失敗時 WebSearch
+- 注目点: Claude 本体（claude.ai / Desktop / Cowork）のプロダクト機能発表、コネクタ / MCP まわりの製品実装、Managed Agents の機能追加、Claude Code の既定変更・提供形態
+- 頻度: 毎日確認
+- 備考: 2026-08-26追加（B-017採用）。企業発表（`anthropic.com/news`）・API release notes・アプリ release notes・Claude Code changelog のどれにも載らない製品発表の一次。未登録のため 08-06 の self-hosted environments と 08-07 の auto mode 既定化を当日検出できなかった。
+  ⚠️ **一覧は日付降順ではない**（特集・ピン留め順）。2026-08-26 実測で一覧 HTML の日付サンプルは June 18 / June 8 / May 19 が先に出る一方、href 25件には 8/21 の Mythos 5 記事が含まれる。**「最上部から N 件」は使わない。** WebFetch では「`<前回チェック日>` 以降の記事を、日付と URL を対にして全て挙げよ」と問う。同一日に複数本が出るので件数固定も禁止。
+  ⚠️ **記事 URL は一覧の href を使う。** タイトルから slug を組み立てない（2026-08-22 に推測 URL が4連続 404）。
+  RSS は無い（`/blog/rss.xml`・`/feed.xml` とも 404、2026-08-26 実測）。当初のゲートウェイ拒否（2026-07-30）は 2026-08-04 に解消済みで、許可リスト待ちではない。
 
 ### OpenAI Blog / News
 - URL: https://openai.com/news
@@ -119,6 +151,19 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
   **ゲートウェイ拒否でも WebSearch なら本文相当が取れる**（`learn.chatgpt.com` は 2026-08-03 以降拒否が継続。08-06 の許可ドメイン追加13件は 08-07 に無効と確定＝B-013）。実例として 8/31 の GPT-5.4 / 5.4 mini の Codex 除外・DigitalOcean Droplet プラグイン・Codex の ChatGPT Voice はいずれも WebSearch で検出できている。**許可リストを待たず毎日 WebSearch で確認すること。**
   RSS が存在するので、到達が回復した日に本文取得を確認したうえで RSS 一次へ切り替える（`fetch-flow.md`「復旧チェック」手順2と同じ扱い）。
 
+### Gemini API Changelog
+- URL: https://ai.google.dev/gemini-api/docs/changelog
+- URL（本文・軽い）: https://ai.google.dev/gemini-api/docs/changelog.md.txt
+- 検索キーワード（WebSearch用）: `Gemini API changelog GA preview 2026`
+- 取得方法: WebFetch（疎通確認 2026-08-03、2026-08-26 再確認）→ 失敗時 WebSearch
+- 注目点: Gemini モデルの GA / preview 昇格、モデル ID、導入価格とその終了日、エンドポイント廃止日
+- 頻度: 毎日確認
+- 備考: 2026-08-26追加（B-034採用）。**登録済み Google 系5ソース（Workspace Updates / Gemini App Release Notes / The Keyword / DeepMind Blog / Workspace Admin Release Calendar）はゲートウェイ拒否が継続しており、`ai.google.dev` が唯一到達できる Google 一次である。** 7月以降の Gemini API 更新（3.6 Flash / 3.5 Flash-Lite GA、Robotics ER 2 preview、3.7 Flash GA と導入価格の 12/31 終了）はこのページ経由でしか一次確定できていなかった。
+  本ソースは **Gemini API（開発者向け）の changelog に限る。** Gemini アプリ・Workspace 統合・DeepMind の研究発表は覆えない。既存5ソースの置き換えではなく追加。5ソースは復旧チェック対象から外さない。
+  一覧は日付降順（2026-08-26 実測の見出し: August 13 / July 30 / July 21 / July 6）。WebFetch では「最上部から日付つきエントリを最低3件、日付とともに列挙せよ」と「`<前回チェック日>` 以降を全件挙げよ」の両方を毎回問う。
+  `.md.txt` は同日実測 200 / `text/markdown` / 50,430 bytes。HTML が重いときの本文取得に使える。
+  `ai.google.dev` は 2026-08-02 にゲートウェイ拒否、08-03 に復旧したホスト。復旧済みという位置づけは台帳に残す。
+
 ### Google Workspace Updates Blog
 - URL: https://workspaceupdates.googleblog.com/
 - RSS URL（休止中）: https://feeds.feedburner.com/GoogleAppsUpdates
@@ -147,6 +192,19 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 - 備考: RSS 403が2026-04-02以降継続中（2026-04-14時点）。WebSearch をプライマリに変更。リダイレクト先は `blog.google/innovation-and-ai/technology/ai/rss`。RSS復旧時は取得方法を `RSS → WebSearch` に戻すこと
 
 ## 高優先
+
+### Hugging Face モデルリリース
+- URL（一覧）: https://huggingface.co/models?sort=trending
+- URL（org 一覧 API）: https://huggingface.co/api/models?author=<org>&sort=createdAt&direction=-1&limit=<N>
+- URL（個別）: https://huggingface.co/api/models/<org>/<repo>
+- 取得方法: WebFetch（API JSON・疎通確認 2026-08-03、2026-08-26 再確認）→ 失敗時 WebSearch
+- 注目点: オープンウェイトの重み公開（`private` / `gated` / safetensors 規模 / ライセンス）、新規チェックポイント
+- 頻度: 毎日確認
+- 備考: 2026-08-26追加（B-015 / B-032採用）。`interests/ai-tools.md` のオープンソース／ローカルLLMの一次。判定手順の本文は `fetch-flow.md`「オープンウェイトの公開判定は org 一覧から入る」。
+  ① org の作成日降順一覧を取り、対象期間のリポジトリを**名前を問わず全て見る** ② 候補の個別 API で `private` / `gated` / safetensors / license を確定する ③ ①に該当が無いときに限り「未公開」。
+  ⚠️ **製品名から ID を推測して 401 / 404 を「未公開」の根拠にしない。** HF の 401（`Invalid username or password.`）は「非公開」ではなく「その ID が存在しない」場合にも返る。2026-08-26 再実測: `Qwen/Qwen3.8-Max` は 401、org 一覧には公開済みの `Qwen/Qwen3.8-2.4T-A95B` がある。
+  対象 org（登録ベンダーから機械的に導く。ベンダー登録が増えたらこの列を更新する）: `Qwen` / `moonshotai` / `deepseek-ai` / `meta-models` / `mistralai` / `zai-org` / `openai` / `google`
+  第三者量子化（`-GGUF` / `-AWQ` / `-MLX` 等）の存在を公開の根拠にしない。当初のゲートウェイ拒否は 2026-08-03 に解消済みで、許可リスト待ちではない。
 
 ### GitHub Copilot CLI Releases
 - URL（一次）: https://github.com/github/copilot-cli/releases
