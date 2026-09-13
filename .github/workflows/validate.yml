@@ -1,0 +1,29 @@
+# files.json の取り残し(digests への追加漏れ・並び順崩れ)を push/PR 時に検知する。
+# ビューア(index.html)は files.json だけを見るため、ここがズレると新しい digest が
+# Web に出ない。手動追記に頼らず機械的に検証することで CLAUDE.md「⚠️ ブランチ運用」の
+# 取り残し事故と同種の抜けを防ぐ。
+name: validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  files-json:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: files.json が digests と一致するか検証
+        run: python3 scripts/generate_files_json.py --check
+
+      - name: digest 日付の欠落を確認（警告のみ・失敗させない）
+        run: python3 scripts/generate_files_json.py --report-gaps
