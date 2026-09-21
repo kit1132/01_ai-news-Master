@@ -28,33 +28,36 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
-    /* 既定はダーク。data-theme は head の即時スクリプトが必ず付ける */
+    /* 既定はダーク。data-theme は head の即時スクリプトが必ず付ける。
+       パレットは Notion 寄り（選択はグレー、青はリンク専用）。
+       --brand / --muted は 18.66px 未満でも 4.5:1 を満たす */
     :root, [data-theme="dark"] {
       color-scheme: dark;
-      --bg:#0d1117; --panel:#161b22; --border:#30363d; --border2:#21262d;
-      --fg:#c9d1d9; --fg-strong:#f0f6fc; --muted:#8b949e; --link:#58a6ff;
-      --accent:#1f6feb;
-      /* --brand は本文補助より落とさない。#6e7681 は 4.12:1 で AA 未達だった */
-      --brand:#8b949e; --empty:#8b949e; --heading-soft:#e6edf3;
-      --muted-strong:#b1bac4;
-      --code-bg:#21262d; --code-border:#6e7681;
-      --strong-long:#dfe7ef; --strong-hl:#58a6ff66; --active-bg:#1f6feb33;
-      --badge-part-bg:#30363d; --badge-part-fg:#c9d1d9;
+      --bg:#191919; --panel:#202020; --border:#2f2f2f; --border2:#2c2c2c;
+      --fg:#d4d4d4; --fg-strong:#ffffff; --muted:#9b9b9b; --link:#6cb6e0;
+      --accent:#5b9fd6;
+      --brand:#9b9b9b; --empty:#9b9b9b; --heading-soft:#ececec;
+      --muted-strong:#b4b4b4;
+      --code-bg:#2c2c2c; --code-border:#4a4a4a;
+      --strong-long:#e8e8e8; --strong-hl:#3d5a6c; --active-bg:#2c2c2c;
+      --badge-part-bg:#3d3d3d; --badge-part-fg:#d4d4d4;
       --shadow:#0007; --scrim:#0008;
-      --side:260px;
-      --topbar:78px;   /* 実際の高さは JS で測って上書きする */
+      --callout-bg:#262626;
+      --side:240px;
+      --topbar:45px;   /* 実際の高さは JS で測って上書きする */
     }
     [data-theme="light"] {
       color-scheme: light;
-      --bg:#ffffff; --panel:#f6f8fa; --border:#d0d7de; --border2:#eaeef2;
-      --fg:#1f2328; --fg-strong:#1f2328; --muted:#656d76; --link:#0969da;
-      --accent:#0969da;
-      --brand:#57606a; --empty:#57606a; --heading-soft:#1f2328;
-      --muted-strong:#57606a;
-      --code-bg:#eef2f6; --code-border:#8c959f;
-      --strong-long:#1f2328; --strong-hl:#ddf4ff; --active-bg:#ddf4ff;
-      --badge-part-bg:#eaeef2; --badge-part-fg:#57606a;
-      --shadow:#1f232840; --scrim:#1f232866;
+      --bg:#ffffff; --panel:#f7f6f3; --border:#e8e7e4; --border2:#efeee9;
+      --fg:#37352f; --fg-strong:#37352f; --muted:#6f6e69; --link:#0b6e99;
+      --accent:#2383e2;
+      --brand:#6f6e69; --empty:#6f6e69; --heading-soft:#37352f;
+      --muted-strong:#6f6e69;
+      --code-bg:#f1f1ef; --code-border:#d3d2ce;
+      --strong-long:#37352f; --strong-hl:#d6eaf3; --active-bg:#ecebe9;
+      --badge-part-bg:#e8e7e4; --badge-part-fg:#6f6e69;
+      --shadow:#37352f40; --scrim:#37352f66;
+      --callout-bg:#f7f6f3;
     }
 
     body {
@@ -79,61 +82,39 @@
       border: 1px solid #fff6; border-radius: 5px; padding: 3px 9px; cursor: pointer; font: inherit;
     }
 
-    /* --- トップバー（2段：まとめ / 元ソース） --- */
+    /* --- トップバー（薄いパンくず。2段ピルはサイドバーへ移した） --- */
     .topbar {
       /* バナーが出ている間はその下へ退避する（--banner-h は syncTopbarHeight が測る） */
       position: fixed; top: var(--banner-h, 0px); left: 0; right: 0; z-index: 40;
-      background: var(--panel); border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+      background: var(--bg); border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px; padding: 0 12px; min-height: 45px;
     }
     #menu-btn {
       display: none; background: none; border: 1px solid var(--border); color: var(--fg);
-      /* 44px はタップ領域の下限。モバイルで他の日付へ行く唯一の入口なのに 34px だった。
-         トップバーの内寸はピル2段（29px×2 + gap 6px = 64px）で既に 44px を超えているので
-         バーの高さは変わらない。デスクトップでは display:none なので影響しない */
+      /* 44px はタップ領域の下限。モバイルで日付へ行く唯一の入口 */
       border-radius: 6px; width: 44px; height: 44px; font-size: 16px; cursor: pointer; flex: none;
     }
-    .brand { font-size: 11px; color: var(--brand); letter-spacing: .12em; white-space: nowrap; flex: none; }
-    .groups { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1; }
-    .grp { display: flex; align-items: center; gap: 8px; min-width: 0; }
-    .glabel { font-size: 10px; color: var(--brand); flex: none; width: 46px; text-align: right; letter-spacing: .04em; }
-    .pills { display: flex; gap: 6px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
-    .pills::-webkit-scrollbar { display: none; }
-    .pill {
-      background: var(--border2); border: 1px solid var(--border); color: var(--fg);
-      font: inherit; font-size: 12px; padding: 5px 11px; border-radius: 999px; cursor: pointer;
-      flex: none; white-space: nowrap; line-height: 1.4;
+    .crumb {
+      display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1;
+      font-size: 14px; color: var(--muted); overflow: hidden;
     }
-    .pill:hover { border-color: var(--muted); }
-    .pill[aria-current="true"] { background: var(--active-bg); border-color: var(--accent); color: var(--link); font-weight: 600; }
+    .crumb-sep { color: var(--muted); opacity: .55; flex: none; }
+    .crumb-item {
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
+    }
+    .crumb-current { color: var(--fg); font-weight: 500; }
+    .topbar-end {
+      display: flex; align-items: center; gap: 10px; margin-left: auto; flex: none;
+    }
 
-    /* 節の一括開閉。折りたたみで本文がページ内検索に出ない問題の回避手段も兼ねる。
-       ⚠️ ボタン枠を付けると H1 より先に「操作列」が主役になるので、枠なしの補助操作に留める */
-    .main-tools {
-      max-width: 760px; margin: 0 auto 10px;
-      display: flex; justify-content: space-between; align-items: center; gap: 10px;
-    }
-    .main-tools-end {
-      display: flex; align-items: center; gap: 14px; margin-left: auto; min-width: 0;
-    }
     /* 折りたたむ節が無い日に消すのは「すべて開く」ボタンだけ。
-       以前はこの行ごと（.main-tools）消していたが、概要リンクを同居させたため
-       節が無い日にリンクまで消えてしまう。`display:inline-flex` があるので
-       hidden 属性ではなくクラスで制御する */
+       `display:inline-flex` があるので hidden 属性ではなくクラスで制御する */
     #expand-all.hide { display: none; }
-    .about-link {
-      color: var(--fg); text-decoration: none; font-size: 12px;
-      border: none; background: none; padding: 6px 0;
-      min-height: 36px; display: inline-flex; align-items: center; gap: 6px;
-      white-space: nowrap; flex: none;
-    }
-    .about-link:hover, .about-link:focus-visible { color: var(--link); text-decoration: underline; }
 
-    /* 表示モード（ライト / システム / ダーク）。枠なし操作子と並べてもナビ選択に見えないよう
-       セグメント枠で「設定」であることを示す */
+    /* 表示モード（ライト / システム / ダーク）。選択はグレー（ナビの青と分離） */
     .theme-switch {
       display: inline-flex; border: 1px solid var(--border); border-radius: 6px;
-      overflow: hidden; flex: none; background: var(--panel);
+      overflow: hidden; flex: none; background: var(--bg);
     }
     .theme-opt {
       background: none; border: none; color: var(--muted); cursor: pointer;
@@ -143,7 +124,7 @@
     .theme-opt + .theme-opt { border-left: 1px solid var(--border); }
     .theme-opt:hover { color: var(--fg); background: var(--border2); }
     .theme-opt[aria-checked="true"] {
-      color: var(--link); background: var(--active-bg);
+      color: var(--fg-strong); background: var(--active-bg);
     }
     .theme-opt:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; z-index: 1; }
     .theme-opt svg { width: 16px; height: 16px; display: block; }
@@ -154,26 +135,70 @@
       min-height: 36px; white-space: nowrap; display: inline-flex; align-items: center; gap: 7px;
     }
     /* 押すとどちらへ向かうかを三角で示す。閉じている状態＝これから開く＝▼
-       選択ピルと同じ青塗りにしない（操作トグル ≠ ナビ選択） */
+       ナビ選択の塗りにしない（操作トグル ≠ ナビ選択） */
     #expand-all::before { content: "▼"; font-size: 9px; color: var(--fg); }
     #expand-all[aria-pressed="true"]::before { content: "▲"; color: var(--fg-strong); }
     #expand-all[aria-pressed="true"] { color: var(--fg-strong); }
-    #expand-all:hover { color: var(--fg); }
+    #expand-all:hover { color: var(--fg-strong); }
 
     /* --- レイアウト --- */
     .layout { display: flex; height: 100dvh; padding-top: var(--topbar); }
     .sidebar {
       width: var(--side); min-width: var(--side); background: var(--panel);
-      border-right: 1px solid var(--border); overflow-y: auto;
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; overflow: hidden;
     }
-    .main { flex: 1; overflow-y: auto; padding: 30px 32px 80px; }
+    .side-brand {
+      flex: none; padding: 14px 16px 8px;
+      font-size: 14px; font-weight: 600; color: var(--fg-strong);
+      letter-spacing: .02em;
+    }
+    #source-tree { flex: none; padding: 0 8px 8px; }
+    .side-group-label {
+      font-size: 11px; color: var(--muted); font-weight: 500;
+      padding: 8px 8px 4px; letter-spacing: .02em;
+    }
+    .side-group { display: flex; flex-direction: column; gap: 1px; }
+    .side-src {
+      display: flex; align-items: center; width: 100%; text-align: left;
+      background: none; border: none; color: var(--fg); font: inherit;
+      font-size: 14px; padding: 6px 8px; border-radius: 4px; cursor: pointer;
+    }
+    .side-src:hover { background: var(--border2); color: var(--fg-strong); }
+    .side-src.is-active {
+      background: var(--active-bg); color: var(--fg-strong); font-weight: 600;
+    }
+    .side-src:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+    .side-divider { flex: none; height: 1px; background: var(--border); margin: 4px 12px; }
+    .side-foot {
+      flex: none; padding: 8px 8px 12px;
+      border-top: 1px solid var(--border);
+      display: flex; flex-direction: column; gap: 6px;
+      background: var(--panel);
+    }
+    .side-foot .theme-switch { width: 100%; }
+    .side-foot .theme-opt { flex: 1; }
+    .about-link {
+      color: var(--fg); text-decoration: none; font-size: 13px;
+      border: none; background: none; padding: 8px;
+      min-height: 36px; display: flex; align-items: center;
+      border-radius: 4px; width: 100%;
+    }
+    .about-link:hover, .about-link:focus-visible {
+      background: var(--border2); color: var(--fg-strong); text-decoration: none;
+    }
+    .main { flex: 1; overflow-y: auto; padding: 40px 64px 96px; }
     .empty { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--empty); font-size: 15px; }
 
+    @media (max-width: 1100px) {
+      .main { padding: 32px 28px 80px; }
+    }
+
     /* --- 月アコーディオン --- */
-    #file-list { padding: 6px; }
+    #file-list { flex: 1; overflow-y: auto; min-height: 0; padding: 4px 8px 8px; }
     .month > summary {
       list-style: none; cursor: pointer; display: flex; align-items: center; gap: 6px;
-      padding: 9px 10px; border-radius: 6px; font-size: 12px; color: var(--fg);
+      padding: 6px 8px; border-radius: 4px; font-size: 12px; color: var(--fg);
       position: sticky; top: 0; background: var(--panel); z-index: 1;
     }
     .month > summary::-webkit-details-marker { display: none; }
@@ -188,36 +213,48 @@
     .item {
       display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
       background: none; border: none; color: var(--fg); font: inherit;
-      padding: 9px 12px; border-radius: 6px; cursor: pointer;
+      padding: 6px 8px; border-radius: 4px; cursor: pointer;
     }
     .item:hover { background: var(--border2); }
-    .item.is-active { background: var(--active-bg); color: var(--link); font-weight: 600; }
+    .item.is-active { background: var(--active-bg); color: var(--fg-strong); font-weight: 600; }
     .i-body { display: flex; flex-direction: column; min-width: 0; }
     .i-title { font-size: 14px; }
     .i-sub { font-size: 11px; color: var(--muted-strong); margin-top: 2px; }
 
     .badge { margin-left: auto; font-size: 10px; padding: 2px 7px; border-radius: 999px; white-space: nowrap; flex: none; }
     .b-today { background: #238636; color: #fff; }
-    .b-week  { background: #1f6feb; color: #fff; }
+    .b-week  { background: #2383e2; color: #fff; }
     .b-part  { background: var(--badge-part-bg); color: var(--badge-part-fg); }
 
     /* --- 本文 --- */
-    .content { max-width: 760px; margin: 0 auto; }
+    .content { max-width: 900px; margin: 0 auto; }
 
-    .content h1 { font-size: 30px; line-height: 1.35; color: var(--fg-strong); letter-spacing: .01em; margin-bottom: 6px; }
+    .content h1 {
+      font-size: 40px; font-weight: 700; line-height: 1.2; color: var(--fg-strong);
+      letter-spacing: -.01em; margin: 4px 0 8px;
+    }
     /* 節見出し。節が1つ以下で折りたたみが適用されないファイルでも同じ見え方にする */
     .content h2 {
-      font-size: 16px; font-weight: 700; color: var(--fg-strong); letter-spacing: .02em; line-height: 1.4;
-      margin-top: 44px; margin-bottom: 18px; display: flex; align-items: center; gap: 10px;
-      /* 構造区切りは中立色。青はナビ選択・リンク専用（1色1意味） */
-      border-left: 3px solid var(--border); padding: 2px 0 2px 10px;
+      font-size: 22px; font-weight: 600; color: var(--fg-strong); letter-spacing: 0; line-height: 1.3;
+      margin-top: 2em; margin-bottom: 12px;
     }
-    .content h2::after { content: ""; flex: 1; height: 1px; background: var(--border); }
-    .content h3 { font-size: 20px; line-height: 1.55; color: var(--fg-strong); font-weight: 700; margin-top: 34px; margin-bottom: 14px; }
+    .content h3 { font-size: 20px; line-height: 1.4; color: var(--fg-strong); font-weight: 600; margin-top: 28px; margin-bottom: 10px; }
     .content h4 { font-size: 15px; color: var(--heading-soft); margin-top: 22px; margin-bottom: 8px; }
-    .content p  { line-height: 1.9; margin-bottom: 20px; font-size: 15px; }
-    .content ul, .content ol { padding-left: 20px; margin-bottom: 20px; }
-    .content li { line-height: 1.9; margin-bottom: 8px; }
+    .content p  { line-height: 1.75; margin-bottom: 16px; font-size: 16px; }
+    .content ul, .content ol { padding-left: 1.6em; margin-bottom: 16px; }
+    .content li { line-height: 1.75; margin-bottom: 6px; }
+
+    /* H1 直下のプロパティ行（Notion のページプロパティ） */
+    .page-props {
+      display: flex; flex-wrap: wrap; gap: 2px 28px;
+      margin: 4px 0 24px; padding: 4px 0 8px;
+    }
+    .prop {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 14px; min-height: 32px;
+    }
+    .prop-k { color: var(--muted); width: 52px; flex: none; font-size: 12px; }
+    .prop-v { color: var(--fg); }
     /* 表示時の列挙分割。入れ子の内訳なので本体リストより詰める */
     .content ul.enum-split { margin: 8px 0 10px; padding-left: 20px; }
     .content ul.enum-split > li { margin-bottom: 6px; }
@@ -262,41 +299,32 @@
     .content th { background: var(--panel); color: var(--fg-strong); }
     .content img { max-width: 100%; height: auto; }
 
-    /* --- `## セクション` の折りたたみ --- */
+    /* --- `## セクション` の折りたたみ（Notion のトグル：▸＋見出し。左バーと横罫は使わない） --- */
     /* h2 は summary の「中に」入る（置き換えない）。押せることと節の始まりを視覚的に示す */
     .sec > summary {
-      list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px;
-      margin-top: 44px; margin-bottom: 18px; border-radius: 0 6px 6px 0;
-      /* 左バーは構造の合図。操作色（青）と分離する */
-      border-left: 3px solid var(--border); padding: 2px 0 2px 10px;
+      list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px;
+      margin-top: 1.6em; margin-bottom: 10px; padding: 4px 2px; border-radius: 4px;
     }
     .sec > summary::-webkit-details-marker { display: none; }
-    .sec > summary::after { content: ""; flex: 1; height: 1px; background: var(--border); }
     /* 節見出しは h2 要素のまま summary の中に入っている（見出し階層を壊さないため）。
        `.content h2`（特異性 0,1,1）に勝つ必要があるので `.content h2.sec-t` で指定する */
     .content h2.sec-t {
-      font-size: 16px; font-weight: 700; color: var(--fg-strong); line-height: 1.4;
-      letter-spacing: .02em; margin: 0; padding: 0; border: none; display: block;
-      /* ⚠️ 折り返す。以前は nowrap + ellipsis で1行に収めていたが、既定表示は
-         「先頭節のみ開」なので**畳んだ見出しの列がそのまま目次**になる。
-         375px 実測（2026-07-31）で5節が省略されており、`Microsoft 365 Copilot /
-         Copilot Studio` は31px 欠けていた。title 属性も無いため全文を得る手段が無く、
-         @media print も white-space を戻していないので PDF でも切れていた。
+      font-size: 22px; font-weight: 600; color: var(--fg-strong); line-height: 1.3;
+      letter-spacing: 0; margin: 0; padding: 0; border: none; display: block;
+      /* ⚠️ 折り返す。畳んだ見出しの列がそのまま目次になる。
          overflow:hidden だけ残すのは、フレックス項目の自動最小サイズを0に保ち
          summary を押し広げないため。高さは auto なので行が増えても欠けない */
       overflow: hidden;
     }
-    .content h2.sec-t::after { content: none; } /* h2 側の罫線は summary 側に任せる */
     .sec-n { font-size: 11px; font-weight: 400; color: var(--muted-strong); flex: none; }
-    /* 開閉の三角は全幅で出す。デスクトップで出していなかったため、
-       節が畳まれていても「押せる」ことが分からなかった */
     .sec > summary::before {
       content: "▶"; font-size: 10px; color: var(--muted-strong); flex: none;
       transition: transform .15s; display: inline-block; width: 1em; text-align: center;
     }
     .sec[open] > summary::before { transform: rotate(90deg); }
-    .sec > summary:hover .sec-t { color: var(--link); }
-    .sec > summary:hover::before { color: var(--link); }
+    .sec > summary:hover { background: var(--border2); }
+    .sec > summary:hover .sec-t { color: var(--fg-strong); }
+    .sec > summary:hover::before { color: var(--fg); }
 
     /* --- `### 見出し` の折りたたみ（節の中の第2階層・groupSubsections 参照） --- */
     /* ⚠️ 塗り＋枠線＋角丸の「カード」にしない。
@@ -316,8 +344,9 @@
       transition: transform .15s; display: inline-block; width: 1em; text-align: center;
     }
     .sub[open] > summary::before { transform: rotate(90deg); }
-    .sub > summary:hover .sub-t { color: var(--link); }
-    .sub > summary:hover::before { color: var(--link); }
+    .sub > summary:hover { background: var(--border2); }
+    .sub > summary:hover .sub-t { color: var(--fg-strong); }
+    .sub > summary:hover::before { color: var(--fg); }
     /* `.content h3`（特異性 0,1,1）に勝つため `.content h3.sub-t` で指定する。
        閉じているときは本文と同じ色。開いたときだけ強い色にして「今ここ」を示す */
     .content h3.sub-t {
@@ -341,10 +370,10 @@
     #to-top:hover { border-color: var(--muted); }
     #to-top:active { background: var(--border2); }
 
-    /* 導入段落はリード文として落ち着かせる */
+    /* 導入段落はリード文として落ち着かせる。下罫は置かない（タイトル〜本文をページとして地続きに） */
     .content .lede {
-      color: var(--fg); font-size: 14px; line-height: 1.9;
-      margin-bottom: 32px; padding-bottom: 20px; border-bottom: 1px solid var(--border);
+      color: var(--fg); font-size: 16px; line-height: 1.75;
+      margin-bottom: 28px; padding-bottom: 0;
     }
 
     /* 見出しの「— 含意」側を落として、タイトルを相対的に立てる。
@@ -367,13 +396,17 @@
       -webkit-box-decoration-break: clone;
     }
 
-    /* 要点/詳細/意味（旧: 事実/根拠/影響/行動指針）をラベル列＋色罫に組み替える */
+    /* 要点/詳細/意味（旧: 事実/根拠/影響/行動指針）をラベル列＋色罫のコールアウトに */
     .lbl {
       display: grid; grid-template-columns: 72px 1fr; gap: 14px;
-      margin: 0 0 16px; padding-left: 12px; border-left: 2px solid var(--rail, var(--border));
+      margin: 0 0 12px; padding: 12px 14px 12px 14px;
+      border-left: 3px solid var(--rail, var(--border));
+      border-radius: 4px;
+      background: var(--callout-bg);
+      background: color-mix(in srgb, var(--rail, var(--border)) 9%, var(--bg));
     }
-    .lbl > .k { font-size: 11px; font-weight: 700; color: var(--rail, var(--muted)); padding-top: 5px; letter-spacing: .06em; }
-    .lbl > .v { line-height: 1.9; font-size: 15px; min-width: 0; }
+    .lbl > .k { font-size: 11px; font-weight: 700; color: var(--rail, var(--muted)); padding-top: 4px; letter-spacing: .06em; }
+    .lbl > .v { line-height: 1.75; font-size: 16px; min-width: 0; }
     .lbl > .v > :last-child { margin-bottom: 0; }
     /* 値に吸収した箇条書き・続きの段落は、地の文より詰めて「同じ話の続き」に見せる */
     .lbl > .v > ul, .lbl > .v > ol { margin: 10px 0 14px; }
@@ -402,8 +435,8 @@
     .scrim { display: none; }
     @media (max-width: 820px) {
       #menu-btn { display: block; }
-      .brand { display: none; }
-      .glabel { width: 40px; font-size: 9px; }
+      /* モバイルのパンくずはソース名だけ（グループはサイドバーで見える） */
+      .crumb-group, .crumb-sep-group { display: none; }
       .sidebar {
         position: fixed; top: var(--topbar); bottom: 0; left: 0; z-index: 30;
         transform: translateX(-100%); transition: transform .2s ease, visibility .2s;
@@ -418,64 +451,56 @@
          `.scrim { display:block }` は UA スタイルの `[hidden]{display:none}` に勝つため、
          hidden を付けても消えず、本文を覆って画面が暗くなりタッチも奪われる（2026-07-27 に発生） */
       .scrim.show { display: block; position: fixed; inset: var(--topbar) 0 0 0; background: var(--scrim); z-index: 20; }
-      .main { padding: 18px 16px 76px; }
-      .content h1 { font-size: 24px; }
-      .content h3 { font-size: 18px; }
-      .lbl { grid-template-columns: 1fr; gap: 4px; padding-left: 10px; }
+      .main { padding: 20px 16px 76px; }
+      .content h1 { font-size: 28px; }
+      .content h2, .content h2.sec-t { font-size: 18px; }
+      .content h3 { font-size: 17px; }
+      .content p, .content .lede, .lbl > .v { font-size: 15px; }
+      .lbl { grid-template-columns: 1fr; gap: 4px; padding: 10px 12px; }
       .lbl > .k { padding-top: 0; }
 
-      /* 本文上の操作子もタップ領域を44px確保する（設計書の合格条件）。
-         デスクトップはマウス操作なので 36px のままでよい */
-      /* 枠なしでもタップ領域は44px確保する */
-      .about-link, #expand-all { min-height: 44px; padding: 10px 0; }
+      /* 操作子のタップ領域を44px確保する（設計書の合格条件） */
+      .about-link, #expand-all, .side-src, .item, .month > summary { min-height: 44px; }
       .theme-opt { width: 44px; height: 44px; }
-      /* テーマ切替を足すと1行に収まらない（375px 実測）。折り返して操作を落とさない */
-      .main-tools { flex-wrap: wrap; gap: 6px 10px; }
-      .main-tools-end { gap: 10px; }
+      .topbar-end { gap: 8px; }
 
       /* 畳んだ見出しがそのまま目次になる。タップ領域を44px確保する */
-      .sec > summary { display: flex; margin-top: 20px; margin-bottom: 12px; padding: 12px 10px; min-height: 44px; }
+      .sec > summary { display: flex; margin-top: 16px; margin-bottom: 10px; padding: 10px 8px; min-height: 44px; }
       .sub > summary { padding: 11px 2px; min-height: 44px; }
-      .sec:not([open]) > summary { background: var(--panel); border: 1px solid var(--border); }
-      .sec:not([open]) > summary::after { display: none; }
     }
 
-    /* --- 横向きのスマホ：トップバーを1段に畳む ---
-       812x375 実測でトップバー81px は画面高の 22% を占め、本文の可視高が294pxしか残らなかった。
-       高さが足りないときはグループ見出しを隠し、2段を1段にまとめて縦を取り戻す */
+    /* --- 横向きのスマホ：本文の縦を優先する ---
+       2段ピルを廃したのでトップバーは約45pxのまま。見出しだけ小さくする */
     @media (max-width: 900px) and (max-height: 500px) {
-      .groups { flex-direction: row; align-items: center; gap: 10px; overflow-x: auto; scrollbar-width: none; }
-      .groups::-webkit-scrollbar { display: none; }
-      .glabel { display: none; }
-      /* 「まとめ」と「元ソース」の境目は区切り線で示す（案Aの階層表現を保つ） */
-      .grp + .grp { border-left: 1px solid var(--border); padding-left: 10px; }
-      .topbar { padding: 6px 10px; }
-      .content h1 { font-size: 20px; }
-      .content h3 { font-size: 17px; }
+      .topbar { padding: 0 8px; min-height: 40px; }
+      .main { padding: 14px 16px 64px; }
+      .content h1 { font-size: 22px; }
+      .content h2, .content h2.sec-t { font-size: 16px; }
+      .content h3 { font-size: 16px; }
     }
 
     /* --- 印刷 / PDF 保存 ---
        節の展開は JS の beforeprint で行う（CSS からは details の open を変えられないため）。
        提案資料の根拠として保存する用途があるので、本文が欠けないことを最優先にする */
     @media print {
-      .topbar, .sidebar, .scrim, #to-top, .main-tools, #banners { display: none !important; }
+      .topbar, .sidebar, .scrim, #to-top, #banners { display: none !important; }
       .layout { display: block; height: auto; padding-top: 0; }
       .main { overflow: visible; padding: 0; }
       .content { max-width: none; }
       body { background: #fff; color: #000; }
       .content h1, .content h2, .content h3, .content h4, .content th, .content strong { color: #000; }
-      .content h2, .content h2.sec-t { border-left-color: #999; }
-      .sec > summary { border-left-color: #999; }
       .sec > summary::before { content: none; }        /* 開閉の三角は印刷しない */
       .content a { color: #00e; text-decoration: underline; }
       .content strong.long { background: none; font-weight: 600; }
-      .lbl { border-left-color: #999; page-break-inside: avoid; }
+      .lbl { border-left-color: #999; background: #f7f7f7; page-break-inside: avoid; }
       .lbl > .k { color: #000; }
       .content blockquote { color: #333; border-left-color: #999; }
       .content code { background: #eee; border-color: #999; color: #000; }
       .content em, .content .lede, .content h3 .h3-sub { color: #333; }
       ul.src a { color: #333; background: none; border-color: #999; }
       .content h1, .content h2, .content h3, .sec > summary { page-break-after: avoid; }
+      .page-props { color: #333; }
+      .prop-k, .prop-v { color: #333; }
     }
   </style>
 </head>
@@ -486,53 +511,45 @@
   </div>
 
   <header class="topbar">
-    <button id="menu-btn" type="button" aria-label="日付の一覧を開く" aria-expanded="false" aria-controls="sidebar">☰</button>
-    <span class="brand">AI NEWS</span>
-    <div class="groups">
-      <div class="grp">
-        <span class="glabel">まとめ</span>
-        <nav class="pills" id="pills-digest" aria-label="まとめ"></nav>
-      </div>
-      <div class="grp">
-        <span class="glabel">元ソース</span>
-        <nav class="pills" id="pills-source" aria-label="元ソース"></nav>
-      </div>
+    <button id="menu-btn" type="button" aria-label="ソースと日付の一覧を開く" aria-expanded="false" aria-controls="sidebar">☰</button>
+    <nav class="crumb" id="crumb" aria-label="現在位置"></nav>
+    <div class="topbar-end">
+      <button id="expand-all" type="button" aria-pressed="false">すべて開く</button>
     </div>
   </header>
 
   <div class="layout">
-    <nav class="sidebar" id="sidebar" aria-label="日付の一覧">
+    <nav class="sidebar" id="sidebar" aria-label="ソースと日付">
+      <div class="side-brand">AI NEWS</div>
+      <div id="source-tree"></div>
+      <div class="side-divider" aria-hidden="true"></div>
       <div id="file-list"></div>
+      <div class="side-foot">
+        <div class="theme-switch" role="radiogroup" aria-label="表示モード">
+          <button type="button" class="theme-opt" data-theme-set="light" role="radio" aria-checked="false" title="ライト" aria-label="ライト">
+            <svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <circle cx="8" cy="8" r="2.6"/>
+              <path d="M8 1.5v1.7M8 12.8v1.7M1.5 8h1.7M12.8 8h1.7M3.4 3.4l1.2 1.2M11.4 11.4l1.2 1.2M12.6 3.4l-1.2 1.2M4.6 11.4l-1.2 1.2"/>
+            </svg>
+          </button>
+          <button type="button" class="theme-opt" data-theme-set="system" role="radio" aria-checked="false" title="システム" aria-label="システム">
+            <svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="12" height="8" rx="1.2"/>
+              <path d="M5.5 13.5h5M8 11v2.5"/>
+            </svg>
+          </button>
+          <button type="button" class="theme-opt" data-theme-set="dark" role="radio" aria-checked="false" title="ダーク" aria-label="ダーク">
+            <svg viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">
+              <path d="M10.8 1.6A6.5 6.5 0 1 0 14.4 9a5.2 5.2 0 0 1-3.6-7.4Z"/>
+            </svg>
+          </button>
+        </div>
+        <a class="about-link" href="about.html">このサイトについて</a>
+      </div>
     </nav>
     <div class="scrim" id="scrim"></div>
     <button id="to-top" type="button" aria-label="先頭へ戻る">↑</button>
     <main class="main">
-      <!-- トップバーに置くとピルの幅を奪って「業界」が見えなくなったため本文側に置く -->
-      <div class="main-tools">
-        <a class="about-link" href="about.html">? このサイトについて</a>
-        <div class="main-tools-end">
-          <div class="theme-switch" role="radiogroup" aria-label="表示モード">
-            <button type="button" class="theme-opt" data-theme-set="light" role="radio" aria-checked="false" title="ライト" aria-label="ライト">
-              <svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-                <circle cx="8" cy="8" r="2.6"/>
-                <path d="M8 1.5v1.7M8 12.8v1.7M1.5 8h1.7M12.8 8h1.7M3.4 3.4l1.2 1.2M11.4 11.4l1.2 1.2M12.6 3.4l-1.2 1.2M4.6 11.4l-1.2 1.2"/>
-              </svg>
-            </button>
-            <button type="button" class="theme-opt" data-theme-set="system" role="radio" aria-checked="false" title="システム" aria-label="システム">
-              <svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="3" width="12" height="8" rx="1.2"/>
-                <path d="M5.5 13.5h5M8 11v2.5"/>
-              </svg>
-            </button>
-            <button type="button" class="theme-opt" data-theme-set="dark" role="radio" aria-checked="false" title="ダーク" aria-label="ダーク">
-              <svg viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">
-                <path d="M10.8 1.6A6.5 6.5 0 1 0 14.4 9a5.2 5.2 0 0 1-3.6-7.4Z"/>
-              </svg>
-            </button>
-          </div>
-          <button id="expand-all" type="button" aria-pressed="false">すべて開く</button>
-        </div>
-      </div>
       <div id="content" class="content">
         <div class="empty">読み込み中…</div>
       </div>
@@ -596,6 +613,7 @@
       { id: 'copilot',  dir: '02_ai-news-Copilot',  name: 'Microsoft',   group: 'source' },
       { id: 'industry', dir: '03_ai-news-industry', name: '業界',        group: 'source' },
     ];
+    const GROUP_LABEL = { digest: 'まとめ', source: '元ソース' };
     const srcOf  = (id) => SOURCES.find((s) => s.id === id) || SOURCES[0];
     const baseOf = (id) => `../${srcOf(id).dir}/`;
 
@@ -629,10 +647,13 @@
       const d = path.match(RE_DATE);
       if (d) {
         const ymd = `${d[1]}-${d[2]}-${d[3]}`;
+        const dow = DAYS[dateUTC(ymd).getUTCDay()];
         return {
           kind: 'date', path, id: ymd, ymd,
           sort: `${d[1]}${d[2]}${d[3]}`, bucket: `${d[1]}-${d[2]}`,
-          label: ymd, sub: DAYS[dateUTC(ymd).getUTCDay()] + '曜日',
+          label: `${+d[2]}/${+d[3]} ${dow}`,
+          sub: '',
+          fullLabel: ymd,
         };
       }
       const w = path.match(RE_WEEK);
@@ -646,16 +667,16 @@
           kind: 'week', path, id: `${year}-W${p2(wk)}`, y: year, wk, mon,
           sort: ymdOf(mon).replace(/-/g, ''),
           bucket: `${mon.getUTCFullYear()}-${p2(mon.getUTCMonth() + 1)}`,
-          label: `${year}-W${p2(wk)}`,
-          // 日付レンジは表示しない。W19 は H1 が 04-28〜05-04（ISO ではなく直近7日間）で
-          // 週番号から算出した月曜と食い違うため、算出値を出すと本文と矛盾する。
-          sub: '週次サマリー',
+          label: `W${p2(wk)}`,
+          sub: '',
+          fullLabel: `${year}-W${p2(wk)}`,
         };
       }
       // 判定不能でも捨てない。捨てたことが 04/05 の無言故障の原因だった。
+      const name = path.split('/').pop();
       return {
         kind: 'other', path, id: path, sort: '00000000', bucket: 'unknown',
-        label: path.split('/').pop(), sub: '日付を判定できません',
+        label: name, sub: '日付を判定できません', fullLabel: name,
       };
     }
 
@@ -744,6 +765,7 @@
         await selectEntry(hit ? preferId : state.entries[0].id);
       } else {
         writeHash(sourceId, null);
+        syncBreadcrumb();
         $('#content').innerHTML = '<div class="empty">表示できるファイルがありません</div>';
       }
     }
@@ -771,7 +793,7 @@
         first = false;
 
         const sum = document.createElement('summary');
-        sum.innerHTML = '<span class="chev" aria-hidden="true">▸</span>';
+        sum.innerHTML = '<span class="chev" aria-hidden="true">▶</span>';
         const label = document.createElement('span');
         label.className = 'm-label';
         label.textContent = bucket === 'unknown' ? '日付不明' : `${bucket.slice(0, 4)}年${+bucket.slice(5)}月`;
@@ -817,16 +839,25 @@
       btn.type = 'button';
       btn.className = 'item';
       btn.dataset.id = e.id;
+      btn.title = e.fullLabel || e.label;
+      if (e.kind === 'date') {
+        btn.setAttribute('aria-label', `${e.ymd} ${DAYS[dateUTC(e.ymd).getUTCDay()]}曜日`);
+      } else {
+        btn.setAttribute('aria-label', e.fullLabel || e.label);
+      }
 
       const body = document.createElement('span');
       body.className = 'i-body';
       const t = document.createElement('span');
       t.className = 'i-title';
       t.textContent = e.label;
-      const s = document.createElement('span');
-      s.className = 'i-sub';
-      s.textContent = e.sub;
-      body.append(t, s);
+      body.appendChild(t);
+      if (e.sub) {
+        const s = document.createElement('span');
+        s.className = 'i-sub';
+        s.textContent = e.sub;
+        body.appendChild(s);
+      }
       btn.appendChild(body);
 
       const b = badgeOf(e);
@@ -875,6 +906,7 @@
         }
       }
       writeHash(state.sourceId, id);
+      syncBreadcrumb();
       $('.main').scrollTop = 0;
     }
 
@@ -906,6 +938,7 @@
       splitLongItemsByPeriod(box);
       decorateNote(box);
       decorateLede(box);
+      decoratePageProps(box); // h1 の直後。decorateNote / decorateLede の後に差し込む
       groupSections(box); // ノードを移動するので必ず最後に実行する
       // groupSections は節が1つ以下だと早期 return するため、
       // ボタンの表示可否はここで必ず更新する
@@ -1643,27 +1676,96 @@
       if (n && n.tagName === 'P') n.classList.add('lede');
     }
 
+    // Notion のプロパティ行。見出し階層を壊さないよう H1 は残し、直後にメタを足す
+    function decoratePageProps(box) {
+      const h1 = box.querySelector('h1');
+      if (!h1) return;
+      const src = srcOf(state.sourceId);
+      const e = state.entries.find((x) => x.id === state.activeId);
+      const props = document.createElement('div');
+      props.className = 'page-props';
+      const rows = [];
+      if (e?.kind === 'date') {
+        rows.push(['日付', e.ymd]);
+        rows.push(['曜日', DAYS[dateUTC(e.ymd).getUTCDay()] + '曜日']);
+      } else if (e?.kind === 'week') {
+        rows.push(['週', e.fullLabel || e.id]);
+      } else if (e) {
+        rows.push(['日付', e.fullLabel || e.label]);
+      }
+      rows.push(['ソース', src.name]);
+      for (const [k, v] of rows) {
+        const row = document.createElement('div');
+        row.className = 'prop';
+        const pk = document.createElement('span');
+        pk.className = 'prop-k';
+        pk.textContent = k;
+        const pv = document.createElement('span');
+        pv.className = 'prop-v';
+        pv.textContent = v;
+        row.append(pk, pv);
+        props.appendChild(row);
+      }
+      h1.after(props);
+    }
+
     // ============ ナビゲーション ============
 
-    function renderPills() {
+    function renderSourceTree() {
+      const tree = $('#source-tree');
+      tree.innerHTML = '';
       for (const g of ['digest', 'source']) {
-        const nav = document.getElementById('pills-' + g);
-        nav.innerHTML = '';
+        const lab = document.createElement('div');
+        lab.className = 'side-group-label';
+        lab.textContent = GROUP_LABEL[g];
+        tree.appendChild(lab);
+        const nav = document.createElement('div');
+        nav.className = 'side-group';
+        nav.setAttribute('role', 'navigation');
+        nav.setAttribute('aria-label', GROUP_LABEL[g]);
         for (const s of SOURCES.filter((x) => x.group === g)) {
           const b = document.createElement('button');
           b.type = 'button';
-          b.className = 'pill';
+          b.className = 'side-src' + (s.id === state.sourceId ? ' is-active' : '');
           b.dataset.id = s.id;
           b.textContent = s.name;
-          // aria-current="false" でも AT が current と読む実装があるので、非選択時は属性自体を外す
           if (s.id === state.sourceId) b.setAttribute('aria-current', 'true');
           nav.appendChild(b);
         }
+        tree.appendChild(nav);
       }
+      syncBreadcrumb();
       syncTopbarHeight();
     }
 
-    // トップバーが2段になったため高さは固定値にできない。実測して CSS 変数に反映する。
+    function crumbPart(text, cls) {
+      const s = document.createElement('span');
+      s.className = cls;
+      s.textContent = text;
+      return s;
+    }
+
+    function syncBreadcrumb() {
+      const crumb = $('#crumb');
+      if (!crumb) return;
+      const src = srcOf(state.sourceId);
+      const group = GROUP_LABEL[src.group];
+      const e = state.entries.find((x) => x.id === state.activeId);
+      crumb.replaceChildren();
+      crumb.append(
+        crumbPart(group, 'crumb-item crumb-group'),
+        crumbPart('/', 'crumb-sep crumb-sep-group'),
+        crumbPart(src.name, 'crumb-item crumb-source' + (e ? '' : ' crumb-current')),
+      );
+      if (e) {
+        crumb.append(
+          crumbPart('/', 'crumb-sep'),
+          crumbPart(e.fullLabel || e.label, 'crumb-item crumb-current'),
+        );
+      }
+    }
+
+    // トップバーの高さは固定値にできない。実測して CSS 変数に反映する。
     // バナー（0〜2本）とトップバーの高さを測り、本文・サイドバー・スクリムの
     // 上端をまとめて押し下げる。--topbar は .layout / .sidebar / .scrim が参照する
     function syncTopbarHeight() {
@@ -1676,7 +1778,7 @@
     function switchSource(id) {
       if (id === state.sourceId) return;
       state.sourceId = id;
-      renderPills();
+      renderSourceTree();
       $('#warn').hidden = true;
       syncTopbarHeight();   // 消えたバナーのぶん押し戻す
       $('#content').innerHTML = '<div class="empty">読み込み中…</div>';
@@ -1710,15 +1812,13 @@
       const { sourceId, entryId } = parseHash();
       if (sourceId) state.sourceId = sourceId;
       initThemeControls();
-      renderPills();
+      renderSourceTree();
 
       // イベント委譲。要素を作り直しても listener を張り直さなくてよい
-      for (const g of ['digest', 'source']) {
-        document.getElementById('pills-' + g).addEventListener('click', (ev) => {
-          const b = ev.target.closest('.pill');
-          if (b) switchSource(b.dataset.id);
-        });
-      }
+      $('#source-tree').addEventListener('click', (ev) => {
+        const b = ev.target.closest('.side-src');
+        if (b) switchSource(b.dataset.id);
+      });
       $('#file-list').addEventListener('click', (ev) => {
         const btn = ev.target.closest('.item');
         if (!btn) return;

@@ -29,17 +29,17 @@
     /* ビューア（index.html）と同一のパレット */
     :root, [data-theme="dark"] {
       color-scheme: dark;
-      --bg:#0d1117; --panel:#161b22; --border:#30363d; --border2:#21262d;
-      --fg:#c9d1d9; --fg-strong:#f0f6fc; --muted:#8b949e; --link:#58a6ff;
-      --accent:#1f6feb; --brand:#8b949e;
-      --active-bg:#1f6feb33;
+      --bg:#191919; --panel:#202020; --border:#2f2f2f; --border2:#2c2c2c;
+      --fg:#d4d4d4; --fg-strong:#ffffff; --muted:#9b9b9b; --link:#6cb6e0;
+      --accent:#5b9fd6; --brand:#9b9b9b;
+      --active-bg:#2c2c2c;
     }
     [data-theme="light"] {
       color-scheme: light;
-      --bg:#ffffff; --panel:#f6f8fa; --border:#d0d7de; --border2:#eaeef2;
-      --fg:#1f2328; --fg-strong:#1f2328; --muted:#656d76; --link:#0969da;
-      --accent:#0969da; --brand:#57606a;
-      --active-bg:#ddf4ff;
+      --bg:#ffffff; --panel:#f7f6f3; --border:#e8e7e4; --border2:#efeee9;
+      --fg:#37352f; --fg-strong:#37352f; --muted:#6f6e69; --link:#0b6e99;
+      --accent:#2383e2; --brand:#6f6e69;
+      --active-bg:#ecebe9;
     }
 
     body {
@@ -49,7 +49,7 @@
     }
 
     .topbar {
-      background: var(--panel); border-bottom: 1px solid var(--border);
+      background: var(--bg); border-bottom: 1px solid var(--border);
       padding: 10px 16px; display: flex; align-items: center; gap: 12px;
     }
     .brand { font-size: 11px; color: var(--brand); letter-spacing: .12em; white-space: nowrap; }
@@ -65,7 +65,7 @@
     .theme-opt + .theme-opt { border-left: 1px solid var(--border); }
     .theme-opt:hover { color: var(--fg); background: var(--border2); }
     .theme-opt[aria-checked="true"] {
-      color: var(--link); background: var(--active-bg);
+      color: var(--fg-strong); background: var(--active-bg);
     }
     .theme-opt:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; z-index: 1; }
     .theme-opt svg { width: 16px; height: 16px; display: block; }
@@ -166,16 +166,16 @@
       どの項目にも出典へのリンクが付くので、気になったものはその場で原文にあたれます。
     </p>
 
-    <h2>5つのタブの読み分け</h2>
+    <h2>5つのソースの読み分け</h2>
     <p>
-      上部のタブは「まとめ」と「元ソース」の2群に分かれています。
+      左の一覧は「まとめ」と「元ソース」の2群に分かれています。
       <strong>1日1回だけ見るなら「今日のまとめ」だけで足ります。</strong>
       特定の分野を深く追いたいときに元ソース側を開いてください。
     </p>
     <div class="tw">
       <table>
         <thead>
-          <tr><th>タブ</th><th>扱う範囲</th><th>更新</th><th>こんな時に見る</th></tr>
+          <tr><th>ソース</th><th>扱う範囲</th><th>更新</th><th>こんな時に見る</th></tr>
         </thead>
         <tbody>
           <tr>
@@ -218,7 +218,7 @@
     <h2>画面の見方</h2>
     <p>
       開いた直後は「今日のまとめ」で、その日の先頭の節だけが展開されています。
-      見出しを押すと節の開閉ができます。ページ内検索をするときは、本文上の
+      見出しを押すと節の開閉ができます。ページ内検索をするときは、右上の
       <strong>すべて開く</strong> を先に押してください（閉じている節は検索に出ません）。
     </p>
     <ul>
@@ -232,7 +232,7 @@
         項目の下に並ぶ小さなラベルは<strong>出典のドメイン</strong>です。押すと公式ページへ飛びます。
       </li>
       <li>
-        表示はライト / システム / ダークを切り替えられます。選択は次回も残ります。
+        表示は左の一覧の下でライト / システム / ダークを切り替えられます。選択は次回も残ります。
       </li>
     </ul>
 
