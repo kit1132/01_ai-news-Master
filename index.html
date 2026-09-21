@@ -43,6 +43,8 @@
       --badge-part-bg:#3d3d3d; --badge-part-fg:#d4d4d4;
       --shadow:#0007; --scrim:#0008;
       --callout-bg:#262626;
+      /* 日付一覧の土日。本文リンク青・通知赤とは役割が違う（カレンダーの曜日） */
+      --dow-sat:#6cb6e0; --dow-sun:#f07178;
       --side:240px;
       --topbar:45px;   /* 実際の高さは JS で測って上書きする */
     }
@@ -58,6 +60,7 @@
       --badge-part-bg:#e8e7e4; --badge-part-fg:#6f6e69;
       --shadow:#37352f40; --scrim:#37352f66;
       --callout-bg:#f7f6f3;
+      --dow-sat:#0b6e99; --dow-sun:#c62828;
     }
 
     body {
@@ -221,6 +224,10 @@
     .i-body { display: flex; flex-direction: column; min-width: 0; }
     .i-title { font-size: 14px; }
     .i-sub { font-size: 11px; color: var(--muted-strong); margin-top: 2px; }
+    .dow-sat { color: var(--dow-sat); }
+    .dow-sun { color: var(--dow-sun); }
+    .item.is-active .dow-sat { color: var(--dow-sat); }
+    .item.is-active .dow-sun { color: var(--dow-sun); }
 
     .badge { margin-left: auto; font-size: 10px; padding: 2px 7px; border-radius: 999px; white-space: nowrap; flex: none; }
     .b-today, .b-week, .b-part { background: var(--badge-part-bg); color: var(--badge-part-fg); }
@@ -856,7 +863,17 @@
       body.className = 'i-body';
       const t = document.createElement('span');
       t.className = 'i-title';
-      t.textContent = e.label;
+      if (e.kind === 'date') {
+        const day = dateUTC(e.ymd).getUTCDay();
+        t.append(`${+e.ymd.slice(5, 7)}/${+e.ymd.slice(8, 10)} `);
+        const w = document.createElement('span');
+        if (day === 0) w.className = 'dow-sun';
+        else if (day === 6) w.className = 'dow-sat';
+        w.textContent = DAYS[day];
+        t.appendChild(w);
+      } else {
+        t.textContent = e.label;
+      }
       body.appendChild(t);
       if (e.sub) {
         const s = document.createElement('span');
