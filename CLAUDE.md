@@ -74,3 +74,4 @@ git push origin HEAD:main           # ← 必ず main に直接 push する
 - `.claude/rules/sites/fetch-flow.md` — WebFetch失敗時のフォールバックフロー・エラー記録ルール
 - `.claude/rules/interests/ai-tools.md` — 関心領域・除外基準
 - `.claude/rules/preferences/output-style.md` — 出力フォーマット・ファイル形式
+- `.claude/rules/preferences/viewer-ui.md` — 統合ビューア（`index.html`）のサイドバー仕様。UI を触る前に読む

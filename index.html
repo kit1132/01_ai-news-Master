@@ -157,16 +157,27 @@
       font-size: 14px; font-weight: 600; color: var(--fg-strong);
       letter-spacing: .02em;
     }
-    #source-tree { flex: none; padding: 0 8px 8px; }
-    .side-group-label {
-      font-size: 11px; color: var(--muted); font-weight: 500;
-      padding: 8px 8px 4px; letter-spacing: .02em;
+    #source-tree { flex: none; padding: 4px 8px 10px; display: flex; flex-direction: column; }
+    .side-block { padding: 2px 0 6px; }
+    .side-block + .side-block {
+      margin-top: 4px; padding-top: 10px;
+      border-top: 1px solid var(--border);
     }
-    .side-group { display: flex; flex-direction: column; gap: 1px; }
+    /* 月見出しと同じ階層。11px muted だとソース名に埋もれる */
+    .side-group-label {
+      font-size: 12px; color: var(--fg); font-weight: 600;
+      padding: 6px 8px 4px; letter-spacing: .04em;
+    }
+    .side-group {
+      display: flex; flex-direction: column; gap: 1px;
+      margin: 0 2px 0 8px; padding-left: 8px;
+      border-left: 2px solid var(--border);
+    }
     .side-src {
       display: flex; align-items: center; width: 100%; text-align: left;
       background: none; border: none; color: var(--fg); font: inherit;
-      font-size: 14px; padding: 6px 8px; border-radius: 4px; cursor: pointer;
+      font-size: 14px; padding: 7px 10px; border-radius: 6px; cursor: pointer;
+      min-height: 36px;
     }
     .side-src:hover { background: var(--border2); color: var(--fg-strong); }
     .side-src.is-active {
@@ -202,7 +213,7 @@
     #file-list { flex: 1 1 0; overflow-y: auto; min-height: 0; padding: 4px 8px 8px; }
     .month > summary {
       list-style: none; cursor: pointer; display: flex; align-items: center; gap: 6px;
-      padding: 6px 8px; border-radius: 4px; font-size: 12px; color: var(--fg);
+      padding: 8px 8px; border-radius: 4px; font-size: 14px; color: var(--fg);
       position: sticky; top: 0; background: var(--panel); z-index: 1;
     }
     .month > summary::-webkit-details-marker { display: none; }
@@ -213,25 +224,46 @@
     .m-count { margin-left: auto; font-size: 11px; color: var(--muted-strong); }
 
     /* 入れ子 ul に padding が二重に付かないよう .items だけで完結させる */
-    .items { list-style: none; padding: 0 0 6px 0; margin: 0; }
+    .items { list-style: none; padding: 2px 0 8px 0; margin: 0; }
+    .week-sep {
+      padding: 12px 8px 4px; font-size: 12px; font-weight: 600;
+      color: var(--muted-strong); letter-spacing: .04em;
+    }
+    .items > .week-sep:not(:first-child) {
+      margin-top: 4px;
+      border-top: 1px solid color-mix(in srgb, var(--fg) 12%, var(--bg));
+    }
     .item {
       display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
       background: none; border: none; color: var(--fg); font: inherit;
-      padding: 6px 8px; border-radius: 4px; cursor: pointer;
+      padding: 8px 8px; border-radius: 6px; cursor: pointer; min-height: 36px;
     }
+    .item:has(.i-date) {
+      display: grid; grid-template-columns: 2.85em 1.2em 1fr auto;
+      column-gap: 8px; align-items: center;
+    }
+    .item:has(.i-date) .badge { grid-column: 4; justify-self: end; }
     .item:hover { background: var(--border2); }
     .item.is-active { background: var(--active-bg); color: var(--fg-strong); font-weight: 600; }
+    .i-date {
+      font-variant-numeric: tabular-nums; font-weight: 600; font-size: 13px;
+      text-align: right; line-height: 1.2;
+    }
+    .i-dow { font-size: 12px; font-weight: 400; color: var(--muted-strong); }
+    .item.is-active .i-dow { color: var(--muted-strong); }
     .i-body { display: flex; flex-direction: column; min-width: 0; }
-    .i-title { font-size: 14px; }
-    .i-sub { font-size: 11px; color: var(--muted-strong); margin-top: 2px; }
+    .i-title { font-size: 12px; font-weight: 600; color: var(--muted-strong); }
+    .item.is-active .i-title { color: var(--fg-strong); }
+    .i-sub { font-size: 12px; color: var(--muted-strong); margin-top: 2px; }
     .dow-sat { color: var(--dow-sat); }
     .dow-sun { color: var(--dow-sun); }
     .item.is-active .dow-sat { color: var(--dow-sat); }
     .item.is-active .dow-sun { color: var(--dow-sun); }
 
     .badge { margin-left: auto; font-size: 10px; padding: 2px 7px; border-radius: 999px; white-space: nowrap; flex: none; }
-    .b-today, .b-week, .b-part { background: var(--badge-part-bg); color: var(--badge-part-fg); }
-    .b-today { font-weight: 600; }
+    .b-week, .b-part { background: var(--badge-part-bg); color: var(--badge-part-fg); }
+    /* 「今日」は日付一覧で一番拾いたい印。週バッジと同居させると灰色に埋もれるので緑を維持する */
+    .b-today { background: #238636; color: #fff; font-weight: 600; }
 
     /* --- 本文 --- */
     .content { max-width: 900px; margin: 0 auto; }
@@ -242,10 +274,10 @@
     }
     /* 節見出し。節が1つ以下で折りたたみが適用されないファイルでも同じ見え方にする */
     .content h2 {
-      font-size: 22px; font-weight: 600; color: var(--fg-strong); letter-spacing: 0; line-height: 1.3;
+      font-size: 24px; font-weight: 700; color: var(--fg-strong); letter-spacing: 0; line-height: 1.3;
       margin-top: 2em; margin-bottom: 12px;
     }
-    .content h3 { font-size: 20px; line-height: 1.4; color: var(--fg-strong); font-weight: 600; margin-top: 28px; margin-bottom: 10px; }
+    .content h3 { font-size: 20px; line-height: 1.4; color: var(--fg-strong); font-weight: 600; margin-top: 36px; margin-bottom: 14px; }
     .content h4 { font-size: 15px; color: var(--heading-soft); margin-top: 22px; margin-bottom: 8px; }
     .content p  { line-height: 1.75; margin-bottom: 16px; font-size: 16px; }
     .content ul, .content ol { padding-left: 1.6em; margin-bottom: 16px; }
@@ -297,23 +329,23 @@
     /* --- `## セクション` の折りたたみ（Notion のトグル：▸＋見出し。左バーと横罫は使わない） --- */
     /* h2 は summary の「中に」入る（置き換えない）。押せることと節の始まりを視覚的に示す */
     .sec > summary {
-      list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px;
-      margin-top: 1.6em; margin-bottom: 10px; padding: 4px 2px; border-radius: 4px;
+      list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px;
+      margin-top: 2.4em; margin-bottom: 8px; padding: 10px 8px; border-radius: 6px;
     }
     .sec > summary::-webkit-details-marker { display: none; }
     /* 節見出しは h2 要素のまま summary の中に入っている（見出し階層を壊さないため）。
        `.content h2`（特異性 0,1,1）に勝つ必要があるので `.content h2.sec-t` で指定する */
     .content h2.sec-t {
-      font-size: 22px; font-weight: 600; color: var(--fg-strong); line-height: 1.3;
+      font-size: 24px; font-weight: 700; color: var(--fg-strong); line-height: 1.35;
       letter-spacing: 0; margin: 0; padding: 0; border: none; display: block;
       /* ⚠️ 折り返す。畳んだ見出しの列がそのまま目次になる。
          overflow:hidden だけ残すのは、フレックス項目の自動最小サイズを0に保ち
          summary を押し広げないため。高さは auto なので行が増えても欠けない */
       overflow: hidden;
     }
-    .sec-n { font-size: 11px; font-weight: 400; color: var(--muted-strong); flex: none; }
+    .sec-n { font-size: 12px; font-weight: 400; color: var(--muted-strong); flex: none; }
     .sec > summary::before {
-      content: "▶"; font-size: 10px; color: var(--muted-strong); flex: none;
+      content: "▶"; font-size: 11px; color: var(--muted-strong); flex: none;
       transition: transform .15s; display: inline-block; width: 1em; text-align: center;
     }
     .sec[open] > summary::before { transform: rotate(90deg); }
@@ -322,65 +354,121 @@
     .sec > summary:hover::before { color: var(--fg); }
 
     /* --- `### 見出し` の折りたたみ（節の中の第2階層・groupSubsections 参照） --- */
-    /* ⚠️ 塗り＋枠線＋角丸の「カード」にしない。
-       初版はそれで作ったが、9個並ぶと灰色のボタンが縦に連なる見た目になり、
-       **下位階層なのに節見出し（アクセントバー＋罫線だけ）より重い**という逆転が起きた。
-       階層はインデントと文字の強さで示し、区切りは罫線1本に留める。 */
+    /* トグル行が親、中身はシェブロンの右にネストする。
+       旧: padding-left 26px だけではタイトルより左に本文が始まり、
+       項目見出し 600 / 本文 16px がカテゴリ名 500 / 16px より強く見えた（2026-09-21） */
+    .sec > .sub {
+      margin: 0;
+    }
     .sub > summary {
       list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px;
-      margin: 0; padding: 8px 2px; min-height: 36px;
-      border-bottom: 1px solid var(--border2);
+      margin: 0; padding: 10px 8px; min-height: 40px; border-radius: 6px;
+      border-bottom: none;
     }
-    /* 開いている見出しは本文と地続きに見せる（罫線で切らない） */
-    .sub[open] > summary { border-bottom-color: transparent; }
+    .sub[open] > summary { margin-bottom: 0; }
     .sub > summary::-webkit-details-marker { display: none; }
     .sub > summary::before {
-      content: "▶"; font-size: 9px; color: var(--muted-strong); flex: none;
+      content: "▶"; font-size: 10px; color: var(--muted-strong); flex: none;
       transition: transform .15s; display: inline-block; width: 1em; text-align: center;
     }
     .sub[open] > summary::before { transform: rotate(90deg); }
     .sub > summary:hover { background: var(--border2); }
     .sub > summary:hover .sub-t { color: var(--fg-strong); }
     .sub > summary:hover::before { color: var(--fg); }
-    /* `.content h3`（特異性 0,1,1）に勝つため `.content h3.sub-t` で指定する。
-       カテゴリ名（.sub-t）≥ 項目見出し（.cat-k）≥ 本文。旧 18/20 は項目の方が大きく、
-       開いた一覧でどこを読んでいるか分かりにくかった（2026-09-21） */
+    /* 節 24 / カテゴリ 15 / 項目 14 / 本文 14。トグルが親で中身は一段落とす */
     .content h3.sub-t {
-      font-size: 20px; font-weight: 600; color: var(--fg-strong); line-height: 1.4;
+      font-size: 15px; font-weight: 600; color: var(--fg-strong); line-height: 1.45;
       margin: 0; padding: 0; flex: 1; min-width: 0; overflow: hidden;
     }
     .sub[open] > summary .sub-t { color: var(--fg-strong); }
-    .sub-n { font-size: 11px; font-weight: 400; color: var(--muted-strong); flex: none; }
-    /* 開いた中身はインデントだけで示す。罫線を足すと線が二重になって重くなる */
-    .sub[open] > :not(summary) { padding-left: 14px; }
-    .sub[open] > :not(summary):last-child { padding-bottom: 10px; }
-    /* カテゴリ項目はハイライトと同じ読み順（見出し → 詳細 → 出典）。
-       直下リストの点は消す。色箱は付けず、余白＋区切り線だけ置く。
-       旧 --border2 は暗幕でほぼ見えなかったため、fg を混ぜた線に上げた（2026-09-21） */
-    .content .sub > ul:not(.src),
-    .content .sub > ol {
-      list-style: none; padding-left: 0; margin-bottom: 0;
+    .sub-n { font-size: 12px; font-weight: 400; color: var(--muted-strong); flex: none; padding-left: 8px; }
+    /* シェブロン列の右＝タイトル先頭に揃えてから、レール＋一段インデント。
+       `.content .sub > ul` の方が特異性が高いので、ネスト指定はそちらに書く */
+    .content .sub[open] > ul:not(.src),
+    .content .sub[open] > ol {
+      list-style: none;
+      margin: 0 0 10px calc(8px + 1em + 8px);
+      padding: 2px 0 12px 14px;
+      border-left: 1px solid color-mix(in srgb, var(--fg) 16%, var(--bg));
     }
     .content .sub > ul:not(.src) > li,
     .content .sub > ol > li {
-      margin: 0; padding: 14px 0;
-      border-bottom: 1px solid color-mix(in srgb, var(--fg) 40%, var(--bg));
+      margin: 0; padding: 12px 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--fg) 12%, var(--bg));
     }
     .content .sub > ul:not(.src) > li:last-child,
     .content .sub > ol > li:last-child {
-      border-bottom: none; padding-bottom: 4px;
+      border-bottom: none; padding-bottom: 2px;
     }
     .cat-k {
-      font-size: 18px; font-weight: 600; color: var(--fg-strong); line-height: 1.4;
-      margin: 0 0 8px;
+      font-size: 14px; font-weight: 600; color: var(--fg-strong); line-height: 1.45;
+      margin: 0 0 6px;
     }
-    /* カテゴリ本文は地の文。ハイライトの .lbl 枠は付けない */
-    .content .sub .cat-v {
-      line-height: 1.75; font-size: 16px; color: var(--fg);
+    .content .sub .cat-v,
+    .content .sub .cat-v p {
+      line-height: 1.7; font-size: 14px; color: var(--fg);
       margin: 0 0 8px;
     }
     .content .sub .cat-v > :last-child { margin-bottom: 0; }
-    /* 週次の H3 は記事タイトル。カテゴリ名と同じ 20px のまま */
+    .content .sub .cat-v ul, .content .sub .cat-v ol {
+      margin: 6px 0 0; padding-left: 1.2em; font-size: 14px;
+    }
+    .content .sub .cat-v li { margin-bottom: 4px; line-height: 1.65; }
+    .content .sub ul.src { margin: 8px 0 0; }
+
+    /* 注目予定: 週トグルの中はカテゴリと同じネスト。日付列は M/D のみ */
+    .content .sec[data-sched] .sub > ul:not(.src) > li,
+    .content .sec[data-sched] .sub > ol > li,
+    .content .sec[data-sched] > ul:not(.src) > li,
+    .content .sec[data-sched] > ol > li {
+      display: grid;
+      grid-template-columns: 3.5rem minmax(0, 1fr);
+      column-gap: 12px;
+      align-items: start;
+      margin: 0; padding: 12px 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--fg) 12%, var(--bg));
+      line-height: 1.65;
+    }
+    .content .sec[data-sched] .sub > ul:not(.src) > li:last-child,
+    .content .sec[data-sched] .sub > ol > li:last-child,
+    .content .sec[data-sched] > ul:not(.src) > li:last-child,
+    .content .sec[data-sched] > ol > li:last-child { border-bottom: none; padding-bottom: 2px; }
+    .content .sec[data-sched] .sched-d {
+      font-variant-numeric: tabular-nums;
+      font-weight: 600; font-size: 14px; color: var(--fg-strong);
+      line-height: 1.45; padding-top: 2px;
+      text-align: right; white-space: nowrap;
+    }
+    .content .sec[data-sched] .sched-d.is-empty { color: transparent; }
+    .content .sec[data-sched] .sched-b {
+      min-width: 0; font-size: 14px; line-height: 1.7; color: var(--fg);
+    }
+    .content .sec[data-sched] .sched-b > :last-child { margin-bottom: 0; }
+    .content .sec[data-sched] .sched-chip,
+    .content .sec[data-sched] .sched-today {
+      display: inline-block; font-size: 11px; font-weight: 600;
+      padding: 1px 7px; border-radius: 999px; margin-right: 6px;
+      vertical-align: 1px; letter-spacing: .02em;
+    }
+    .content .sec[data-sched] .sched-chip {
+      background: color-mix(in srgb, var(--fg) 12%, var(--bg));
+      color: var(--muted-strong);
+    }
+    .content .sec[data-sched] .sched-today {
+      background: #238636; color: #fff;
+    }
+    .content .sec[data-sched] .sched-b.sched-multi > .sched-chip,
+    .content .sec[data-sched] .sched-b.sched-multi > .sched-today {
+      margin-bottom: 6px;
+    }
+    .content .sec[data-sched] .sched-part + .sched-part { margin-top: 8px; }
+    .content .sec[data-sched] .sched-b.sched-multi .sched-part {
+      position: relative; padding-left: 14px;
+    }
+    .content .sec[data-sched] .sched-b.sched-multi .sched-part::before {
+      content: "•"; position: absolute; left: 0; top: 0;
+      color: var(--muted-strong); font-weight: 700;
+    }
 
     /* --- 先頭へ戻る（画面幅によらず、スクロールしたときだけ出す） --- */
     #to-top {
@@ -424,7 +512,7 @@
        キー幅は中身に合わせ、値側が縮むようにする */
     .lbl {
       display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 14px;
-      margin: 0 0 12px; padding: 12px 14px 12px 14px;
+      margin: 0 0 14px; padding: 14px 16px;
       border-left: 3px solid var(--rail, var(--border));
       border-radius: 4px;
       background: var(--callout-bg);
@@ -478,10 +566,10 @@
       .scrim.show { display: block; position: fixed; inset: var(--topbar) 0 0 0; background: var(--scrim); z-index: 20; }
       .main { padding: 20px 16px 76px; }
       .content h1 { font-size: 22px; }
-      .content h2, .content h2.sec-t { font-size: 18px; }
-      .content h3 { font-size: 17px; }
-      .content h3.sub-t { font-size: 17px; }
-      .cat-k { font-size: 16px; }
+      .content h2, .content h2.sec-t { font-size: 20px; font-weight: 700; }
+      .content h3 { font-size: 16px; }
+      .content h3.sub-t { font-size: 15px; }
+      .cat-k { font-size: 14px; }
       .content p, .content .lede, .lbl > .v { font-size: 15px; }
       .lbl { grid-template-columns: 1fr; gap: 4px; padding: 10px 12px; }
       .lbl > .k { padding-top: 0; }
@@ -493,7 +581,15 @@
 
       /* 畳んだ見出しがそのまま目次になる。タップ領域を44px確保する */
       .sec > summary { display: flex; margin-top: 16px; margin-bottom: 10px; padding: 10px 8px; min-height: 44px; }
-      .sub > summary { padding: 11px 2px; min-height: 44px; }
+      .sub > summary { padding: 11px 6px; min-height: 44px; }
+      .content .sec[data-sched] .sub > ul:not(.src) > li,
+      .content .sec[data-sched] .sub > ol > li,
+      .content .sec[data-sched] > ul:not(.src) > li,
+      .content .sec[data-sched] > ol > li {
+        grid-template-columns: 3.25rem minmax(0, 1fr);
+        column-gap: 10px; padding: 10px 0;
+      }
+      .content .sec[data-sched] .sched-b { font-size: 14px; }
     }
 
     /* --- 横向きのスマホ：本文の縦を優先する ---
@@ -502,10 +598,10 @@
       .topbar { padding: 0 8px; min-height: 40px; }
       .main { padding: 14px 16px 64px; }
       .content h1 { font-size: 22px; }
-      .content h2, .content h2.sec-t { font-size: 16px; }
-      .content h3 { font-size: 16px; }
-      .content h3.sub-t { font-size: 16px; }
-      .cat-k { font-size: 15px; }
+      .content h2, .content h2.sec-t { font-size: 18px; font-weight: 700; }
+      .content h3 { font-size: 15px; }
+      .content h3.sub-t { font-size: 14px; }
+      .cat-k { font-size: 13px; }
     }
 
     /* --- 印刷 / PDF 保存 ---
@@ -664,6 +760,17 @@
       return { year: t.getUTCFullYear(), week: 1 + Math.round((t - ft) / (7 * 86400000)) };
     }
 
+    // 1日を含む週はその月に入れる（月曜が前月でも 1週 になる）
+    function weekBucketOf(mon) {
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(mon.getTime() + i * 86400000);
+        if (d.getUTCDate() === 1) {
+          return `${d.getUTCFullYear()}-${p2(d.getUTCMonth() + 1)}`;
+        }
+      }
+      return `${mon.getUTCFullYear()}-${p2(mon.getUTCMonth() + 1)}`;
+    }
+
     // --- ファイルパス → 一覧エントリ ---
     // 旧実装の /ai-news-(\d{4}-\d{2}-\d{2})/ は 04（ai-news- を含まない）と
     // 05（ai-news- の直後が daily-）に一致せず、全件スキップで 0 件表示になっていた。
@@ -693,7 +800,7 @@
         return {
           kind: 'week', path, id: `${year}-W${p2(wk)}`, y: year, wk, mon,
           sort: ymdOf(mon).replace(/-/g, ''),
-          bucket: `${mon.getUTCFullYear()}-${p2(mon.getUTCMonth() + 1)}`,
+          bucket: weekBucketOf(mon),
           label: `W${p2(wk)}`,
           sub: '',
           fullLabel: `${year}-W${p2(wk)}`,
@@ -831,7 +938,7 @@
 
         const ul = document.createElement('ul');
         ul.className = 'items';
-        for (const e of items) ul.appendChild(itemNode(e));
+        appendDateItems(ul, items, bucket);
 
         det.append(sum, ul);
         list.appendChild(det);
@@ -860,6 +967,42 @@
       return null;
     }
 
+    function utcMonday(ymd) {
+      const d = dateUTC(ymd);
+      const dow = (d.getUTCDay() + 6) % 7;
+      return new Date(d.getTime() - dow * 86400000);
+    }
+    function sideWeekLabel(mon, bucket) {
+      const firstYmd = bucket && bucket !== 'unknown' ? `${bucket}-01` : ymdOf(mon);
+      const firstMon = utcMonday(firstYmd);
+      const n = Math.round((mon - firstMon) / (7 * 86400000)) + 1;
+      return `${n}週`;
+    }
+    function weekRangeLabel(mon) {
+      const sun = new Date(mon.getTime() + 6 * 86400000);
+      return `${mon.getUTCMonth() + 1}/${mon.getUTCDate()}–${sun.getUTCMonth() + 1}/${sun.getUTCDate()}`;
+    }
+    function appendDateItems(ul, items, bucket) {
+      if (!items.length || items[0].kind !== 'date') {
+        for (const e of items) ul.appendChild(itemNode(e));
+        return;
+      }
+      let lastKey = '';
+      for (const e of items) {
+        const mon = utcMonday(e.ymd);
+        const key = ymdOf(mon);
+        if (key !== lastKey) {
+          lastKey = key;
+          const sep = document.createElement('li');
+          sep.className = 'week-sep';
+          sep.setAttribute('aria-hidden', 'true');
+          sep.textContent = sideWeekLabel(mon, bucket);
+          ul.appendChild(sep);
+        }
+        ul.appendChild(itemNode(e));
+      }
+    }
+
     function itemNode(e) {
       const li = document.createElement('li');
       const btn = document.createElement('button');
@@ -869,33 +1012,45 @@
       btn.title = e.fullLabel || e.label;
       if (e.kind === 'date') {
         btn.setAttribute('aria-label', `${e.ymd} ${DAYS[dateUTC(e.ymd).getUTCDay()]}曜日`);
-      } else {
-        btn.setAttribute('aria-label', e.fullLabel || e.label);
-      }
-
-      const body = document.createElement('span');
-      body.className = 'i-body';
-      const t = document.createElement('span');
-      t.className = 'i-title';
-      if (e.kind === 'date') {
-        const day = dateUTC(e.ymd).getUTCDay();
-        t.append(`${+e.ymd.slice(5, 7)}/${+e.ymd.slice(8, 10)} `);
+        const d = dateUTC(e.ymd);
+        const day = d.getUTCDay();
+        const date = document.createElement('span');
+        date.className = 'i-date';
+        date.textContent = `${d.getUTCMonth() + 1}/${d.getUTCDate()}`;
         const w = document.createElement('span');
-        if (day === 0) w.className = 'dow-sun';
-        else if (day === 6) w.className = 'dow-sat';
+        w.className = 'i-dow' + (day === 0 ? ' dow-sun' : day === 6 ? ' dow-sat' : '');
         w.textContent = DAYS[day];
-        t.appendChild(w);
-      } else {
-        t.textContent = e.label;
-      }
-      body.appendChild(t);
-      if (e.sub) {
+        btn.append(date, w);
+      } else if (e.kind === 'week') {
+        const nLabel = sideWeekLabel(e.mon, e.bucket);
+        const range = weekRangeLabel(e.mon);
+        btn.setAttribute('aria-label', `${nLabel} ${range}`);
+        const body = document.createElement('span');
+        body.className = 'i-body';
+        const t = document.createElement('span');
+        t.className = 'i-title';
+        t.textContent = nLabel;
         const s = document.createElement('span');
         s.className = 'i-sub';
-        s.textContent = e.sub;
-        body.appendChild(s);
+        s.textContent = range;
+        body.append(t, s);
+        btn.appendChild(body);
+      } else {
+        btn.setAttribute('aria-label', e.fullLabel || e.label);
+        const body = document.createElement('span');
+        body.className = 'i-body';
+        const t = document.createElement('span');
+        t.className = 'i-title';
+        t.textContent = e.label;
+        body.appendChild(t);
+        if (e.sub) {
+          const s = document.createElement('span');
+          s.className = 'i-sub';
+          s.textContent = e.sub;
+          body.appendChild(s);
+        }
+        btn.appendChild(body);
       }
-      btn.appendChild(body);
 
       const b = badgeOf(e);
       if (b) {
@@ -985,6 +1140,8 @@
       decorateNote(box);
       decorateLede(box);
       groupSections(box); // ノードを移動するので必ず最後に実行する
+      decorateSchedule(box); // data-sched 付与後に日付／本文を2列化し、週トグルへ分ける
+      applySectionOpen(box);
       // groupSections は節が1つ以下だと早期 return するため、
       // ボタンの表示可否はここで必ず更新する
       syncExpandBtn();
@@ -1014,6 +1171,10 @@
         // HTML 仕様上 summary の内容モデルは「phrasing content ＋ heading content」なので h2 を入れてよい。
         const t = h2.cloneNode(true);
         t.className = 'sec-t';
+        // 日付一覧節は先頭太字を日付列として揃える（表記ゆれで目が滑るのを防ぐ）
+        if (/注目予定|注目スケジュール|今後の期限/.test(h2.textContent || '')) {
+          det.dataset.sched = '1';
+        }
         const body = kids.slice(start + 1, end);
         const n3 = body.filter((el) => el.tagName === 'H3').length;
         // ⚠️ 数えるのは「最上位のリスト項目」だけ。
@@ -1180,9 +1341,9 @@
 
     function applySectionOpen(box) {
       const all = wantExpandAll();
-      // .sub は dataset.n を持たないので「全開のときだけ開く」に落ちる（既定は閉じ）
+      // .sub は既定クローズ。注目予定の「今週・来週」だけ data-near で開く
       for (const det of (box || document).querySelectorAll('details.sec, details.sub')) {
-        det.open = all || det.dataset.n === '0';
+        det.open = all || det.dataset.n === '0' || det.dataset.near === '1';
       }
       syncExpandBtn();
     }
@@ -1759,6 +1920,333 @@
       }
     }
 
+    // 日付列は M/D だけ。頃・〜・月末・年内はチップへ剥がす。
+    // 列幅を M/D に固定しないと「10月下旬まで」「年内」でバランスが崩れる（2026-09-21）。
+    function digestYear() {
+      const id = String(state.activeId || '');
+      const m = id.match(/^(\d{4})/);
+      if (m) return Number(m[1]);
+      const t = document.querySelector('.content h1')?.textContent || '';
+      const m2 = t.match(/(20\d{2})/);
+      return m2 ? Number(m2[1]) : new Date().getFullYear();
+    }
+    function schedMD(month, day) { return `${Number(month)}/${Number(day)}`; }
+    function finishSchedLabel(out, digestY) {
+      const quals = [...out.quals];
+      if (out.year && out.year !== digestY && !quals.includes(String(out.year))) {
+        quals.unshift(String(out.year));
+      }
+      return { day: out.day, quals, year: out.year || null };
+    }
+    function parseScheduleLabel(raw) {
+      const s = String(raw || '').trim();
+      const y = digestYear();
+      const out = { day: '', year: null, quals: [] };
+
+      let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})\s*〜\s*・\s*(\d{1,2})-(\d{1,2})\s*〜$/);
+      if (m) {
+        out.day = schedMD(m[2], m[3]); out.year = Number(m[1]);
+        out.quals.push('以降', `・${schedMD(m[4], m[5])}`);
+        return finishSchedLabel(out, y);
+      }
+      m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})\s*〜$/);
+      if (m) {
+        out.day = schedMD(m[2], m[3]); out.year = Number(m[1]); out.quals.push('以降');
+        return finishSchedLabel(out, y);
+      }
+      m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})\s*・\s*(?:(\d{4})-)?(\d{1,2})-(\d{1,2})\s*〜?$/);
+      if (m) {
+        out.day = schedMD(m[2], m[3]); out.year = Number(m[1]);
+        out.quals.push(`・${schedMD(m[5], m[6])}`);
+        if (/〜$/.test(s)) out.quals.push('以降');
+        return finishSchedLabel(out, y);
+      }
+      m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+      if (m) {
+        out.day = schedMD(m[2], m[3]); out.year = Number(m[1]);
+        return finishSchedLabel(out, y);
+      }
+      m = s.match(/^(\d{4})-(\d{1,2})\s*〜$/);
+      if (m) {
+        out.year = Number(m[1]); out.quals.push(`${Number(m[2])}月〜`);
+        return finishSchedLabel(out, y);
+      }
+      m = s.match(/^(\d{4})-(\d{1,2})$/);
+      if (m) {
+        out.year = Number(m[1]); out.quals.push(`${Number(m[2])}月`);
+        return finishSchedLabel(out, y);
+      }
+      m = s.match(/^(\d{4})年末$/);
+      if (m) { out.year = Number(m[1]); out.quals.push('年末'); return finishSchedLabel(out, y); }
+      m = s.match(/^(\d{4})$/);
+      if (m) return { day: '', quals: [m[1]], year: Number(m[1]) };
+
+      m = s.match(/^(\d{1,2})\/(\d{1,2})\s*[–—−-]\s*(\d{1,2})\/(\d{1,2})$/);
+      if (m) {
+        out.day = schedMD(m[1], m[2]); out.quals.push(`–${schedMD(m[3], m[4])}`);
+        return finishSchedLabel(out, y);
+      }
+      m = s.match(/^(\d{1,2})\/(\d{1,2})\s*[–—−-]\s*(\d{1,2})$/);
+      if (m) {
+        out.day = schedMD(m[1], m[2]); out.quals.push(`–${schedMD(m[1], m[3])}`);
+        return finishSchedLabel(out, y);
+      }
+      m = s.match(/^(\d{1,2})\/(\d{1,2})\s*・\s*(\d{1,2})\/(\d{1,2})$/);
+      if (m) {
+        out.day = schedMD(m[1], m[2]); out.quals.push(`・${schedMD(m[3], m[4])}`);
+        return finishSchedLabel(out, y);
+      }
+      m = s.match(/^(\d{1,2})\/(\d{1,2})\s*頃$/);
+      if (m) { out.day = schedMD(m[1], m[2]); out.quals.push('頃'); return finishSchedLabel(out, y); }
+      m = s.match(/^(\d{1,2})\/(\d{1,2})\s*〜$/);
+      if (m) { out.day = schedMD(m[1], m[2]); out.quals.push('以降'); return finishSchedLabel(out, y); }
+      m = s.match(/^(\d{1,2})\/(\d{1,2})$/);
+      if (m) { out.day = schedMD(m[1], m[2]); return finishSchedLabel(out, y); }
+
+      m = s.match(/^(\d{1,2})月末$/);
+      if (m) { out.quals.push(`${Number(m[1])}月末`); return finishSchedLabel(out, y); }
+      m = s.match(/^(\d{1,2})月(.+)$/);
+      if (m) { out.quals.push(`${Number(m[1])}月${m[2]}`); return finishSchedLabel(out, y); }
+      m = s.match(/^(\d{1,2})月$/);
+      if (m) { out.quals.push(`${Number(m[1])}月`); return finishSchedLabel(out, y); }
+      if (/^(年末|年内|今秋|今冬|今春|今夏|今年度内)$/.test(s)) {
+        out.quals.push(s); return finishSchedLabel(out, y);
+      }
+      m = s.match(/^(\d{1,2})\/(\d{1,2})(.*)$/);
+      if (m) {
+        out.day = schedMD(m[1], m[2]);
+        const rest = m[3].trim().replace(/^〜$/, '以降');
+        if (rest) out.quals.push(rest);
+        return finishSchedLabel(out, y);
+      }
+      if (s) out.quals.push(s);
+      return finishSchedLabel(out, y);
+    }
+
+    // 注目予定の「**日付**: 本文」を日付列＋本文列に組み替える。
+    // groupSections が data-sched を付けるので、その後に呼ぶこと。
+    function decorateSchedule(box) {
+      for (const sec of box.querySelectorAll('details.sec[data-sched]')) {
+        for (const li of sec.querySelectorAll(':scope > ul:not(.src) > li, :scope > ol > li')) {
+          if (li.querySelector(':scope > .sched-d')) continue;
+
+          const firstEl = li.firstElementChild;
+          const host = (firstEl && firstEl.tagName === 'P' && li.firstChild === firstEl) ? firstEl : li;
+
+          const strong = host.firstElementChild;
+          if (!strong || strong.tagName !== 'STRONG') continue;
+          const after = strong.nextSibling;
+          if (!after || after.nodeType !== Node.TEXT_NODE || !/^\s*[:：]/.test(after.nodeValue || '')) continue;
+
+          after.nodeValue = after.nodeValue.replace(/^\s*[:：]\s*/, '');
+          const parsed = parseScheduleLabel(strong.textContent);
+
+          const date = document.createElement('span');
+          date.className = 'sched-d' + (parsed.day ? '' : ' is-empty');
+          date.textContent = parsed.day || '–';
+          date.title = strong.textContent;
+
+          const body = document.createElement('span');
+          body.className = 'sched-b';
+
+          const move = [];
+          for (let n = strong.nextSibling; n; n = n.nextSibling) move.push(n);
+          strong.remove();
+          for (const n of move) body.appendChild(n);
+
+          const firstText = body.firstChild;
+          if (firstText && firstText.nodeType === Node.TEXT_NODE) {
+            const tm = firstText.nodeValue.match(/^（本日）\s*/);
+            if (tm) {
+              const badge = document.createElement('span');
+              badge.className = 'sched-today';
+              badge.textContent = '本日';
+              firstText.nodeValue = firstText.nodeValue.slice(tm[0].length);
+              body.insertBefore(badge, firstText);
+            }
+          }
+
+          splitScheduleParts(body);
+
+          const today = body.querySelector('.sched-today');
+          const ref = today ? today.nextSibling : body.firstChild;
+          for (const q of parsed.quals) {
+            const chip = document.createElement('span');
+            chip.className = 'sched-chip';
+            chip.textContent = q;
+            body.insertBefore(chip, ref);
+          }
+
+          if (host !== li) {
+            host.replaceWith(date, body);
+          } else {
+            host.prepend(date, body);
+          }
+        }
+        groupScheduleWeeks(sec);
+      }
+    }
+
+    function digestDate() {
+      const id = String(state.activeId || '');
+      let m = id.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+      m = id.match(/^(\d{4})-W(\d{2})$/);
+      if (m) {
+        const jan4 = new Date(Number(m[1]), 0, 4);
+        const mon = mondayOf(jan4);
+        mon.setDate(mon.getDate() + (Number(m[2]) - 1) * 7);
+        return mon;
+      }
+      return new Date();
+    }
+    function mondayOf(d) {
+      const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
+      return x;
+    }
+    function ymd(d) {
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+    function schedAnchor(parsed, digest) {
+      const y0 = digest.getFullYear();
+      const year = parsed.year || y0;
+      if (parsed.day) {
+        const md = parsed.day.match(/^(\d{1,2})\/(\d{1,2})$/);
+        if (md) return { kind: 'day', y: year, m: Number(md[1]), d: Number(md[2]) };
+      }
+      const joined = parsed.quals.join(' ');
+      const mm = joined.match(/(\d{1,2})月/);
+      if (mm) return { kind: 'month', y: year, m: Number(mm[1]) };
+      if (parsed.year && !parsed.day) return { kind: 'year', y: parsed.year };
+      const per = parsed.quals.find((q) => /^(年内|年末|今秋|今冬|今春|今夏|今年度内)$/.test(q));
+      if (per) return { kind: 'period', y: y0, label: per };
+      return { kind: 'period', y: y0, label: parsed.quals[0] || '時期' };
+    }
+    function weekTitle(monday, digest) {
+      const thisMon = mondayOf(digest);
+      const diff = Math.round((monday - thisMon) / 86400000 / 7);
+      const sun = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6);
+      const range = `${schedMD(monday.getMonth() + 1, monday.getDate())}–${schedMD(sun.getMonth() + 1, sun.getDate())}`;
+      const y = monday.getFullYear() !== digest.getFullYear() ? `${monday.getFullYear()} ` : '';
+      if (diff === 0) return y + '今週';
+      if (diff === 1) return y + '来週';
+      if (diff === 2) return y + '再来週';
+      if (diff === -1) return y + '先週';
+      return y + range;
+    }
+
+    // 注目予定を週（月・年内）のトグルに分ける。カテゴリ節と同じ外形にする（2026-09-21）
+    function groupScheduleWeeks(sec) {
+      const digest = digestDate();
+      const thisMon = ymd(mondayOf(digest));
+      const next = mondayOf(digest); next.setDate(next.getDate() + 7);
+      const nextMon = ymd(next);
+
+      for (const ul of [...sec.querySelectorAll(':scope > ul:not(.src), :scope > ol')]) {
+        const groups = [];
+        const map = new Map();
+        for (const li of [...ul.children]) {
+          if (li.tagName !== 'LI') continue;
+          const raw = li.querySelector('.sched-d')?.title || '';
+          const a = schedAnchor(parseScheduleLabel(raw), digest);
+          let rec;
+          if (a.kind === 'day') {
+            const dt = new Date(a.y, a.m - 1, a.d);
+            const mon = mondayOf(dt);
+            const key = 'w:' + ymd(mon);
+            rec = map.get(key);
+            if (!rec) {
+              rec = { type: 'week', key, monday: mon, sort: ymd(mon), items: [] };
+              map.set(key, rec); groups.push(rec);
+            }
+          } else if (a.kind === 'month') {
+            const key = `m:${a.y}-${String(a.m).padStart(2, '0')}`;
+            rec = map.get(key);
+            if (!rec) {
+              rec = { type: 'month', key, y: a.y, m: a.m, sort: `${a.y}-${String(a.m).padStart(2, '0')}-32`, items: [] };
+              map.set(key, rec); groups.push(rec);
+            }
+          } else if (a.kind === 'year') {
+            const key = `y:${a.y}`;
+            rec = map.get(key);
+            if (!rec) {
+              rec = { type: 'year', key, y: a.y, sort: `${a.y}-12-32`, items: [] };
+              map.set(key, rec); groups.push(rec);
+            }
+          } else {
+            const key = 'p:' + a.label;
+            rec = map.get(key);
+            if (!rec) {
+              rec = { type: 'period', key, label: a.label, sort: `${a.y}-12-31`, items: [] };
+              map.set(key, rec); groups.push(rec);
+            }
+          }
+          rec.items.push(li);
+        }
+        groups.sort((a, b) => (a.sort < b.sort ? -1 : a.sort > b.sort ? 1 : 0));
+
+        for (const g of groups) {
+          const sub = document.createElement('details');
+          sub.className = 'sub';
+          if (g.key === 'w:' + thisMon || g.key === 'w:' + nextMon) sub.dataset.near = '1';
+
+          const sum = document.createElement('summary');
+          sum.className = 'sub-h';
+          const t = document.createElement('h3');
+          t.className = 'sub-t';
+          t.textContent = g.type === 'week' ? weekTitle(g.monday, digest)
+            : g.type === 'month' ? (g.y !== digest.getFullYear() ? `${g.y}年${g.m}月` : `${g.m}月`)
+            : g.type === 'year' ? String(g.y)
+            : g.label;
+          const c = document.createElement('span');
+          c.className = 'sub-n';
+          c.textContent = `${g.items.length}件`;
+          sum.append(t, c);
+
+          const inner = document.createElement(ul.tagName);
+          for (const li of g.items) inner.appendChild(li);
+          sub.append(sum, inner);
+          ul.before(sub);
+        }
+        ul.remove();
+      }
+    }
+
+    // 本文中の「 ／ 」を境に .sched-part へ分ける。code 等を跨がない素朴な実装。
+    // 区切りが無い・1件だけのときは何もしない（余計なラッパを増やさない）。
+    function splitScheduleParts(body) {
+      const nodes = [...body.childNodes];
+      if (!nodes.some((n) => n.nodeType === Node.TEXT_NODE && /／/.test(n.nodeValue || ''))) return;
+
+      const parts = [[]];
+      for (const n of nodes) {
+        if (n.nodeType === Node.TEXT_NODE && /／/.test(n.nodeValue || '')) {
+          const chunks = n.nodeValue.split(/／/);
+          chunks.forEach((chunk, i) => {
+            if (i > 0) parts.push([]);
+            const t = chunk.replace(/^\s+|\s+$/g, '');
+            if (t) parts[parts.length - 1].push(document.createTextNode(t));
+          });
+        } else {
+          parts[parts.length - 1].push(n);
+        }
+      }
+      if (parts.length < 2) return;
+
+      body.replaceChildren();
+      for (const nodes of parts) {
+        if (!nodes.length) continue;
+        const part = document.createElement('div');
+        part.className = 'sched-part';
+        for (const n of nodes) part.appendChild(n);
+        body.appendChild(part);
+      }
+      if (body.querySelectorAll('.sched-part').length >= 2) {
+        body.classList.add('sched-multi');
+      }
+    }
+
     // 冒頭注記（h1 直後の blockquote）を圧縮する。
     // 「本サマリーは 01_…・02_…・03_… の3ソース（M/D分）を統合して作成。」は
     // 仕様上**欠損があった日だけ情報を持つ**注記で、2026-08-01 の実測では
@@ -1791,10 +2279,11 @@
       const tree = $('#source-tree');
       tree.innerHTML = '';
       for (const g of ['digest', 'source']) {
+        const block = document.createElement('div');
+        block.className = 'side-block';
         const lab = document.createElement('div');
         lab.className = 'side-group-label';
         lab.textContent = GROUP_LABEL[g];
-        tree.appendChild(lab);
         const nav = document.createElement('div');
         nav.className = 'side-group';
         nav.setAttribute('role', 'navigation');
@@ -1808,7 +2297,8 @@
           if (s.id === state.sourceId) b.setAttribute('aria-current', 'true');
           nav.appendChild(b);
         }
-        tree.appendChild(nav);
+        block.append(lab, nav);
+        tree.appendChild(block);
       }
       syncBreadcrumb();
       syncTopbarHeight();
