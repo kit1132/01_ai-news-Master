@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>このサイトについて — AI News</title>
-  <meta name="description" content="AI の新機能や公式発表を毎朝自動で集め、日本語で短くまとめたサイトです。開発ツール・Microsoft・業界の3分野を追い、ハイライトは要点と詳細、各項目には出典リンクが付きます。">
+  <meta name="description" content="AI の新機能や公式発表を毎朝自動で集め、日本語で短くまとめたサイトです。開発ツール・業務 Copilot・市場・規制の3分野を追い、ハイライトは要点と詳細、各項目には出典リンクが付きます。">
   <!-- 実効テーマ（dark/light）に合わせて JS が書き換える。初期値は暗色（既定プリファレンス） -->
   <meta name="color-scheme" content="dark">
   <!-- 初回描画前にテーマを確定し、フラッシュを防ぐ。localStorage キーは index.html と共用 -->
@@ -161,16 +161,19 @@
     <p class="lede">
       AI の新機能や公式発表を、毎朝自動で集めて日本語で短くまとめたサイトです。
       追っているのは開発ツール（Claude / Cursor / OpenAI / Google など）、
-      Microsoft 365 Copilot 周辺、業界の市場・規制の3分野です。
+      業務 Copilot（M365 Copilot / Studio / Power Platform）、市場・規制の3分野です。
       1日1回見るなら「今日のまとめ」だけで足ります。
       どの項目にも出典へのリンクが付くので、気になったものはその場で原文にあたれます。
     </p>
 
     <h2>5つのソースの読み分け</h2>
     <p>
-      左の一覧は「まとめ」と「元ソース」の2群に分かれています。
+      左の一覧は親子になっています。
+      「今日のまとめ」「今週のまとめ」の右の三角（▸）で枝だけ開閉できます（本文は変わりません）。名前を押すとそのまとめ本文へ進み、下に元ソース（開発ツール / 業務 Copilot / 市場・規制）がぶら下がります。
+      「カテゴリ別まとめ」はまず13の話題の目次です。話題を選ぶと、右にその更新の時系列（新しい順・各日に日付見出し）が出ます。左の日付はその日へジャンプします。タイトルは開いたまま他も開けます。
+      今日のまとめ・今週のまとめ・カテゴリでは、右の先頭に短い一文の概要と、いま見ている日付（または週／話題名）が出ます。左の日付一覧では土＝青・日＝赤です。
       <strong>1日1回だけ見るなら「今日のまとめ」だけで足ります。</strong>
-      特定の分野を深く追いたいときに元ソース側を開いてください。
+      特定の分野を深く追いたいときに、開いている日付（または週）の元ソースを開いてください。
     </p>
     <div class="tw">
       <table>
@@ -197,16 +200,22 @@
             <td>使っているツールの変更を追う</td>
           </tr>
           <tr>
-            <td><span class="tab">Microsoft</span></td>
+            <td><span class="tab">業務 Copilot</span></td>
             <td>M365 Copilot / Copilot Studio / Power Platform</td>
             <td>毎朝 6:10</td>
-            <td>Microsoft 案件の情報収集</td>
+            <td>業務 Copilot の変更を追う</td>
           </tr>
           <tr>
-            <td><span class="tab">業界</span></td>
+            <td><span class="tab">市場・規制</span></td>
             <td>市場データ・調査・資金調達・規制の動向</td>
             <td>毎朝 5:10</td>
             <td>提案資料の根拠を探す</td>
+          </tr>
+          <tr>
+            <td><span class="tab">カテゴリ別まとめ</span></td>
+            <td>13の話題の目次。選んだ話題は時系列（日付見出し＋タイトル）で読む</td>
+            <td>今日のまとめと同じ（毎朝 7:00）</td>
+            <td>1つの話題の経緯を追う</td>
           </tr>
         </tbody>
       </table>
@@ -240,8 +249,8 @@
     <p>3つの元ソースが先に生成され、それをまとめたものが 7:00 に出ます。時刻はすべて日本時間です。</p>
     <ul class="flow">
       <li><time>4:10</time><span>「開発ツール」を生成</span></li>
-      <li><time>5:10</time><span>「業界」を生成</span></li>
-      <li><time>6:10</time><span>「Microsoft」を生成</span></li>
+      <li><time>5:10</time><span>「市場・規制」を生成</span></li>
+      <li><time>6:10</time><span>「業務 Copilot」を生成</span></li>
       <li><time>7:00</time><span>3つを統合して「今日のまとめ」を生成</span></li>
       <li><time>月曜 3:00</time><span>直近1週間分をまとめて「今週のまとめ」を生成</span></li>
     </ul>
@@ -293,8 +302,8 @@
     </p>
     <ul>
       <li><a href="https://github.com/kit1132/01_ai-news-Master">kit1132/01_ai-news-Master</a> — 開発ツール ＋ ビューア本体</li>
-      <li><a href="https://github.com/kit1132/02_ai-news-Copilot">kit1132/02_ai-news-Copilot</a> — Microsoft</li>
-      <li><a href="https://github.com/kit1132/03_ai-news-industry">kit1132/03_ai-news-industry</a> — 業界</li>
+      <li><a href="https://github.com/kit1132/02_ai-news-Copilot">kit1132/02_ai-news-Copilot</a> — 業務 Copilot</li>
+      <li><a href="https://github.com/kit1132/03_ai-news-industry">kit1132/03_ai-news-industry</a> — 市場・規制</li>
       <li><a href="https://github.com/kit1132/04_ai-news-weekly">kit1132/04_ai-news-weekly</a> — 今週のまとめ</li>
       <li><a href="https://github.com/kit1132/05_ai-news-daily">kit1132/05_ai-news-daily</a> — 今日のまとめ</li>
     </ul>
