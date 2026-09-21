@@ -8,7 +8,7 @@
 1. **ハイライトは二段だけ** — 上段を要約、下段を詳細とする。旧「いま起きていること／関係ある人／薄い人／まずやること／一次」の多段ラベルには戻さない
 2. **上段（要約）** — 事実の核。該当者向けの一手があれば末尾に溶かす（「まずやること」欄は置かない）
 3. **下段（詳細）** — 「関係ある人」等の見出し行は使わない。対象の有無は地の文で書く。一次URLを続ける
-4. **カテゴリ** — 同じ読み順を地の文で。色箱なし（本番ビューアもカテゴリ本文を `.lbl` で包まない）
+4. **カテゴリ** — 読み順は同じだが外形は3層（`**見出し**:` → 地の文 → ネストの数字・URL）。色箱なし。`要約`/`詳細` ラベルは付けない
 5. **選定基準は現行のまま** — 不可逆な期限／前提が壊れた／今日から手が動く（最大2〜3件）
 
 ## 今日のハイライト
@@ -48,16 +48,21 @@ SpaceXAI が **9/18** から Microsoft のサブプロセッサとして使え�
 - https://help.openai.com/en/articles/20001047-ads-in-chatgpt
 - https://help.openai.com/en/articles/20001524-sponsored-agents-in-chatgpt-ads （本環境 403）
 
-## カテゴリ別まとめ（同じ読み順・箱なし）
+## カテゴリ別まとめ（3層外形・箱なし）
 
 ### Claude / Anthropic
 
-- Claude Code が TaskOutput ツールを削除し、`taskOutputMaxChars` と `TASK_MAX_OUTPUT_LENGTH` を無効化した（9/18・`2.1.277`）。対象は、その設定や TaskOutput 前提の自動化を入れている人（入れていない人は今は触らなくてよい）。設定ファイルに残っていてもエラーにはならず、バックグラウンド出力は Read で出力ファイルから読む形に変わった。9/6 に本サマリーが紹介した「上限引き上げ設定」は、12日で no-op になっている
+- **TaskOutput が削除され、旧上限設定は効かなくなった**:
+  対象はその設定や TaskOutput 前提の自動化を入れている人。入れていない人は今は触らなくてよい。設定ファイルに残っていてもエラーにはならず、バックグラウンド出力は Read で出力ファイルから読む形に変わった。9/6 に本サマリーが紹介した「上限引き上げ設定」は、12日で no-op になっている。
+  - 版: `2.1.277`（9/18）
   - https://code.claude.com/docs/en/changelog
-- ゲートウェイ経由の auto モードでは、サーバー側チェックが届かなくなると自前の classifier に戻り、該当操作の前で一度止まって通知が出る。対象は Enterprise・Claude API、および Bedrock / Google Agent Platform / Foundry など（Pro / Max / Team にはこの通知は出ない）。通知にゲートウェイ名が出たら、管理者にリクエスト／応答を改変せず通すよう確認を依頼する。状態は `/status` の Auto mode server 行
+- **ゲートウェイ経由 auto がサーバー側チェック欠落で自前 classifier に戻る**:
+  対象は Enterprise・Claude API、および Bedrock / Google Agent Platform / Foundry など。Pro / Max / Team にはこの通知は出ない。通知にゲートウェイ名が出たら、管理者にリクエスト／応答を改変せず通すよう確認を依頼する。
+  - 状態: `/status` の Auto mode server 行
   - https://code.claude.com/docs/en/auto-mode-classifier-billing
 
 ### Microsoft（その他）
 
-- SpaceXAI（Grok）が Microsoft サブプロセッサ経路に入った。対象は Frontier 加入テナントの管理者。旧「other LLM」画面の割り当ては新画面へ自動移行しない。EU・EFTA・英国・政府クラウド・Frontier 未加入は対象外
+- **SpaceXAI（Grok）が Microsoft サブプロセッサ経路に入った**:
+  対象は Frontier 加入テナントの管理者。旧「other LLM」画面の割り当ては新画面へ自動移行しない。EU・EFTA・英国・政府クラウド・Frontier 未加入は対象外。
   - https://learn.microsoft.com/en-us/microsoft-365/copilot/spacexai-subprocessor

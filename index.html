@@ -343,11 +343,10 @@
     .sub > summary:hover .sub-t { color: var(--fg-strong); }
     .sub > summary:hover::before { color: var(--fg); }
     /* `.content h3`（特異性 0,1,1）に勝つため `.content h3.sub-t` で指定する。
-       閉じた目次でも読めるよう本文（16px）より立てるが、節 h2（22px）と
-       記事タイトル h3 / .cat-k（20px）より一段落とす。揃えると階層が潰れる。
-       旧 16px は本文と同じで小さく見えた。20px は記事タイトルと逆転した（2026-09-21） */
+       カテゴリ名（.sub-t）≥ 項目見出し（.cat-k）≥ 本文。旧 18/20 は項目の方が大きく、
+       開いた一覧でどこを読んでいるか分かりにくかった（2026-09-21） */
     .content h3.sub-t {
-      font-size: 18px; font-weight: 600; color: var(--fg-strong); line-height: 1.4;
+      font-size: 20px; font-weight: 600; color: var(--fg-strong); line-height: 1.4;
       margin: 0; padding: 0; flex: 1; min-width: 0; overflow: hidden;
     }
     .sub[open] > summary .sub-t { color: var(--fg-strong); }
@@ -355,28 +354,33 @@
     /* 開いた中身はインデントだけで示す。罫線を足すと線が二重になって重くなる */
     .sub[open] > :not(summary) { padding-left: 14px; }
     .sub[open] > :not(summary):last-child { padding-bottom: 10px; }
-    /* カテゴリ項目はハイライトと同じ読み順（見出し → 詳細コールアウト → 出典）。
-       直下リストの点は消す。ネストした列挙は .lbl 内の既存スタイル */
+    /* カテゴリ項目はハイライトと同じ読み順（見出し → 詳細 → 出典）。
+       直下リストの点は消す。色箱は付けず、余白＋区切り線だけ置く。
+       旧 --border2 は暗幕でほぼ見えなかったため、fg を混ぜた線に上げた（2026-09-21） */
     .content .sub > ul:not(.src),
     .content .sub > ol {
       list-style: none; padding-left: 0; margin-bottom: 0;
     }
     .content .sub > ul:not(.src) > li,
-    .content .sub > ol > li { margin: 0; }
-    .cat-k {
-      font-size: 20px; font-weight: 600; color: var(--fg-strong); line-height: 1.4;
-      margin: 28px 0 10px;
+    .content .sub > ol > li {
+      margin: 0; padding: 14px 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--fg) 40%, var(--bg));
     }
-    .content .sub > ul:not(.src) > li:first-child .cat-k,
-    .content .sub > ol > li:first-child .cat-k { margin-top: 8px; }
+    .content .sub > ul:not(.src) > li:last-child,
+    .content .sub > ol > li:last-child {
+      border-bottom: none; padding-bottom: 4px;
+    }
+    .cat-k {
+      font-size: 18px; font-weight: 600; color: var(--fg-strong); line-height: 1.4;
+      margin: 0 0 8px;
+    }
     /* カテゴリ本文は地の文。ハイライトの .lbl 枠は付けない */
     .content .sub .cat-v {
       line-height: 1.75; font-size: 16px; color: var(--fg);
       margin: 0 0 8px;
     }
     .content .sub .cat-v > :last-child { margin-bottom: 0; }
-    /* 週次の H3 は記事タイトル。開いたときだけハイライトの h3 に合わせる */
-    .content .sub[open]:not(:has(.cat-k)) > summary h3.sub-t { font-size: 20px; }
+    /* 週次の H3 は記事タイトル。カテゴリ名と同じ 20px のまま */
 
     /* --- 先頭へ戻る（画面幅によらず、スクロールしたときだけ出す） --- */
     #to-top {
@@ -476,9 +480,8 @@
       .content h1 { font-size: 22px; }
       .content h2, .content h2.sec-t { font-size: 18px; }
       .content h3 { font-size: 17px; }
-      .content h3.sub-t { font-size: 16px; }
-      .cat-k { font-size: 17px; }
-      .content .sub[open]:not(:has(.cat-k)) > summary h3.sub-t { font-size: 17px; }
+      .content h3.sub-t { font-size: 17px; }
+      .cat-k { font-size: 16px; }
       .content p, .content .lede, .lbl > .v { font-size: 15px; }
       .lbl { grid-template-columns: 1fr; gap: 4px; padding: 10px 12px; }
       .lbl > .k { padding-top: 0; }
@@ -501,9 +504,8 @@
       .content h1 { font-size: 22px; }
       .content h2, .content h2.sec-t { font-size: 16px; }
       .content h3 { font-size: 16px; }
-      .content h3.sub-t { font-size: 15px; }
-      .cat-k { font-size: 16px; }
-      .content .sub[open]:not(:has(.cat-k)) > summary h3.sub-t { font-size: 16px; }
+      .content h3.sub-t { font-size: 16px; }
+      .cat-k { font-size: 15px; }
     }
 
     /* --- 印刷 / PDF 保存 ---
