@@ -18,7 +18,11 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 > WebFetch安定が確認されている一次ソース: Claude Code Changelog、GitHub Copilot CLI Releases、OpenAI Codex CLI Releases。これらは毎日WebFetchで一次取得する。
 >
 > **2026-08-06更新（B-023採用）**: 2026-04-14 の「全ソース WebSearch プライマリ」一括変更を**一部撤回**する。08-04 にゲートウェイ拒否が8ホストで解消し（`cursor.com` / `forum.cursor.com` / `claude.com` / `support.claude.com` / `community.openai.com` / `github.blog` / `aws.amazon.com` / `devblogs.microsoft.com`）、08-05・08-06 も本文取得に成功して復旧が定着したため、**下記5ソースの取得方法欄を一次（WebFetch / RSS）へ戻した**: Claude Release Notes / OpenAI Developer Community Announcements / GitHub Copilot Changelog / Cursor Changelog / Cursor Forum Announcements。
-> 未復旧ホスト（`www.testingcatalog.com` / `simonwillison.net` / `obsidian.md` / `blog.google` / `workspaceupdates.googleblog.com` / `deepmind.google` / `support.google.com` / `docs.devin.ai` / `x.ai` / `learn.chatgpt.com` / `techcrunch.com`）と**オリジン403**（`www.anthropic.com` / `openai.com` / `platform.openai.com` / `help.openai.com`）の記載は変更していない。オリジン403は許可リスト追加では解決しないため WebSearch 運用を継続する。
+> 未復旧ホスト（`www.testingcatalog.com` / `simonwillison.net` / `obsidian.md` / `blog.google`（B-070 で据え置き・2日目未確認） / `deepmind.google` / `support.google.com` / `docs.devin.ai` / `x.ai` / `techcrunch.com`）と**オリジン403**（`openai.com` / `platform.openai.com` / `help.openai.com`）の記載は変更していない。オリジン403は許可リスト追加では解決しないため WebSearch 運用を継続する。
+>
+> **2026-09-21更新（B-067 / B-068 / B-076 / B-070部分採用）**: `www.anthropic.com`（`/news`・`/research`）を WebFetch 一次へ復帰。`learn.chatgpt.com` を RSS 一次へ復帰。`workspaceupdates.googleblog.com` を月別アーカイブ WebFetch 一次へ復帰。`blog.google` / `www-cdn.anthropic.com` は据え置き。
+>
+> **2026-09-21更新（B-047 / B-077 / B-055採用）**: Claude モデル退役一覧（`platform.claude.com/docs/en/about-claude/model-deprecations`）と OpenAI モデル退役一覧（`developers.openai.com/api/docs/deprecations`）を最優先に追加。Active 行は `API model name` 単位で全件列挙する。
 >
 > **2026-08-07更新（B-022 / B-026採用）**: `developers.openai.com/codex/changelog` が **308 恒久リダイレクト**で `learn.chatgpt.com/docs/changelog` へ移設された。転送先は ChatGPT と Codex を1ページで扱う統合 changelog なので、**最優先に「ChatGPT & Codex Changelog」を新設**し、Codex CLI Releases 項の併用一次を新 URL に差し替えた。
 > これに伴い下の **2026-07-08更新の「codex/changelog を一次取得に昇格」は撤回する**（URL 自体が存在しない）。`developers.openai.com/changelog`（Codex なしの本体側）は 08-07 時点でも WebFetch 200 で、こちらは変更しない。
@@ -54,21 +58,39 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 - 頻度: 毎日確認（GA直後のため。仕様が安定したら週次に下げ検討）
 - 備考: B-006採用（2026-06-10）。2026-07-06 に WebFetch 疎通を確認しプライマリに確定（現行仕様: 1M context / 128k output / $10・$50、Fable 5 は refusal 分類器あり・Mythos 5 は無し）。公式 system card の正式URLは判明次第追記
 
+### Claude モデル退役一覧（Model deprecations）
+- URL: https://platform.claude.com/docs/en/about-claude/model-deprecations
+- 検索キーワード（WebSearch用）: `Claude model deprecation retirement 2026` / `Claude Tentative retirement date 2026`
+- 取得方法: WebFetch（疎通確認 2026-08-26・08-27・以後日次で 200）→ 失敗時 WebSearch
+- 注目点: **新規の退役告知（告知日・退役日・推奨移行先）**・現行モデルの `Tentative retirement date` の変動・**API パラメータの廃止**
+- 頻度: 毎日確認
+- 備考: 2026-09-21追加（B-047 / B-077採用）。changelog / release notes には退役日が載らない。本ページだけが「いつまで使えるか」を持つ。
+  ⚠️ **取得プロンプト**: Active のモデルを `API model name` と `Tentative retirement date` の対で全件列挙し、件数も書け。
+  ⚠️ **Model status 表の Active 行は、退役日ではなく行数（`API model name` 単位）で数えて全件列挙する。** 同じ暫定退役日を共有するモデル（Fable 系と Mythos 系）を1件に畳まない（B-077）。退役日でグルーピングした時点で情報が落ちる。
+  ⚠️ `Tentative retirement date` は「not sooner than」であり**確定日ではない**。ダイジェストでは確定日と区別して書く。
+  ⚠️ Anthropic は公開モデルの退役について**最低60日前に通知する**と明記しているので、告知の検出が退役の60日以上前であることを前提にしてよい。
+  ⚠️ 本ページは **Anthropic 運営プラットフォーム（Claude API / Claude Platform on AWS / Microsoft Foundry）の日付だけ**を扱う。Amazon Bedrock と Google Cloud は独自スケジュール（ページ内に明記）。
+
 ### Anthropic Blog / News
 - URL: https://www.anthropic.com/news
 - URL（副・政策研究系）: https://www.anthropic.com/institute/
+- URL（副・研究）: https://www.anthropic.com/research
 - 検索キーワード（WebSearch用）: 以下5本をすべて実行する（B-019採用、2026-08-02）
   - `Anthropic news announcement 2026`（新モデル・新プロダクト系）
   - `Anthropic safety incident report 2026`（安全性インシデント公表）
   - `Anthropic model evaluation incident 2026`（モデル評価に伴うインシデント）
   - `Claude Code usage limits change 2026`（利用上限・プラン枠の変更）
   - `Anthropic grant program application 2026`（研究助成等のプログラム開始・応募期限）
-- 取得方法: WebSearch → WebFetch
-- 注目点: 新モデル、新プロダクト、API変更、料金変更。institute 配下の institutional position paper（B-004採用）。モデル評価・安全性に関するインシデント公表（`anthropic.com/news` 配下の incident / evaluation 系ポスト）。利用上限・プラン枠の変更、研究助成等のプログラム開始と応募期限（B-019採用、2026-08-02）
+- 取得方法: WebFetch（一次・疎通確認 2026-09-11、2日分確認 2026-09-12）→ 失敗時 WebSearch
+- 注目点: 新モデル、新プロダクト、API変更、料金変更。institute 配下の institutional position paper（B-004採用）。モデル評価・安全性に関するインシデント公表（`anthropic.com/news` 配下の incident / evaluation 系ポスト）。利用上限・プラン枠の変更、研究助成等のプログラム開始と応募期限（B-019採用、2026-08-02）。**`/research` の Publications 欄に載る評価・危険能力測定の公表**（モデル別の能力測定、オープンウェイトを含む横断評価）（B-068採用、2026-09-21）
 - 頻度: 毎日確認
-- 備考: WebFetch 403が2026-04-02以降継続中（2026-04-14時点）。WebSearch をプライマリに変更。
-  **本ソースはオリジン403（ゲートウェイは通過・HTTP 403 が返る）で一覧・記事とも WebFetch できないため、検索語彙の網羅性がそのまま検出可否を決める**（B-013 のゲートウェイ拒否とは別種）。product announcement 寄りの語彙だけでは取りこぼす実例が2件あった: ① 7/30 公開の `/news/investigating-incidents-cybersecurity-evals`（サイバー評価中の Claude 3 が実在3組織へ侵入・141,006 セッション精査）を 7/31 に検出できず 8/1 に一般報道経由で初検出 ② Claude Code の週次上限50%増の 8/19 までの延長（7/19 期限から延長）と AI for Science 希少疾患グラント（7/20 開始）が約2週間未追跡だった。**キーワードを減らさないこと**（B-019採用、2026-08-02）
-
+- 備考: **2026-09-21更新（B-067 / B-068 / B-076採用）**。2026-04-02〜09-10 はゲートウェイ拒否で到達不可だったが、**2026-09-11 に WebFetch 一次へ復帰**（一覧・個別記事とも本文取得を確認。09-12 に2日目確認）。
+  検索キーワード5本（B-019）はフォールバック経路として維持する。削除しない。
+  ⚠️ **`/news` と `/research` は別の一覧であり、`/research` の記事が `/news` に出ないことがある。** 両方を毎回取る。
+  ⚠️ **どちらも日付降順ではない**（特集順）。日付条件を入れず、**タイトル・日付・href の3つ組で全件列挙させる**（B-060 / B-076）。
+  ⚠️ **タイトルから slug を組み立ててはならない。** Anthropic の research スラッグは見出しの動詞形と一致しない（例: 見出し `uplifting` → URL `uplifts`）。
+  ⚠️ Risk Report 等の最上位パス文書（`www.anthropic.com/<slug>`）は `/news` / `/research` に出ない。B-071 が未採用の間は WebSearch で当てる。
+  ⚠️ `www-cdn.anthropic.com`（PDF）は B-070 で据え置き（ルート404・本文抽出手順未確定）。
 ### Model Context Protocol Blog
 - URL（優先）: https://blog.modelcontextprotocol.io/
 - RSS URL: https://blog.modelcontextprotocol.io/index.xml
@@ -128,6 +150,17 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 - 注目点: モデルリリース・廃止予定、API仕様変更、料金変更、新エンドポイント追加、SDK更新
 - 頻度: 毎日確認
 - 備考: `platform.openai.com` は403継続中だが、新ドメイン `developers.openai.com/changelog` はWebFetch成功（2026-07-08確認、最新7/6エントリまで取得可）。一次URLを新ドメインに変更（B-011）
+  ⚠️ **退役の告知・停止日・移行先は changelog に必ず載るわけではない。** 退役軸は直後の **OpenAI モデル退役一覧** を一次とする（B-055）。
+
+### OpenAI モデル退役一覧（Deprecations）
+- URL: https://developers.openai.com/api/docs/deprecations
+- 検索キーワード（WebSearch用）: `OpenAI API deprecation shutdown 2026` / `OpenAI model retirement date 2026`
+- 取得方法: WebFetch（2026-08-26・08-28・08-29・09-01 以降日次で 200 確認）→ 失敗時 WebSearch
+- 注目点: **新規の退役告知（告知日・停止日・推奨移行先）**・既存告知の停止日変更・エンドポイント単位の停止（Assistants API 等）
+- 頻度: 毎日確認
+- 備考: 2026-09-21追加（B-055採用）。Platform Changelog は退役を必ず載せるわけではない。不可逆な期限（ハイライト選定基準1）の OpenAI 側一次。
+  ⚠️ **同名系列でも告知が分かれ期限が異なる。** 例: `gpt-4o-mini-transcribe-2025-03-20` は 2027-01-20 側、`gpt-4o-mini-transcribe` は 2027-02-26 側。同名系列だから同じ期限だろうという読みは通らない。
+  ⚠️ 本ページは **API 側の期限のみ**を扱う。ChatGPT 側のモデル退役は `learn.chatgpt.com` の changelog が担当。「API に残っているから ChatGPT でも使える」と読まない。
 
 ### ChatGPT Release Notes
 - URL: https://help.openai.com/en/articles/6825453-chatgpt-release-notes
@@ -143,13 +176,13 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 - URL（プラグイン別）: https://learn.chatgpt.com/docs/security/plugin/changelog
 - URL（日付指定形式）: https://learn.chatgpt.com/docs/changelog?date=YYYY-MM-DD
 - 検索キーワード（WebSearch用）: `site:learn.chatgpt.com changelog 2026` / `ChatGPT Codex changelog <月> 2026` / `Codex model deprecation retirement 2026`（退役期限の検知用）
-- 取得方法: WebSearch（一次はゲートウェイ拒否のため到達不可）→ 到達回復時に RSS を一次へ昇格
+- 取得方法: RSS（`https://learn.chatgpt.com/docs/changelog/rss.xml`）→ WebFetch → WebSearch
 - 注目点: ChatGPT 本体の機能追加とプラン別開放、Codex アプリ / プラグイン / クラウドの更新、**Codex で使えるモデルの追加・除外（退役期限）**
 - 頻度: 毎日確認
 - 備考: 2026-08-07 追加（B-022 / B-026 を統合して採用）。`developers.openai.com/codex/changelog` の **308 転送先**であり、登録済みソースの後継にあたる。
   ⚠️ **`github.com/openai/codex/releases` では代替できない。** あちらは CLI リポジトリのリリースのみで、アプリ / プラグイン / クラウド / モデル提供の変更は載らない。
-  **ゲートウェイ拒否でも WebSearch なら本文相当が取れる**（`learn.chatgpt.com` は 2026-08-03 以降拒否が継続。08-06 の許可ドメイン追加13件は 08-07 に無効と確定＝B-013）。実例として 8/31 の GPT-5.4 / 5.4 mini の Codex 除外・DigitalOcean Droplet プラグイン・Codex の ChatGPT Voice はいずれも WebSearch で検出できている。**許可リストを待たず毎日 WebSearch で確認すること。**
-  RSS が存在するので、到達が回復した日に本文取得を確認したうえで RSS 一次へ切り替える（`fetch-flow.md`「復旧チェック」手順2と同じ扱い）。
+  **2026-09-21更新（B-070採用・部分）**: 2026-08-03〜09-13 はゲートウェイ拒否で WebSearch 運用だったが、**2026-09-14 に本文取得が復旧**（09-15 に2日目確認）。取得方法を RSS 一次へ戻した。失敗時のみ WebSearch。
+  一覧は日付降順想定だが、取りこぼし対策として「最上部から日付つきエントリを最低3件」と「`<前回チェック日>` 以降を全件」の両方を毎回問う（B-024）。
 
 ### Gemini API Changelog
 - URL: https://ai.google.dev/gemini-api/docs/changelog
@@ -166,12 +199,17 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 
 ### Google Workspace Updates Blog
 - URL: https://workspaceupdates.googleblog.com/
+- URL（月別アーカイブ・一次）: https://workspaceupdates.googleblog.com/<YYYY>/<MM>/
 - RSS URL（休止中）: https://feeds.feedburner.com/GoogleAppsUpdates
-- 取得方法: WebSearch → WebFetch
+- 取得方法: WebFetch（月別アーカイブ `https://workspaceupdates.googleblog.com/<YYYY>/<MM>/`）→ WebSearch
 - フィード本文: 全文あり（Blogger/FeedBurner経由のAtomフィード）
 - 注目点: Gemini for Workspaceの新機能、Docs/Sheets/Slides/Gmail/Meet統合、管理者向け変更
 - 頻度: 毎日確認
-- 備考: FeedBurner RSS/WebFetch ともに403が2026-04-03以降継続中（2026-04-14時点）。WebSearch をプライマリに変更。RSS復旧時は取得方法を `RSS → WebFetch → WebSearch` に戻すこと
+- 備考: **2026-09-21更新（B-070採用・部分）**。2026-04-03〜09-13 はゲートウェイ拒否で WebSearch 運用だったが、**2026-09-14 に本文取得が復旧**（09-15 に2日目確認・月別アーカイブで9月分22件を列挙）。
+  ⚠️ **一次はトップページではなく月別アーカイブ。** トップとアーカイブで日付がずれることがある（例: context-aware access をトップは 9/11・アーカイブは Tuesday, September 8 と返した。後者が正しい）。
+  ⚠️ **URL のパスから日付を推定しない。** 一部記事は掲載月と異なる月ディレクトリを持つ（例: 9/10 公開が `/2026/08/` 配下）。
+  ⚠️ 同じアーカイブページが日をまたいで日付グルーピングを変えることがある。新規判定は記事 href で突き合わせる（B-041）。
+  FeedBurner RSS は休止中のまま。失敗時のみ WebSearch。
 
 ### Google Gemini App Release Notes
 - URL: https://support.google.com/gemini/answer/13594961
@@ -226,7 +264,7 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 ### OpenAI Codex CLI Releases
 - URL（一次）: https://github.com/openai/codex/releases
 - URL（併用一次）: https://learn.chatgpt.com/docs/changelog （→ 上の「ChatGPT & Codex Changelog」項を参照）
-- 取得方法: WebFetch（GitHub releases・毎日）→ 失敗時 WebSearch。併用一次は「ChatGPT & Codex Changelog」項の手順（WebSearch）に従う
+- 取得方法: WebFetch（GitHub releases・毎日）→ 失敗時 WebSearch。併用一次は「ChatGPT & Codex Changelog」項の手順（RSS → WebFetch → WebSearch）に従う
 - 注目点: Codex CLI の新バージョン、機能追加、モデル切替
   - ⚠️ **このページは CLI リポジトリのリリースのみ。** Codex アプリ / プラグイン / クラウド / モデル提供の変更は載らないので、併用一次と必ず両方見る
 - 頻度: 毎日確認
