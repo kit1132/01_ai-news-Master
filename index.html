@@ -343,9 +343,11 @@
     .sub > summary:hover .sub-t { color: var(--fg-strong); }
     .sub > summary:hover::before { color: var(--fg); }
     /* `.content h3`（特異性 0,1,1）に勝つため `.content h3.sub-t` で指定する。
-       閉じた目次でもカテゴリ名が先に読めるよう、本文色より立てる。カードにはしない */
+       閉じた目次でも読めるよう本文（16px）より立てるが、節 h2（22px）と
+       記事タイトル h3 / .cat-k（20px）より一段落とす。揃えると階層が潰れる。
+       旧 16px は本文と同じで小さく見えた。20px は記事タイトルと逆転した（2026-09-21） */
     .content h3.sub-t {
-      font-size: 16px; font-weight: 600; color: var(--fg-strong); line-height: 1.4;
+      font-size: 18px; font-weight: 600; color: var(--fg-strong); line-height: 1.4;
       margin: 0; padding: 0; flex: 1; min-width: 0; overflow: hidden;
     }
     .sub[open] > summary .sub-t { color: var(--fg-strong); }
@@ -367,6 +369,12 @@
     }
     .content .sub > ul:not(.src) > li:first-child .cat-k,
     .content .sub > ol > li:first-child .cat-k { margin-top: 8px; }
+    /* カテゴリ本文は地の文。ハイライトの .lbl 枠は付けない */
+    .content .sub .cat-v {
+      line-height: 1.75; font-size: 16px; color: var(--fg);
+      margin: 0 0 8px;
+    }
+    .content .sub .cat-v > :last-child { margin-bottom: 0; }
     /* 週次の H3 は記事タイトル。開いたときだけハイライトの h3 に合わせる */
     .content .sub[open]:not(:has(.cat-k)) > summary h3.sub-t { font-size: 20px; }
 
@@ -407,16 +415,18 @@
       -webkit-box-decoration-break: clone;
     }
 
-    /* 要点/詳細/意味（旧: 事実/根拠/影響/行動指針）をラベル列＋色罫のコールアウトに */
+    /* 要点/詳細/意味（旧: 事実/根拠/影響/行動指針）をラベル列＋色罫のコールアウトに。
+       2026-09-21 以降の長ラベル（いま起きていること 等）は 72px 列に収まらないので
+       キー幅は中身に合わせ、値側が縮むようにする */
     .lbl {
-      display: grid; grid-template-columns: 72px 1fr; gap: 14px;
+      display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 14px;
       margin: 0 0 12px; padding: 12px 14px 12px 14px;
       border-left: 3px solid var(--rail, var(--border));
       border-radius: 4px;
       background: var(--callout-bg);
       background: color-mix(in srgb, var(--rail, var(--border)) 9%, var(--bg));
     }
-    .lbl > .k { font-size: 11px; font-weight: 700; color: var(--rail, var(--muted)); padding-top: 4px; letter-spacing: .06em; }
+    .lbl > .k { font-size: 11px; font-weight: 700; color: var(--rail, var(--muted)); padding-top: 4px; letter-spacing: .02em; }
     .lbl > .v { line-height: 1.75; font-size: 16px; min-width: 0; }
     .lbl > .v > :last-child { margin-bottom: 0; }
     /* 値に吸収した箇条書き・続きの段落は、地の文より詰めて「同じ話の続き」に見せる */
@@ -427,7 +437,7 @@
     .lbl-key    { --rail:#39c5cf; }  /* 要点 / 事実（シアン＝情報種別） */
     .lbl-detail { --rail: var(--muted-strong); }  /* 詳細 / 根拠。旧 #6e7681 は AA 未達、#8b949e は種別として沈んでいた */
     .lbl-mean   { --rail:#d29922; }  /* 意味 / 影響 */
-    .lbl-act    { --rail:#3fb950; }  /* 行動指針（旧フォーマットのみ） */
+    .lbl-act    { --rail:#3fb950; }  /* 行動指針 / まずやること */
     ul.lbl-list { list-style: none; padding: 0; margin: 0 0 20px; }
     ul.lbl-list > li { margin: 0; }
 
@@ -466,6 +476,7 @@
       .content h1 { font-size: 22px; }
       .content h2, .content h2.sec-t { font-size: 18px; }
       .content h3 { font-size: 17px; }
+      .content h3.sub-t { font-size: 16px; }
       .cat-k { font-size: 17px; }
       .content .sub[open]:not(:has(.cat-k)) > summary h3.sub-t { font-size: 17px; }
       .content p, .content .lede, .lbl > .v { font-size: 15px; }
@@ -490,6 +501,7 @@
       .content h1 { font-size: 22px; }
       .content h2, .content h2.sec-t { font-size: 16px; }
       .content h3 { font-size: 16px; }
+      .content h3.sub-t { font-size: 15px; }
       .cat-k { font-size: 16px; }
       .content .sub[open]:not(:has(.cat-k)) > summary h3.sub-t { font-size: 16px; }
     }
@@ -943,12 +955,21 @@
 
     // ============ 本文の装飾 ============
 
-    // 新フォーマット（2026-07-26 以降）と旧フォーマット（既存437ファイル）の両方に対応する
+    // 新フォーマット（要約/詳細 2026-09-21）と旧フォーマット（既存ファイル）の両方に対応する
     const LABELS = {
+      '要約': 'key',
       '要点': 'key',    '事実': 'key',
       '詳細': 'detail', '根拠': 'detail',
       '意味': 'mean',   '影響': 'mean',
       '行動指針': 'act',
+      /* 2026-09-21 午前の多段ラベル（廃止済み）。過去日ダイジェスト用に残す */
+      'いま起きていること': 'key',
+      '関係ある人': 'mean',
+      '関係が薄い人': 'detail',
+      '通知が出る人（関係あり）': 'mean',
+      '通知が出ない人': 'detail',
+      'まずやること': 'act',
+      '一次（検証用）': 'detail',
     };
 
     function decorate(box) {
@@ -1127,14 +1148,12 @@
 
       li.insertBefore(k, li.firstChild);
       if (v.childNodes.length) {
-        const lbl = document.createElement('div');
-        lbl.className = 'lbl lbl-detail';
-        const lab = document.createElement('div');
-        lab.className = 'k';
-        lab.textContent = '詳細';
-        lbl.append(lab, v);
-        k.after(lbl);
-        let at = lbl;
+        // 色箱（.lbl）にしない。ハイライトの要約／詳細コールアウトと序列を分ける。
+        // 旧実装はここに `詳細` ラベル付きコールアウトを付けていたが、
+        // カテゴリまで枠が並びハイライトが埋もれた（2026-09-21）
+        v.className = 'cat-v';
+        k.after(v);
+        let at = v;
         for (const c of chips) { at.after(c); at = c; }
       }
     }

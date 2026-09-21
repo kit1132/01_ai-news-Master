@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <title>読み方プレビュー — AI News</title>
+  <script>
+    (function () {
+      var KEY = 'ai-news-theme';
+      var pref = localStorage.getItem(KEY) || 'dark';
+      if (pref !== 'light' && pref !== 'dark' && pref !== 'system') pref = 'dark';
+      var theme = pref === 'system'
+        ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+        : pref;
+      document.documentElement.setAttribute('data-theme', theme);
+      document.documentElement.setAttribute('data-theme-pref', pref);
+      var meta = document.querySelector('meta[name="color-scheme"]');
+      if (meta) meta.content = theme;
+    })();
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js"
+          integrity="sha384-948ahk4ZmxYVYOc+rxN1H2gM1EJ2Duhp7uHtZ4WSLkV4Vtx5MUqnV+l7u9B+jFv+"
+          crossorigin="anonymous"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root, [data-theme="dark"] {
+      color-scheme: dark;
+      --bg:#191919; --panel:#202020; --border:#2f2f2f; --border2:#2c2c2c;
+      --fg:#d4d4d4; --fg-strong:#ffffff; --muted:#9b9b9b; --link:#6cb6e0;
+      --muted-strong:#b4b4b4; --heading-soft:#ececec;
+      --code-bg:#2c2c2c; --code-border:#4a4a4a;
+      --strong-long:#e8e8e8; --strong-hl:#3d5a6c;
+      --callout-bg:#262626; --banner-bg:#2a2418; --banner-fg:#e6c07b;
+    }
+    [data-theme="light"] {
+      color-scheme: light;
+      --bg:#ffffff; --panel:#f7f7f7; --border:#e3e3e3; --border2:#ebebeb;
+      --fg:#37352f; --fg-strong:#171717; --muted:#787774; --link:#0b6bcb;
+      --muted-strong:#6b6b6b; --heading-soft:#2f2f2f;
+      --code-bg:#f1f1ef; --code-border:#e3e3e3;
+      --strong-long:#37352f; --strong-hl:#d6e4ef;
+      --callout-bg:#f7f7f5; --banner-bg:#fbf3db; --banner-fg:#5c4b1f;
+    }
+    body {
+      font-family: "Hiragino Sans", "Noto Sans CJK JP", "Segoe UI", sans-serif;
+      background: var(--bg); color: var(--fg); line-height: 1.75;
+    }
+    .top {
+      position: sticky; top: 0; z-index: 10;
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      padding: 10px 20px; /* 狭い余白 ≈ 0.5in 相当を本文側で */
+      background: var(--panel); border-bottom: 1px solid var(--border);
+    }
+    .top a { color: var(--link); text-decoration: none; font-size: 14px; }
+    .top a:hover { text-decoration: underline; }
+    .badge {
+      font-size: 12px; font-weight: 600; color: var(--banner-fg);
+      background: var(--banner-bg); border: 1px solid color-mix(in srgb, var(--banner-fg) 25%, transparent);
+      border-radius: 4px; padding: 4px 10px;
+    }
+    .theme-row { margin-left: auto; display: flex; gap: 4px; }
+    .theme-opt {
+      width: 36px; height: 36px; border-radius: 6px; border: 1px solid var(--border);
+      background: transparent; color: var(--fg); cursor: pointer;
+    }
+    .theme-opt[aria-pressed="true"] { background: var(--border2); border-color: var(--muted); }
+    main {
+      max-width: 820px; margin: 0 auto;
+      padding: 20px 20px 64px; /* 上下左右 ≈ 0.5in 相当の狭い余白 */
+    }
+    .content h1 {
+      font-size: 24px; font-weight: 600; line-height: 1.3; color: var(--fg);
+      margin: 8px 0 12px;
+    }
+    .content h2 {
+      font-size: 22px; font-weight: 600; color: var(--fg-strong); line-height: 1.3;
+      margin: 1.6em 0 10px;
+    }
+    .content h3 {
+      font-size: 20px; font-weight: 600; color: var(--fg-strong); line-height: 1.4;
+      margin: 28px 0 10px;
+    }
+    .content p { font-size: 16px; margin-bottom: 16px; }
+    .content ul, .content ol { padding-left: 1.6em; margin-bottom: 16px; }
+    .content li { margin-bottom: 6px; }
+    .content a { color: var(--link); text-decoration: none; overflow-wrap: anywhere; }
+    .content a:hover { text-decoration: underline; }
+    .content code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Hiragino Sans", sans-serif;
+      background: var(--code-bg); border: 1px solid var(--code-border);
+      padding: 1px 6px; border-radius: 4px; font-size: 13px; color: var(--heading-soft);
+    }
+    .content blockquote {
+      border-left: 2px solid var(--border); padding-left: 14px; color: var(--fg);
+      margin: 0 0 24px; font-size: 14px; line-height: 1.7;
+    }
+    .content blockquote p { margin-bottom: 8px; font-size: inherit; }
+    .content strong { color: var(--fg-strong); font-weight: 700; }
+    .lbl {
+      display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 14px;
+      margin: 0 0 12px; padding: 12px 14px;
+      border-left: 3px solid var(--rail, var(--border));
+      border-radius: 4px;
+      background: color-mix(in srgb, var(--rail, var(--border)) 9%, var(--bg));
+    }
+    .lbl > .k {
+      font-size: 11px; font-weight: 700; color: var(--rail, var(--muted));
+      padding-top: 4px; letter-spacing: .02em;
+    }
+    .lbl > .v { line-height: 1.75; font-size: 16px; min-width: 0; }
+    .lbl > .v > :last-child { margin-bottom: 0; }
+    .lbl > .v > ul, .lbl > .v > ol { margin: 10px 0 14px; }
+    .lbl > .v > p { margin-bottom: 14px; }
+    .lbl-key { --rail:#39c5cf; }
+    .lbl-detail { --rail: var(--muted-strong); }
+    ul.src { list-style: none; padding: 0; margin: 4px 0 20px; display: flex; flex-wrap: wrap; gap: 6px; }
+    ul.src > li { margin: 0; line-height: 1; }
+    ul.src a {
+      display: inline-block; font-size: 12px; color: var(--fg); text-decoration: none;
+      background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 999px; padding: 4px 10px;
+    }
+    ul.src a::before { content: "↗ "; opacity: .85; }
+    ul.src a:hover { color: var(--link); border-color: var(--link); }
+    .err { color: #f07178; margin: 24px 0; }
+    @media (max-width: 820px) {
+      main { padding: 16px 16px 56px; }
+      .content h1 { font-size: 22px; }
+      .content h2 { font-size: 18px; }
+      .content h3 { font-size: 17px; }
+      .content p, .lbl > .v { font-size: 15px; }
+      .lbl { grid-template-columns: 1fr; gap: 4px; padding: 10px 12px; }
+      .lbl > .k { padding-top: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <a href="../index.html">← 本番ビューア</a>
+    <span class="badge">本番反映済み · 見本</span>
+    <a href="./reading-format.md">Markdown 元データ</a>
+    <div class="theme-row" role="group" aria-label="テーマ">
+      <button type="button" class="theme-opt" data-pref="light" title="ライト" aria-label="ライト">☀</button>
+      <button type="button" class="theme-opt" data-pref="system" title="システム" aria-label="システム">🖥</button>
+      <button type="button" class="theme-opt" data-pref="dark" title="ダーク" aria-label="ダーク">☾</button>
+    </div>
+  </div>
+  <main>
+    <div id="content" class="content">読み込み中…</div>
+  </main>
+  <script>
+    const THEME_KEY = 'ai-news-theme';
+    const LABELS = {
+      '要約': 'key',
+      '要点': 'key',
+      'いま起きていること': 'key',
+      '詳細': 'detail',
+      '根拠': 'detail',
+    };
+    const SEP_HEAD = /^[\s:：—–\-]+/;
+    const SEP_TAIL = /[\s:：—–\-]+$/;
+
+    function applyTheme(pref) {
+      if (pref !== 'light' && pref !== 'dark' && pref !== 'system') pref = 'dark';
+      localStorage.setItem(THEME_KEY, pref);
+      const theme = pref === 'system'
+        ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+        : pref;
+      document.documentElement.setAttribute('data-theme', theme);
+      document.documentElement.setAttribute('data-theme-pref', pref);
+      const meta = document.querySelector('meta[name="color-scheme"]');
+      if (meta) meta.content = theme;
+      document.querySelectorAll('.theme-opt').forEach((btn) => {
+        btn.setAttribute('aria-pressed', btn.dataset.pref === pref ? 'true' : 'false');
+      });
+    }
+
+    document.querySelectorAll('.theme-opt').forEach((btn) => {
+      btn.addEventListener('click', () => applyTheme(btn.dataset.pref));
+    });
+    applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
+
+    function isLabelHead(el) {
+      const n = el.firstChild;
+      return !!n && n.nodeName === 'STRONG' && !!LABELS[n.textContent.replace(SEP_TAIL, '').trim()];
+    }
+    const isLabelStop = (el) =>
+      !el || /^H[1-6]$/.test(el.tagName) || el.tagName === 'HR' ||
+      (el.tagName === 'UL' && el.classList.contains('src')) ||
+      (el.tagName === 'P' && isLabelHead(el));
+
+    function decorateLabels(box) {
+      for (const el of [...box.querySelectorAll('p, li')]) {
+        const nodes = [...el.childNodes];
+        const marks = [];
+        nodes.forEach((n, i) => {
+          if (n.nodeName !== 'STRONG') return;
+          const key = n.textContent.replace(SEP_TAIL, '').trim();
+          if (LABELS[key]) marks.push({ i, key });
+        });
+        if (!marks.length || marks[0].i !== 0) continue;
+        const frag = document.createDocumentFragment();
+        let lastV = null;
+        marks.forEach((m, mi) => {
+          const end = mi + 1 < marks.length ? marks[mi + 1].i : nodes.length;
+          const wrap = document.createElement('div');
+          wrap.className = 'lbl lbl-' + LABELS[m.key];
+          const k = document.createElement('div');
+          k.className = 'k';
+          k.textContent = m.key;
+          const v = document.createElement('div');
+          v.className = 'v';
+          for (const n of nodes.slice(m.i + 1, end)) v.appendChild(n);
+          if (v.firstChild?.nodeType === 3) v.firstChild.textContent = v.firstChild.textContent.replace(SEP_HEAD, '');
+          if (v.lastChild?.nodeType === 3) v.lastChild.textContent = v.lastChild.textContent.replace(/\s+$/, '');
+          wrap.append(k, v);
+          frag.appendChild(wrap);
+          lastV = v;
+        });
+        if (el.tagName === 'LI') {
+          el.replaceChildren(frag);
+        } else {
+          const cont = [];
+          for (let n = el.nextElementSibling; !isLabelStop(n); n = n.nextElementSibling) cont.push(n);
+          el.replaceWith(frag);
+          for (const n of cont) lastV.appendChild(n);
+        }
+      }
+    }
+
+    function decorateLinks(box) {
+      for (const a of box.querySelectorAll('a[href]')) {
+        try {
+          const u = new URL(a.href, location.href);
+          if (u.protocol !== 'http:' && u.protocol !== 'https:') continue;
+          if (a.textContent.trim() === a.getAttribute('href') || /^https?:\/\//i.test(a.textContent.trim())) {
+            a.textContent = u.hostname.replace(/^www\./, '');
+          }
+        } catch (_) { /* ignore */ }
+      }
+      for (const ul of box.querySelectorAll('ul')) {
+        const items = [...ul.children];
+        if (!items.length) continue;
+        const allSrc = items.every((li) => {
+          const kids = [...li.childNodes].filter((n) => !(n.nodeType === 3 && !n.textContent.trim()));
+          return kids.length === 1 && kids[0].nodeName === 'A';
+        });
+        if (allSrc) ul.classList.add('src');
+      }
+    }
+
+    async function load() {
+      const box = document.getElementById('content');
+      try {
+        const res = await fetch('./reading-format.md');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const md = await res.text();
+        if (typeof marked === 'undefined') {
+          box.innerHTML = '<pre></pre>';
+          box.querySelector('pre').textContent = md;
+          return;
+        }
+        box.innerHTML = marked.parse(md);
+        decorateLabels(box);
+        decorateLinks(box);
+      } catch (err) {
+        box.innerHTML = '<p class="err">プレビューの読み込みに失敗しました。ローカル HTTP で開いてください（例: リポジトリ直下の 8766）。</p><p class="err">' +
+          String(err.message || err) + '</p>';
+      }
+    }
+    load();
+  </script>
+</body>
+</html>
