@@ -895,6 +895,10 @@
       return li;
     }
 
+    // 描画してよいのは「今選ばれている日付」の応答だけ。
+    // token はソース切替、activeId は日付切替。どちらかが変わっていたら遅延応答を捨てる。
+    const isStaleSelect = (token, id) => token !== state.token || id !== state.activeId;
+
     async function selectEntry(id) {
       const e = state.entries.find((x) => x.id === id);
       if (!e) return;
@@ -905,12 +909,22 @@
       const url = baseOf(state.sourceId) + e.path;
       let md = mdCache.get(url);
       if (md === undefined) {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`${e.label} の取得に失敗しました (HTTP ${res.status})`);
+        let res;
+        try {
+          res = await fetch(url);
+        } catch (err) {
+          // 既に別日付へ移っているなら、その失敗で画面全体を致命扱いにしない
+          if (isStaleSelect(my, id)) return;
+          throw err;
+        }
+        if (!res.ok) {
+          if (isStaleSelect(my, id)) return;
+          throw new Error(`${e.label} の取得に失敗しました (HTTP ${res.status})`);
+        }
         md = stripHiddenSections(await res.text());
         mdCache.set(url, md);
       }
-      if (my !== state.token) return; // ソース切り替えと競合したら描画しない
+      if (isStaleSelect(my, id)) return; // ソース切替・別日付の遅延応答は描画しない
 
       const box = $('#content');
       if (typeof marked === 'undefined') {
