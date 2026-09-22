@@ -103,9 +103,18 @@
     }
     .crumb-sep { color: var(--muted); opacity: .55; flex: none; }
     .crumb-item {
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      min-width: 0; flex: none;
     }
-    .crumb-current { color: var(--fg); font-weight: 500; }
+    .crumb-item.crumb-current { flex: 0 1 auto; color: var(--fg); font-weight: 500; }
+    .crumb-link {
+      flex: none; background: none; border: none; color: var(--muted);
+      font: inherit; font-size: 14px; line-height: 1.2;
+      padding: 6px 8px; border-radius: 6px; cursor: pointer;
+      white-space: nowrap; min-height: 36px;
+    }
+    .crumb-link:hover { color: var(--fg-strong); background: var(--border2); }
+    .crumb-link:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
     .topbar-end {
       display: flex; align-items: center; gap: 10px; margin-left: auto; flex: none;
     }
@@ -154,25 +163,67 @@
     }
     .side-brand {
       flex: none; padding: 14px 16px 8px;
-      font-size: 14px; font-weight: 600; color: var(--fg-strong);
-      letter-spacing: .02em;
+      font: inherit; font-size: 14px; font-weight: 600; color: var(--fg-strong);
+      letter-spacing: .02em; background: none; border: none; text-align: left;
+      width: 100%; cursor: pointer; min-height: 44px;
     }
-    #source-tree { flex: none; padding: 0 8px 8px; }
-    .side-group-label {
-      font-size: 11px; color: var(--muted); font-weight: 500;
-      padding: 8px 8px 4px; letter-spacing: .02em;
+    .side-brand:hover { color: var(--fg); }
+    .side-brand:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+    #source-tree { flex: none; padding: 0 8px 8px; max-height: 62vh; overflow-y: auto; }
+    .side-group { display: flex; flex-direction: column; gap: 2px; }
+    .side-branch { display: flex; flex-direction: column; gap: 0; }
+    /* 親行: twist（開閉）とラベル（ナビ）を分ける。展開だけでは本文を動かさない */
+    .side-parent-row {
+      display: grid; grid-template-columns: 28px 1fr; align-items: stretch; gap: 0;
     }
-    .side-group { display: flex; flex-direction: column; gap: 1px; }
+    .side-twist {
+      display: flex; align-items: center; justify-content: center;
+      background: none; border: none; color: var(--muted-strong); font: inherit;
+      font-size: 10px; padding: 0; border-radius: 6px; cursor: pointer;
+      min-height: 36px; min-width: 28px;
+    }
+    .side-twist:hover { background: var(--border2); color: var(--fg-strong); }
+    .side-twist:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+    .side-twist::before { content: "▸"; display: inline-block; transition: transform .12s; }
+    .side-twist[aria-expanded="true"]::before { transform: rotate(90deg); }
     .side-src {
       display: flex; align-items: center; width: 100%; text-align: left;
       background: none; border: none; color: var(--fg); font: inherit;
-      font-size: 14px; padding: 6px 8px; border-radius: 4px; cursor: pointer;
+      font-size: 14px; padding: 7px 10px; border-radius: 6px; cursor: pointer;
+      min-height: 36px;
     }
+    .side-parent-row .side-src { padding-left: 6px; }
     .side-src:hover { background: var(--border2); color: var(--fg-strong); }
     .side-src.is-active {
       background: var(--active-bg); color: var(--fg-strong); font-weight: 600;
     }
     .side-src:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+    /* 親の下: レールで親子を示す。元ソース小見出し → 葉 */
+    .side-nest {
+      margin: 0 2px 4px 14px; padding: 2px 0 4px 10px;
+      border-left: 2px solid var(--border);
+      display: flex; flex-direction: column; gap: 1px;
+    }
+    /* 小見出しはキャプション（11px muted）にしない。ソース名 14px の一段上の見出し */
+    .side-subhead {
+      font-size: 12px; color: var(--fg); font-weight: 600;
+      padding: 6px 8px 2px; letter-spacing: .02em;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .side-subhead::before {
+      content: "┗"; color: var(--muted-strong); font-weight: 400; font-size: 11px;
+    }
+    .side-children {
+      display: flex; flex-direction: column; gap: 1px;
+      margin: 0 0 2px 10px; padding-left: 8px;
+      border-left: 2px solid color-mix(in srgb, var(--fg) 14%, var(--bg));
+    }
+    .side-children .side-src {
+      font-size: 13px; padding: 6px 8px; min-height: 32px; gap: 6px;
+    }
+    .side-children .side-src::before {
+      content: "┗"; color: var(--muted-strong); font-size: 11px; flex: none;
+    }
     .side-divider { flex: none; height: 1px; background: var(--border); margin: 4px 12px; }
     .side-foot {
       flex: none; flex-shrink: 0; padding: 8px 8px 12px;
@@ -193,6 +244,201 @@
     }
     .main { flex: 1; overflow-y: auto; padding: 40px 64px 96px; }
     .empty { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--empty); font-size: 15px; }
+    .cat-index { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+    .cat-index-item {
+      display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+      width: 100%; text-align: left; background: none; border: none;
+      color: inherit; font: inherit; cursor: pointer;
+      padding: 10px 12px; border-radius: 8px; min-height: 44px;
+    }
+    .cat-index-item:hover { background: var(--border2); }
+    .cat-index-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+    /* ホームだけ Notion のページ。記事の見出しサイズには寄せない */
+    .content:has(.home-page) { max-width: 740px; }
+    .main:has(.home-page) { padding-top: 64px; }
+    .content .home-head { margin: 0 0 36px; }
+    .home-mark {
+      width: 46px; height: 46px; margin: 0 0 14px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--callout-bg); color: var(--fg-strong);
+      border: 1px solid var(--border);
+    }
+    .home-mark svg, .home-ico svg { display: block; }
+    .content h1.page-when.home-title {
+      font-size: 40px; font-weight: 700; letter-spacing: -.03em;
+      line-height: 1.15; margin: 0 0 10px;
+    }
+    .content .home-head .page-overview {
+      font-size: 16px; line-height: 1.65; color: var(--fg);
+      max-width: 38em; margin: 0;
+    }
+    .home-block { margin: 0 0 32px; }
+    .content h2.home-kicker {
+      margin: 0 0 8px; font-size: 12px; font-weight: 600;
+      color: var(--muted); letter-spacing: .04em; line-height: 1.4;
+    }
+    .home-table, .home-pages {
+      border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+      background: var(--bg);
+    }
+    .home-tr {
+      display: grid; grid-template-columns: 9em 1fr; gap: 16px;
+      align-items: start; padding: 12px 14px;
+      border-top: 1px solid var(--border);
+    }
+    .home-tr:first-child { border-top: none; }
+    .home-th {
+      background: var(--callout-bg);
+      font-size: 12px; font-weight: 500; color: var(--muted); line-height: 1.4;
+    }
+    .home-name {
+      font-size: 14px; font-weight: 600; color: var(--fg-strong); line-height: 1.45;
+    }
+    .home-kind {
+      margin-top: 2px; font-size: 13px; line-height: 1.5; color: var(--muted);
+      word-break: keep-all;
+    }
+    .home-picks { font-size: 14px; line-height: 1.55; color: var(--fg); word-break: keep-all; }
+    .home-page-row {
+      display: grid; grid-template-columns: 28px 1fr 16px; gap: 10px;
+      align-items: center; width: 100%; text-align: left;
+      background: none; border: none; border-top: 1px solid var(--border);
+      color: inherit; font: inherit; cursor: pointer;
+      padding: 10px 12px; min-height: 52px;
+    }
+    .home-page-row:first-child { border-top: none; }
+    .home-page-row:hover { background: var(--border2); }
+    .home-page-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+    .home-ico {
+      width: 28px; height: 28px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--callout-bg); color: var(--fg); flex: none;
+    }
+    .home-page-name {
+      display: block; font-size: 15px; font-weight: 600;
+      color: var(--fg-strong); line-height: 1.35;
+    }
+    .home-page-hint {
+      display: block; margin-top: 2px; font-size: 13px;
+      color: var(--muted); line-height: 1.45;
+    }
+    .home-page-row::after {
+      content: "›"; color: var(--muted); font-size: 18px; line-height: 1;
+      justify-self: end;
+    }
+    .home-callout {
+      display: flex; gap: 10px; align-items: flex-start;
+      margin: 0; padding: 12px 14px; border-radius: 4px;
+      background: var(--callout-bg); color: var(--fg);
+    }
+    .home-callout-ico {
+      flex: none; width: 18px; height: 18px; margin-top: 1px; color: var(--muted-strong);
+    }
+    .content .home-callout p {
+      margin: 0; font-size: 14px; line-height: 1.6; color: var(--fg);
+    }
+    .cat-index-hint { font-size: 13px; color: var(--muted-strong); line-height: 1.4; }
+    .cat-item { margin: 0; }
+    .cat-item > summary {
+      list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px;
+      margin: 0; padding: 10px 8px; min-height: 40px; border-radius: 6px;
+    }
+    .cat-item > summary::-webkit-details-marker { display: none; }
+    .cat-item > summary::before {
+      content: "▶"; font-size: 10px; color: var(--muted-strong); flex: none;
+      transition: transform .15s; display: inline-block; width: 1em; text-align: center;
+    }
+    .cat-item[open] > summary::before { transform: rotate(90deg); }
+    .cat-item > summary:hover { background: var(--border2); }
+    .content h2.cat-item-t {
+      font-size: 15px; font-weight: 600; color: var(--fg-strong); line-height: 1.45;
+      margin: 0; padding: 0; flex: 1; min-width: 0; overflow: hidden;
+    }
+    .cat-item-body {
+      margin: 0 0 12px calc(8px + 1em + 8px);
+      padding: 2px 0 12px 14px;
+      border-left: 1px solid color-mix(in srgb, var(--fg) 16%, var(--bg));
+    }
+
+    /* 右ペイン共通クローム: 日時を主見出しにし、ナビ文脈はその上に小さく */
+    .page-head { margin: 0 0 20px; }
+    .page-context {
+      font-size: 13px; font-weight: 600; color: var(--muted-strong);
+      letter-spacing: .02em; margin: 0 0 6px; line-height: 1.4;
+    }
+    .content h1.page-when {
+      font-size: 26px; font-weight: 700; color: var(--fg-strong);
+      letter-spacing: -.01em; line-height: 1.25; margin: 0 0 8px;
+    }
+    .page-overview {
+      font-size: 13px; color: var(--muted); line-height: 1.5; margin: 0 0 6px;
+    }
+    .page-meta {
+      font-size: 13px; color: var(--muted); line-height: 1.5; margin: 0;
+    }
+    /* カテゴリ: 月トグルの中が週トグル、その中が日付トグル。記事ごとには畳まない */
+    .cat-timeline { margin-top: 4px; }
+    .cat-month, .cat-week { margin: 0 0 4px; }
+    .cat-month > summary,
+    .cat-week > summary,
+    .cat-day > summary {
+      list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px;
+      margin: 0; padding: 8px; min-height: 40px; border-radius: 6px;
+    }
+    .cat-month > summary::-webkit-details-marker,
+    .cat-week > summary::-webkit-details-marker,
+    .cat-day > summary::-webkit-details-marker { display: none; }
+    .cat-month > summary::before,
+    .cat-week > summary::before,
+    .cat-day > summary::before {
+      content: "▶"; font-size: 10px; color: var(--muted-strong); flex: none;
+      width: 1em; text-align: center; transition: transform .15s;
+    }
+    .cat-month[open] > summary::before,
+    .cat-week[open] > summary::before,
+    .cat-day[open] > summary::before { transform: rotate(90deg); }
+    .cat-month > summary:hover,
+    .cat-week > summary:hover,
+    .cat-day > summary:hover { background: var(--border2); }
+    .cat-month-label { font-size: 20px; font-weight: 700; color: var(--fg-strong); letter-spacing: -.01em; }
+    .cat-month .m-count, .cat-week .m-count { margin-left: auto; font-size: 13px; font-weight: 500; color: var(--muted-strong); }
+    .cat-month-days { margin: 0 0 8px 8px; }
+    .cat-week-label { font-size: 18px; font-weight: 700; color: var(--fg-strong); letter-spacing: -.01em; line-height: 1.3; }
+    .cat-week-range { font-size: 14px; font-weight: 500; color: var(--muted-strong); }
+    .cat-week-days { margin: 0 0 8px 12px; }
+    .cat-day { margin: 0; scroll-margin-top: 16px; }
+    .content h2.cat-day-when {
+      font-size: 16px; font-weight: 600; color: var(--fg-strong);
+      letter-spacing: -.01em; line-height: 1.3; margin: 0; padding: 0; flex: 1;
+    }
+    .content h2.cat-day-when.dow-sat { color: var(--dow-sat); }
+    .content h2.cat-day-when.dow-sun { color: var(--dow-sun); }
+    .cat-day.is-focus > summary { background: var(--border2); }
+    .cat-day-body {
+      margin: 0 0 8px calc(8px + 1em + 8px);
+      padding: 4px 0 8px 14px;
+      border-left: 1px solid color-mix(in srgb, var(--fg) 16%, var(--bg));
+    }
+    .cat-piece + .cat-piece {
+      margin-top: 16px; padding-top: 4px;
+    }
+    .content h3.cat-piece-t {
+      font-size: 15px; font-weight: 600; color: var(--fg-strong);
+      line-height: 1.45; margin: 0 0 8px;
+    }
+    .page-nav {
+      display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 10px 0 0;
+    }
+    .page-nav button {
+      background: none; border: none; color: var(--link); cursor: pointer;
+      font: inherit; font-size: 13px; padding: 4px 0; min-height: 36px;
+    }
+    .page-nav button:hover { text-decoration: underline; }
+    .page-nav button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .page-nav button:disabled {
+      color: var(--muted); cursor: default; opacity: .55; text-decoration: none;
+    }
+    .page-body { margin-top: 4px; }
 
     @media (max-width: 1100px) {
       .main { padding: 32px 28px 80px; }
@@ -202,36 +448,76 @@
     #file-list { flex: 1 1 0; overflow-y: auto; min-height: 0; padding: 4px 8px 8px; }
     .month > summary {
       list-style: none; cursor: pointer; display: flex; align-items: center; gap: 6px;
-      padding: 6px 8px; border-radius: 4px; font-size: 12px; color: var(--fg);
+      padding: 8px 8px; border-radius: 4px; font-size: 16px; color: var(--fg);
       position: sticky; top: 0; background: var(--panel); z-index: 1;
     }
     .month > summary::-webkit-details-marker { display: none; }
     .month > summary:hover { background: var(--border2); }
     .chev { display: inline-block; transition: transform .15s; color: var(--muted-strong); }
     .month[open] > summary .chev { transform: rotate(90deg); }
-    .m-label { font-weight: 600; }
+    .m-label { font-weight: 700; }
     .m-count { margin-left: auto; font-size: 11px; color: var(--muted-strong); }
 
     /* 入れ子 ul に padding が二重に付かないよう .items だけで完結させる */
-    .items { list-style: none; padding: 0 0 6px 0; margin: 0; }
+    .items { list-style: none; padding: 2px 0 8px 0; margin: 0; }
+    .week-sep {
+      padding: 14px 8px 2px; font-size: 11px; font-weight: 700;
+      color: var(--muted-strong); letter-spacing: .14em;
+    }
+    .items > .week-sep:not(:first-child) {
+      margin-top: 4px;
+      border-top: 1px solid color-mix(in srgb, var(--fg) 12%, var(--bg));
+    }
     .item {
       display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
       background: none; border: none; color: var(--fg); font: inherit;
-      padding: 6px 8px; border-radius: 4px; cursor: pointer;
+      padding: 8px 8px; border-radius: 6px; cursor: pointer; min-height: 36px;
+    }
+    .item:has(.i-date) {
+      display: grid; grid-template-columns: 2.85em 1.2em 1fr auto;
+      column-gap: 8px; align-items: center;
+    }
+    .item:has(.i-date) .badge { grid-column: 4; justify-self: end; }
+    .item:has(.i-week) {
+      display: grid; grid-template-columns: 2.85em minmax(0, 1fr) auto;
+      column-gap: 8px; align-items: center;
+    }
+    .item:has(.i-week) .badge { grid-column: 3; justify-self: end; }
+    .i-week {
+      font-variant-numeric: tabular-nums; font-weight: 600; font-size: 14px;
+      text-align: right; line-height: 1.2;
+    }
+    .i-range {
+      font-variant-numeric: tabular-nums; font-size: 14px; font-weight: 500;
+      line-height: 1.2;
     }
     .item:hover { background: var(--border2); }
     .item.is-active { background: var(--active-bg); color: var(--fg-strong); font-weight: 600; }
+    .i-date {
+      font-variant-numeric: tabular-nums; font-weight: 600; font-size: 14px;
+      text-align: right; line-height: 1.2;
+    }
+    .i-dow { font-size: 12px; font-weight: 400; color: var(--muted-strong); }
+    .item.is-active .i-dow { color: var(--muted-strong); }
     .i-body { display: flex; flex-direction: column; min-width: 0; }
-    .i-title { font-size: 14px; }
-    .i-sub { font-size: 11px; color: var(--muted-strong); margin-top: 2px; }
+    .i-title { font-size: 12px; font-weight: 600; color: var(--muted-strong); }
+    .item.is-active .i-title { color: var(--fg-strong); }
+    .i-sub { font-size: 12px; color: var(--muted-strong); margin-top: 2px; }
+    .i-sub .dow-sat, .i-sub .dow-sun { font-weight: 600; }
+    /* 土日色は日付・曜・週範囲の末日で共通。active でもトークンを保つ */
     .dow-sat { color: var(--dow-sat); }
     .dow-sun { color: var(--dow-sun); }
-    .item.is-active .dow-sat { color: var(--dow-sat); }
-    .item.is-active .dow-sun { color: var(--dow-sun); }
+    .item.is-active .dow-sat,
+    .item.is-active .i-date.dow-sat,
+    .item.is-active .i-dow.dow-sat { color: var(--dow-sat); }
+    .item.is-active .dow-sun,
+    .item.is-active .i-date.dow-sun,
+    .item.is-active .i-dow.dow-sun { color: var(--dow-sun); }
 
     .badge { margin-left: auto; font-size: 10px; padding: 2px 7px; border-radius: 999px; white-space: nowrap; flex: none; }
-    .b-today, .b-week, .b-part { background: var(--badge-part-bg); color: var(--badge-part-fg); }
-    .b-today { font-weight: 600; }
+    .b-week, .b-part { background: var(--badge-part-bg); color: var(--badge-part-fg); }
+    /* 「今日」は日付一覧で一番拾いたい印。週バッジと同居させると灰色に埋もれるので緑を維持する */
+    .b-today { background: #238636; color: #fff; font-weight: 600; }
 
     /* --- 本文 --- */
     .content { max-width: 900px; margin: 0 auto; }
@@ -242,10 +528,10 @@
     }
     /* 節見出し。節が1つ以下で折りたたみが適用されないファイルでも同じ見え方にする */
     .content h2 {
-      font-size: 22px; font-weight: 600; color: var(--fg-strong); letter-spacing: 0; line-height: 1.3;
+      font-size: 24px; font-weight: 700; color: var(--fg-strong); letter-spacing: 0; line-height: 1.3;
       margin-top: 2em; margin-bottom: 12px;
     }
-    .content h3 { font-size: 20px; line-height: 1.4; color: var(--fg-strong); font-weight: 600; margin-top: 28px; margin-bottom: 10px; }
+    .content h3 { font-size: 20px; line-height: 1.4; color: var(--fg-strong); font-weight: 600; margin-top: 36px; margin-bottom: 14px; }
     .content h4 { font-size: 15px; color: var(--heading-soft); margin-top: 22px; margin-bottom: 8px; }
     .content p  { line-height: 1.75; margin-bottom: 16px; font-size: 16px; }
     .content ul, .content ol { padding-left: 1.6em; margin-bottom: 16px; }
@@ -297,23 +583,23 @@
     /* --- `## セクション` の折りたたみ（Notion のトグル：▸＋見出し。左バーと横罫は使わない） --- */
     /* h2 は summary の「中に」入る（置き換えない）。押せることと節の始まりを視覚的に示す */
     .sec > summary {
-      list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px;
-      margin-top: 1.6em; margin-bottom: 10px; padding: 4px 2px; border-radius: 4px;
+      list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px;
+      margin-top: 2.4em; margin-bottom: 8px; padding: 10px 8px; border-radius: 6px;
     }
     .sec > summary::-webkit-details-marker { display: none; }
     /* 節見出しは h2 要素のまま summary の中に入っている（見出し階層を壊さないため）。
        `.content h2`（特異性 0,1,1）に勝つ必要があるので `.content h2.sec-t` で指定する */
     .content h2.sec-t {
-      font-size: 22px; font-weight: 600; color: var(--fg-strong); line-height: 1.3;
+      font-size: 24px; font-weight: 700; color: var(--fg-strong); line-height: 1.35;
       letter-spacing: 0; margin: 0; padding: 0; border: none; display: block;
       /* ⚠️ 折り返す。畳んだ見出しの列がそのまま目次になる。
          overflow:hidden だけ残すのは、フレックス項目の自動最小サイズを0に保ち
          summary を押し広げないため。高さは auto なので行が増えても欠けない */
       overflow: hidden;
     }
-    .sec-n { font-size: 11px; font-weight: 400; color: var(--muted-strong); flex: none; }
+    .sec-n { font-size: 12px; font-weight: 400; color: var(--muted-strong); flex: none; }
     .sec > summary::before {
-      content: "▶"; font-size: 10px; color: var(--muted-strong); flex: none;
+      content: "▶"; font-size: 11px; color: var(--muted-strong); flex: none;
       transition: transform .15s; display: inline-block; width: 1em; text-align: center;
     }
     .sec[open] > summary::before { transform: rotate(90deg); }
@@ -322,53 +608,121 @@
     .sec > summary:hover::before { color: var(--fg); }
 
     /* --- `### 見出し` の折りたたみ（節の中の第2階層・groupSubsections 参照） --- */
-    /* ⚠️ 塗り＋枠線＋角丸の「カード」にしない。
-       初版はそれで作ったが、9個並ぶと灰色のボタンが縦に連なる見た目になり、
-       **下位階層なのに節見出し（アクセントバー＋罫線だけ）より重い**という逆転が起きた。
-       階層はインデントと文字の強さで示し、区切りは罫線1本に留める。 */
+    /* トグル行が親、中身はシェブロンの右にネストする。
+       旧: padding-left 26px だけではタイトルより左に本文が始まり、
+       項目見出し 600 / 本文 16px がカテゴリ名 500 / 16px より強く見えた（2026-09-21） */
+    .sec > .sub {
+      margin: 0;
+    }
     .sub > summary {
       list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px;
-      margin: 0; padding: 8px 2px; min-height: 36px;
-      border-bottom: 1px solid var(--border2);
+      margin: 0; padding: 10px 8px; min-height: 40px; border-radius: 6px;
+      border-bottom: none;
     }
-    /* 開いている見出しは本文と地続きに見せる（罫線で切らない） */
-    .sub[open] > summary { border-bottom-color: transparent; }
+    .sub[open] > summary { margin-bottom: 0; }
     .sub > summary::-webkit-details-marker { display: none; }
     .sub > summary::before {
-      content: "▶"; font-size: 9px; color: var(--muted-strong); flex: none;
+      content: "▶"; font-size: 10px; color: var(--muted-strong); flex: none;
       transition: transform .15s; display: inline-block; width: 1em; text-align: center;
     }
     .sub[open] > summary::before { transform: rotate(90deg); }
     .sub > summary:hover { background: var(--border2); }
     .sub > summary:hover .sub-t { color: var(--fg-strong); }
     .sub > summary:hover::before { color: var(--fg); }
-    /* `.content h3`（特異性 0,1,1）に勝つため `.content h3.sub-t` で指定する。
-       閉じた目次でもカテゴリ名が先に読めるよう、本文色より立てる。カードにはしない */
+    /* 節 24 / カテゴリ 15 / 項目 14 / 本文 14。トグルが親で中身は一段落とす */
     .content h3.sub-t {
-      font-size: 16px; font-weight: 600; color: var(--fg-strong); line-height: 1.4;
+      font-size: 15px; font-weight: 600; color: var(--fg-strong); line-height: 1.45;
       margin: 0; padding: 0; flex: 1; min-width: 0; overflow: hidden;
     }
     .sub[open] > summary .sub-t { color: var(--fg-strong); }
-    .sub-n { font-size: 11px; font-weight: 400; color: var(--muted-strong); flex: none; }
-    /* 開いた中身はインデントだけで示す。罫線を足すと線が二重になって重くなる */
-    .sub[open] > :not(summary) { padding-left: 14px; }
-    .sub[open] > :not(summary):last-child { padding-bottom: 10px; }
-    /* カテゴリ項目はハイライトと同じ読み順（見出し → 詳細コールアウト → 出典）。
-       直下リストの点は消す。ネストした列挙は .lbl 内の既存スタイル */
-    .content .sub > ul:not(.src),
-    .content .sub > ol {
-      list-style: none; padding-left: 0; margin-bottom: 0;
+    .sub-n { font-size: 12px; font-weight: 400; color: var(--muted-strong); flex: none; padding-left: 8px; }
+    /* シェブロン列の右＝タイトル先頭に揃えてから、レール＋一段インデント。
+       `.content .sub > ul` の方が特異性が高いので、ネスト指定はそちらに書く */
+    .content .sub[open] > ul:not(.src),
+    .content .sub[open] > ol {
+      list-style: none;
+      margin: 0 0 10px calc(8px + 1em + 8px);
+      padding: 2px 0 12px 14px;
+      border-left: 1px solid color-mix(in srgb, var(--fg) 16%, var(--bg));
     }
     .content .sub > ul:not(.src) > li,
-    .content .sub > ol > li { margin: 0; }
-    .cat-k {
-      font-size: 20px; font-weight: 600; color: var(--fg-strong); line-height: 1.4;
-      margin: 28px 0 10px;
+    .content .sub > ol > li {
+      margin: 0; padding: 12px 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--fg) 12%, var(--bg));
     }
-    .content .sub > ul:not(.src) > li:first-child .cat-k,
-    .content .sub > ol > li:first-child .cat-k { margin-top: 8px; }
-    /* 週次の H3 は記事タイトル。開いたときだけハイライトの h3 に合わせる */
-    .content .sub[open]:not(:has(.cat-k)) > summary h3.sub-t { font-size: 20px; }
+    .content .sub > ul:not(.src) > li:last-child,
+    .content .sub > ol > li:last-child {
+      border-bottom: none; padding-bottom: 2px;
+    }
+    .cat-k {
+      font-size: 14px; font-weight: 600; color: var(--fg-strong); line-height: 1.45;
+      margin: 0 0 6px;
+    }
+    .content .sub .cat-v,
+    .content .sub .cat-v p {
+      line-height: 1.7; font-size: 14px; color: var(--fg);
+      margin: 0 0 8px;
+    }
+    .content .sub .cat-v > :last-child { margin-bottom: 0; }
+    .content .sub .cat-v ul, .content .sub .cat-v ol {
+      margin: 6px 0 0; padding-left: 1.2em; font-size: 14px;
+    }
+    .content .sub .cat-v li { margin-bottom: 4px; line-height: 1.65; }
+    .content .sub ul.src { margin: 8px 0 0; }
+
+    /* 注目予定: 週トグルの中はカテゴリと同じネスト。日付列は M/D のみ */
+    .content .sec[data-sched] .sub > ul:not(.src) > li,
+    .content .sec[data-sched] .sub > ol > li,
+    .content .sec[data-sched] > ul:not(.src) > li,
+    .content .sec[data-sched] > ol > li {
+      display: grid;
+      grid-template-columns: 3.5rem minmax(0, 1fr);
+      column-gap: 12px;
+      align-items: start;
+      margin: 0; padding: 12px 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--fg) 12%, var(--bg));
+      line-height: 1.65;
+    }
+    .content .sec[data-sched] .sub > ul:not(.src) > li:last-child,
+    .content .sec[data-sched] .sub > ol > li:last-child,
+    .content .sec[data-sched] > ul:not(.src) > li:last-child,
+    .content .sec[data-sched] > ol > li:last-child { border-bottom: none; padding-bottom: 2px; }
+    .content .sec[data-sched] .sched-d {
+      font-variant-numeric: tabular-nums;
+      font-weight: 600; font-size: 14px; color: var(--fg-strong);
+      line-height: 1.45; padding-top: 2px;
+      text-align: right; white-space: nowrap;
+    }
+    .content .sec[data-sched] .sched-d.is-empty { color: transparent; }
+    .content .sec[data-sched] .sched-b {
+      min-width: 0; font-size: 14px; line-height: 1.7; color: var(--fg);
+    }
+    .content .sec[data-sched] .sched-b > :last-child { margin-bottom: 0; }
+    .content .sec[data-sched] .sched-chip,
+    .content .sec[data-sched] .sched-today {
+      display: inline-block; font-size: 11px; font-weight: 600;
+      padding: 1px 7px; border-radius: 999px; margin-right: 6px;
+      vertical-align: 1px; letter-spacing: .02em;
+    }
+    .content .sec[data-sched] .sched-chip {
+      background: color-mix(in srgb, var(--fg) 12%, var(--bg));
+      color: var(--muted-strong);
+    }
+    .content .sec[data-sched] .sched-today {
+      background: #238636; color: #fff;
+    }
+    .content .sec[data-sched] .sched-b.sched-multi > .sched-chip,
+    .content .sec[data-sched] .sched-b.sched-multi > .sched-today {
+      margin-bottom: 6px;
+    }
+    .content .sec[data-sched] .sched-part + .sched-part { margin-top: 8px; }
+    .content .sec[data-sched] .sched-b.sched-multi .sched-part {
+      position: relative; padding-left: 14px;
+    }
+    .content .sec[data-sched] .sched-b.sched-multi .sched-part::before {
+      content: "•"; position: absolute; left: 0; top: 0;
+      color: var(--muted-strong); font-weight: 700;
+    }
 
     /* --- 先頭へ戻る（画面幅によらず、スクロールしたときだけ出す） --- */
     #to-top {
@@ -407,16 +761,18 @@
       -webkit-box-decoration-break: clone;
     }
 
-    /* 要点/詳細/意味（旧: 事実/根拠/影響/行動指針）をラベル列＋色罫のコールアウトに */
+    /* 要点/詳細/意味（旧: 事実/根拠/影響/行動指針）をラベル列＋色罫のコールアウトに。
+       2026-09-21 以降の長ラベル（いま起きていること 等）は 72px 列に収まらないので
+       キー幅は中身に合わせ、値側が縮むようにする */
     .lbl {
-      display: grid; grid-template-columns: 72px 1fr; gap: 14px;
-      margin: 0 0 12px; padding: 12px 14px 12px 14px;
+      display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 14px;
+      margin: 0 0 14px; padding: 14px 16px;
       border-left: 3px solid var(--rail, var(--border));
       border-radius: 4px;
       background: var(--callout-bg);
       background: color-mix(in srgb, var(--rail, var(--border)) 9%, var(--bg));
     }
-    .lbl > .k { font-size: 11px; font-weight: 700; color: var(--rail, var(--muted)); padding-top: 4px; letter-spacing: .06em; }
+    .lbl > .k { font-size: 11px; font-weight: 700; color: var(--rail, var(--muted)); padding-top: 4px; letter-spacing: .02em; }
     .lbl > .v { line-height: 1.75; font-size: 16px; min-width: 0; }
     .lbl > .v > :last-child { margin-bottom: 0; }
     /* 値に吸収した箇条書き・続きの段落は、地の文より詰めて「同じ話の続き」に見せる */
@@ -463,23 +819,38 @@
          hidden を付けても消えず、本文を覆って画面が暗くなりタッチも奪われる（2026-07-27 に発生） */
       .scrim.show { display: block; position: fixed; inset: var(--topbar) 0 0 0; background: var(--scrim); z-index: 20; }
       .main { padding: 20px 16px 76px; }
-      .content h1 { font-size: 22px; }
-      .content h2, .content h2.sec-t { font-size: 18px; }
-      .content h3 { font-size: 17px; }
-      .cat-k { font-size: 17px; }
-      .content .sub[open]:not(:has(.cat-k)) > summary h3.sub-t { font-size: 17px; }
+      .content h1, .content h1.page-when { font-size: 22px; }
+      .content h1.page-when.home-title { font-size: 32px; }
+      .main:has(.home-page) { padding-top: 28px; }
+      .home-th { display: none; }
+      .home-tr { grid-template-columns: 1fr; gap: 4px; padding: 12px 14px; }
+      .home-page-row { min-height: 44px; }
+      .content h2, .content h2.sec-t { font-size: 20px; font-weight: 700; }
+      .content h3 { font-size: 16px; }
+      .content h3.sub-t { font-size: 15px; }
+      .cat-k { font-size: 14px; }
       .content p, .content .lede, .lbl > .v { font-size: 15px; }
       .lbl { grid-template-columns: 1fr; gap: 4px; padding: 10px 12px; }
       .lbl > .k { padding-top: 0; }
 
       /* 操作子のタップ領域を44px確保する（設計書の合格条件） */
-      .about-link, #expand-all, .side-src, .item, .month > summary { min-height: 44px; }
+      .about-link, #expand-all, .side-src, .side-twist, .item, .month > summary,
+      .cat-index-item, .cat-item > summary, .cat-month > summary, .cat-week > summary, .cat-day > summary,
+      .page-nav button, .crumb-link { min-height: 44px; }
       .theme-opt { width: 44px; height: 44px; }
       .topbar-end { gap: 8px; }
 
       /* 畳んだ見出しがそのまま目次になる。タップ領域を44px確保する */
       .sec > summary { display: flex; margin-top: 16px; margin-bottom: 10px; padding: 10px 8px; min-height: 44px; }
-      .sub > summary { padding: 11px 2px; min-height: 44px; }
+      .sub > summary { padding: 11px 6px; min-height: 44px; }
+      .content .sec[data-sched] .sub > ul:not(.src) > li,
+      .content .sec[data-sched] .sub > ol > li,
+      .content .sec[data-sched] > ul:not(.src) > li,
+      .content .sec[data-sched] > ol > li {
+        grid-template-columns: 3.25rem minmax(0, 1fr);
+        column-gap: 10px; padding: 10px 0;
+      }
+      .content .sec[data-sched] .sched-b { font-size: 14px; }
     }
 
     /* --- 横向きのスマホ：本文の縦を優先する ---
@@ -487,11 +858,11 @@
     @media (max-width: 900px) and (max-height: 500px) {
       .topbar { padding: 0 8px; min-height: 40px; }
       .main { padding: 14px 16px 64px; }
-      .content h1 { font-size: 22px; }
-      .content h2, .content h2.sec-t { font-size: 16px; }
-      .content h3 { font-size: 16px; }
-      .cat-k { font-size: 16px; }
-      .content .sub[open]:not(:has(.cat-k)) > summary h3.sub-t { font-size: 16px; }
+      .content h1, .content h1.page-when { font-size: 22px; }
+      .content h2, .content h2.sec-t { font-size: 18px; font-weight: 700; }
+      .content h3 { font-size: 15px; }
+      .content h3.sub-t { font-size: 14px; }
+      .cat-k { font-size: 13px; }
     }
 
     /* --- 印刷 / PDF 保存 ---
@@ -533,7 +904,7 @@
 
   <div class="layout">
     <nav class="sidebar" id="sidebar" aria-label="ソースと日付">
-      <div class="side-brand">AI NEWS</div>
+      <button type="button" class="side-brand" id="home-brand">AI NEWS</button>
       <div id="source-tree"></div>
       <div class="side-divider" aria-hidden="true"></div>
       <div id="file-list"></div>
@@ -618,17 +989,109 @@
       });
     }
 
-    // 表示順は「まとめ → 元ソース」。リポジトリ番号順ではなく実際に読む順に並べる。
+    // 表示順は親子ツリー（今日 → 今週 → カテゴリ）。ハッシュ ID は変えない。
     const SOURCES = [
       { id: 'daily',    dir: '05_ai-news-daily',    name: '今日のまとめ', group: 'digest' },
       { id: 'weekly',   dir: '04_ai-news-weekly',   name: '今週のまとめ', group: 'digest' },
       { id: 'master',   dir: '01_ai-news-Master',   name: '開発ツール',   group: 'source' },
-      { id: 'copilot',  dir: '02_ai-news-Copilot',  name: 'Microsoft',   group: 'source' },
-      { id: 'industry', dir: '03_ai-news-industry', name: '業界',        group: 'source' },
+      { id: 'copilot',  dir: '02_ai-news-Copilot',  name: '業務 Copilot', group: 'source' },
+      { id: 'industry', dir: '03_ai-news-industry', name: '市場・規制',   group: 'source' },
     ];
-    const GROUP_LABEL = { digest: 'まとめ', source: '元ソース' };
+    const CHILD_IDS = ['master', 'copilot', 'industry'];
+    const SOURCE_SUBHEAD = '元ソース';
+    const CATEGORY_TITLE = 'カテゴリ別まとめ';
+    const CAT_FETCH_LIMIT = 6;
+    const HOME_ENTRIES = [
+      { nav: 'daily', name: '今日のまとめ', hint: 'その日の差分です。1日1回見るなら、ここからで足ります。', icon: 'daily' },
+      { nav: 'weekly', name: '今週のまとめ', hint: '終わった1週間の流れです。数日空いたときに開きます。', icon: 'weekly' },
+      { nav: 'category', name: 'カテゴリ別まとめ', hint: '話題ごとに、これまでの更新を新しい順で辿れます。', icon: 'category' },
+    ];
+    const HOME_SVG = {
+      mark: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.8h6.4L18.2 8.6V19a1.2 1.2 0 0 1-1.2 1.2H7.2A1.2 1.2 0 0 1 6 19V5A1.2 1.2 0 0 1 7.2 3.8H7z"/><path d="M13.2 3.9V8.6h4.7"/><path d="M9 12.6h6M9 16h4"/></svg>',
+      daily: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 9.5h16M8 3.5v3M16 3.5v3"/></svg>',
+      weekly: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="5" rx="1.4"/><rect x="3.5" y="13" width="17" height="5" rx="1.4"/></svg>',
+      category: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6.5" height="6.5" rx="1.2"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.2"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.2"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.2"/></svg>',
+      link: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13.5a4 4 0 0 0 5.7.4l2.2-2.2a4 4 0 0 0-5.7-5.6L11 7.3"/><path d="M14 10.5a4 4 0 0 0-5.7-.4L6.1 12.3a4 4 0 0 0 5.7 5.6L13 16.7"/></svg>',
+    };
+    // ホームの「何を集めているか」。表示名はカテゴリと揃える。取得手順は書かない。
+    const HOME_STREAMS = [
+      {
+        name: '開発ツール',
+        picks: 'Claude、ChatGPT、Gemini、GitHub Copilot、Cursor、Grok、Devin、MCP、オープンウェイト',
+        kind: '公式のリリースノートと製品発表。新機能、仕様変更、提供開始',
+      },
+      {
+        name: '業務 Copilot',
+        picks: 'Microsoft 365 Copilot、Copilot Studio、Power Platform、共有リンクや監査などの管理変更',
+        kind: 'Word / Excel / Teams の機能追加、ライセンス、テナントへの展開',
+      },
+      {
+        name: '市場・規制',
+        picks: 'Apple、資金調達、市場シェア、各国の規制、調査レポート',
+        kind: '数字、発表日、調査の要点',
+      },
+    ];
+    const CAT_TITLE_MAX = 80;
+    // 今日／今週／カテゴリで共通の短い一文。沈黙日数は書かない。
+    const PAGE_OVERVIEW = {
+      home: '毎朝、下の3分野の公式更新を日本語で短くまとめています。',
+      daily: '3つの元ソースを1本にまとめた、当日の差分です。',
+      weekly: '直近で完了した1週間の流れと帰結です。',
+      categoryIndex: '話題を選ぶと、その更新を時系列で辿れます。',
+      category: 'この話題の更新を、新しい順に並べています。',
+    };
+    const CATEGORIES = [
+      { slug: 'claude', name: 'Claude / Anthropic', blurb: 'Claude Code、Claude 製品、Anthropic 発表' },
+      { slug: 'openai', name: 'ChatGPT / OpenAI', blurb: 'ChatGPT、Codex、API' },
+      { slug: 'google', name: 'Gemini / Google', blurb: 'Gemini、DeepMind、Antigravity、Workspace' },
+      { slug: 'github-copilot', name: 'GitHub Copilot', blurb: 'Copilot 本体・CLI・changelog' },
+      { slug: 'studio', name: 'Copilot Studio / Power Platform', blurb: 'Studio、Power Platform' },
+      { slug: 'm365-copilot', name: 'M365 Copilot', blurb: 'Word / Excel / Chat 等の製品更新' },
+      { slug: 'm365-admin', name: 'M365 管理', blurb: '共有リンク、監査、GCC、Purview' },
+      { slug: 'cursor', name: 'Cursor / xAI', blurb: 'Cursor、Devin、Grok' },
+      { slug: 'mcp', name: 'MCP / エージェント標準', blurb: 'MCP、エージェント標準、A2A 相当' },
+      { slug: 'open-weight', name: 'オープンウェイト', blurb: 'HF、ローカル LLM' },
+      { slug: 'apple', name: 'Apple', blurb: 'Developer News、Apple Intelligence、OS' },
+      { slug: 'market', name: '市場・企業', blurb: 'GTM、規制、市場データ、M&A' },
+    ];
+    const catOf = (slug) => CATEGORIES.find((c) => c.slug === (slug === 'xai' ? 'cursor' : slug));
     const srcOf  = (id) => SOURCES.find((s) => s.id === id) || SOURCES[0];
-    const baseOf = (id) => `../${srcOf(id).dir}/`;
+    // 作業ブランチが main より古いときだけ .content-main/<repo> を読む。同日の下書きは作業ツリーを優先する。
+    const contentPrefix = Object.create(null);
+    const baseOf = (id) => `../${contentPrefix[id] || ''}${srcOf(id).dir}/`;
+    const isChildId = (id) => CHILD_IDS.includes(id);
+
+    function publishedStamp(path) {
+      const text = String(path || '');
+      const day = text.match(/(\d{4}-\d{2}-\d{2})/);
+      if (day) return `D${day[1]}`;
+      const week = text.match(/(\d{4}).*W(\d{2})/);
+      if (week) return `W${week[1]}-${week[2]}`;
+      return '';
+    }
+
+    async function readFileList(url) {
+      try {
+        const res = await fetch(`${url}?_=${Date.now()}`);
+        if (!res.ok) return null;
+        const data = await res.json();
+        return Array.isArray(data) ? data : null;
+      } catch {
+        return null;
+      }
+    }
+
+    async function resolveContentSources() {
+      await Promise.all(SOURCES.map(async (s) => {
+        const local = await readFileList(`../${s.dir}/files.json`);
+        const mirror = await readFileList(`../.content-main/${s.dir}/files.json`);
+        const localStamp = publishedStamp(local?.[0]);
+        const mirrorStamp = publishedStamp(mirror?.[0]);
+        contentPrefix[s.id] = mirror && mirrorStamp && (!localStamp || mirrorStamp > localStamp)
+          ? '.content-main/'
+          : '';
+      }));
+    }
 
     // --- 日付ユーティリティ（UTC 固定でタイムゾーン差を排除する） ---
     const dateUTC = (ymd) => new Date(ymd + 'T00:00:00Z');
@@ -648,6 +1111,17 @@
       const ft = new Date(Date.UTC(t.getUTCFullYear(), 0, 4));
       ft.setUTCDate(ft.getUTCDate() - ((ft.getUTCDay() + 6) % 7) + 3);
       return { year: t.getUTCFullYear(), week: 1 + Math.round((t - ft) / (7 * 86400000)) };
+    }
+
+    // 1日を含む週はその月に入れる（月曜が前月でも 1週 になる）
+    function weekBucketOf(mon) {
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(mon.getTime() + i * 86400000);
+        if (d.getUTCDate() === 1) {
+          return `${d.getUTCFullYear()}-${p2(d.getUTCMonth() + 1)}`;
+        }
+      }
+      return `${mon.getUTCFullYear()}-${p2(mon.getUTCMonth() + 1)}`;
     }
 
     // --- ファイルパス → 一覧エントリ ---
@@ -679,7 +1153,7 @@
         return {
           kind: 'week', path, id: `${year}-W${p2(wk)}`, y: year, wk, mon,
           sort: ymdOf(mon).replace(/-/g, ''),
-          bucket: `${mon.getUTCFullYear()}-${p2(mon.getUTCMonth() + 1)}`,
+          bucket: weekBucketOf(mon),
           label: `W${p2(wk)}`,
           sub: '',
           fullLabel: `${year}-W${p2(wk)}`,
@@ -711,16 +1185,234 @@
       return md.trimEnd();
     }
 
+    // --- カテゴリ履歴（05 の ### を12ページに畳む。Cursor と xAI は1件） ---
+    // 過去日の見出しは閉集合ではない。別名はここに足し、余った見出しは捨てる（余り箱は作らない）。
+    const CAT_ALIAS = {
+      'Claude / Anthropic': 'claude', 'Anthropic / Claude': 'claude', 'Claude Code': 'claude',
+      'Claude Code / Anthropic': 'claude', 'Anthropic / Claude Code': 'claude', 'Anthropic': 'claude',
+      'Anthropic / Claude・規制': 'claude',
+      'GitHub Copilot': 'github-copilot', 'GitHub Copilot CLI': 'github-copilot',
+      'Copilot Studio / Power Platform': 'studio', 'Copilot Studio': 'studio', 'Power Platform': 'studio',
+      'Power Platform / ガバナンス': 'studio', 'Power Platform / ライセンス': 'studio',
+      'Power Platform / Copilot Studio': 'studio',
+      'Microsoft 365 Copilot': 'm365-copilot', 'M365 Copilot': 'm365-copilot',
+      'Microsoft 365 Copilot / Cowork': 'm365-copilot', 'Microsoft 365 Copilot / 基盤': 'm365-copilot',
+      'Microsoft 365 Copilot / SharePoint': 'm365-copilot', 'Microsoft 365 / Copilot': 'm365-copilot',
+      'Microsoft 365 / Agent 365': 'm365-copilot',
+      'Microsoft 365 Copilot / ガバナンス': 'm365-admin', 'ガバナンス・ライセンス': 'm365-admin',
+      'ガバナンス / ライセンス': 'm365-admin', 'ライセンス / パートナー': 'm365-admin',
+      'OpenAI': 'openai', 'OpenAI / Codex / ChatGPT': 'openai', 'OpenAI / ChatGPT': 'openai',
+      'OpenAI / Codex': 'openai', 'OpenAI / ChatGPT / Codex': 'openai',
+      'OpenAI / フロンティアモデル': 'openai', 'OpenAI / 開発ツール': 'openai',
+      'Google': 'google', 'Google / DeepMind': 'google', 'Google / Gemini': 'google',
+      'Apple': 'apple', 'Apple / クラウド': 'apple', 'Apple / プラットフォーム': 'apple', 'Apple / その他': 'apple',
+      'Cursor / Devin': 'cursor', 'Cursor': 'cursor', 'Cursor / 開発ツール': 'cursor',
+      'Devin': 'cursor', 'Devin / Cognition': 'cursor', 'Cognition / Devin': 'cursor',
+      'xAI': 'cursor', 'xAI / Grok': 'cursor', 'SpaceXAI / Grok': 'cursor',
+      'Cursor / xAI': 'cursor', 'Cursor / xAI / Devin': 'cursor',
+      'MCP / エージェント標準': 'mcp', 'MCP': 'mcp',
+      'エージェント拡張の配布規格': 'mcp', '標準・エコシステム': 'mcp', 'エージェント基盤': 'mcp',
+      'オープンウェイト / ローカル LLM': 'open-weight', 'OSS・ローカルLLM': 'open-weight', 'Mistral': 'open-weight',
+      '規制・政策': 'market', '市場データ': 'market', '企業構造 / GTM': 'market',
+      '企業構造 / GTM 動向': 'market', '企業構造 / GTM・規制': 'market',
+      '市場データ / 企業構造・GTM': 'market', '市場データ / 企業構造・規制': 'market',
+      '企業・市場・国内': 'market', '企業・市場': 'market', '資本・インフラ': 'market',
+      '規制・地政学': 'market', '市場・エコシステム': 'market', '国内': 'market',
+      '資本・M&A・市場データ': 'market', '企業動向 / 規制 / 市場データ': 'market',
+      '市場データ・調査': 'market', '米国 AI 政策': 'market', '調査・レポート': 'market',
+      '業界・インフラ投資': 'market', '規制 / 政策': 'market',
+    };
+    const CAT_HEAD_RE = [
+      ['studio', /Copilot Studio|Power Platform|Power Apps/],
+      ['github-copilot', /GitHub Copilot|Copilot CLI/],
+      ['m365-admin', /Purview|Partner Center|\bGCC\b|共有リンク|監査ログ|サブプロセッサ|M365 管理/],
+      ['m365-copilot', /Microsoft 365 Copilot|M365 Copilot|\bCowork\b|Agent 365|Microsoft 365 \/ Copilot/],
+      ['claude', /Claude|Anthropic/],
+      ['openai', /OpenAI|ChatGPT|Codex/],
+      ['google', /Google|Gemini|DeepMind|Antigravity/],
+      ['apple', /Apple/],
+      ['mcp', /\bMCP\b|エージェント標準|A2A|WebMCP/],
+      ['open-weight', /オープンウェイト|ローカル LLM|Hugging Face|\bHF\b|Mistral|Qwen/],
+      ['cursor', /Cursor|Devin|Cognition|xAI|Grok|SpaceXAI/],
+      ['market', /市場|規制|GTM|企業構造|企業動向|資金調達|M&A|資本|国内|IPO|地政学|業界トレンド|業界動向/],
+    ];
+    const CAT_ITEM_KW = {
+      claude: ['Claude', 'Anthropic', 'Sonnet', 'Opus', 'Haiku'],
+      'github-copilot': ['GitHub Copilot', 'Copilot CLI', 'github.blog/changelog', 'Copilot Chat'],
+      studio: ['Copilot Studio', 'Power Platform', 'Power Apps', 'Power Automate', 'Dataverse'],
+      'm365-copilot': ['Microsoft 365 Copilot', 'M365 Copilot', 'Cowork', 'Agent 365', 'Copilot in Word'],
+      'm365-admin': ['管理センター', 'Intune', '監査', '共有リンク', 'Purview', 'GCC', 'Partner Center', 'サブプロセッサ', '管理者向け', 'Global Admin', 'AI Admin', 'Jailbreak', '配布'],
+      openai: ['OpenAI', 'ChatGPT', 'Codex', 'GPT-'],
+      google: ['Google', 'Gemini', 'DeepMind', 'Antigravity', 'Workspace'],
+      cursor: ['Cursor', 'Devin', 'Cognition', 'xAI', 'Grok', 'SpaceXAI'],
+      mcp: ['MCP', 'A2A', 'エージェント標準', 'WebMCP'],
+      'open-weight': ['オープンウェイト', 'Hugging Face', 'ローカル LLM', 'Qwen', 'Mistral', 'Llama'],
+      apple: ['Apple', 'Apple Intelligence', 'iOS', 'macOS', 'iPhone'],
+      market: ['規制', 'GTM', '市場', 'M&A', '資金調達', 'IPO', 'Similarweb', 'IDC', '企業構造', '資本'],
+    };
+
+    function escapeRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+    function catNormHeading(h) {
+      return h.replace(/（[^）]*）/g, '').replace(/\([^)]*\)/g, '').trim();
+    }
+    function catHeadingTarget(h) {
+      const n = catNormHeading(h);
+      if (CAT_ALIAS[n]) return CAT_ALIAS[n];
+      if (/^(その他|継続ウォッチ|ウォッチ|Meta)$/.test(n)) return null;
+      const hits = [];
+      for (const [slug, re] of CAT_HEAD_RE) {
+        if (re.test(n) && !hits.includes(slug)) hits.push(slug);
+      }
+      if (hits.length === 1) return hits[0];
+      if (hits.length > 1) return '*';
+      if (/開発ツール|コーディングエージェント|Microsoft（その他）|Microsoft \(その他\)|セキュリティ/.test(h)) return '*';
+      if (/Microsoft\s*\/\s*GitHub/.test(n) || /Microsoft\s*\/\s*Copilot$/.test(n)) return '*';
+      return null;
+    }
+    function catClassifyText(text) {
+      const scores = {};
+      const lower = text.toLowerCase();
+      for (const [slug, kws] of Object.entries(CAT_ITEM_KW)) {
+        let s = 0;
+        for (const kw of kws) {
+          if (lower.includes(kw.toLowerCase()) || text.includes(kw)) s++;
+        }
+        if (s) scores[slug] = s;
+      }
+      const ranked = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+      if (!ranked.length) return null;
+      if (ranked.length > 1 && ranked[0][1] === ranked[1][1]) return null;
+      return ranked[0][0];
+    }
+    function catSliceH2(md, title) {
+      const m = md.match(new RegExp(`^##[^\\S\\n]*${escapeRe(title)}\\s*$`, 'm'));
+      if (!m) return null;
+      const rest = md.slice(m.index + m[0].length);
+      const n = rest.search(/^##[^\S\n]+\S/m);
+      return (n === -1 ? rest : rest.slice(0, n)).trim();
+    }
+    function catSplitH3(section) {
+      const parts = section.split(/^###[^\S\n]+/m);
+      const out = [];
+      for (let i = 1; i < parts.length; i++) {
+        const nl = parts[i].indexOf('\n');
+        out.push({
+          title: (nl === -1 ? parts[i] : parts[i].slice(0, nl)).trim(),
+          body: nl === -1 ? '' : parts[i].slice(nl + 1).trim(),
+        });
+      }
+      return out;
+    }
+    function catSplitItems(body) {
+      const parts = [];
+      let cur = '';
+      for (const line of body.split('\n')) {
+        if (line.startsWith('- ') && cur) {
+          parts.push(cur.trim());
+          cur = line;
+        } else {
+          cur += (cur ? '\n' : '') + line;
+        }
+      }
+      if (cur.trim()) parts.push(cur.trim());
+      return parts.filter(Boolean);
+    }
+    function catParseHighlights(md) {
+      const sec = catSliceH2(md, '今日のハイライト') || catSliceH2(md, '本日のハイライト');
+      if (!sec) return {};
+      const map = {};
+      for (const { title, body } of catSplitH3(sec)) {
+        const m = title.match(/^(\d+)\s*[.．、]/);
+        if (m) map[String(+m[1])] = (`### ${title}\n\n${body}`).trim();
+      }
+      return map;
+    }
+    function catHlRefs(text) {
+      const out = [];
+      const re = /ハイライト\s*([0-9０-９]+)/g;
+      let m;
+      while ((m = re.exec(text))) {
+        const n = m[1].replace(/[０-９]/g, (ch) => String(ch.charCodeAt(0) - 0xFF10));
+        if (!out.includes(n)) out.push(n);
+      }
+      return out;
+    }
+    // 沈黙／N日更新なし報告は時系列に載せない（生成MD改稿はスコープ外）
+    function isSilenceReport(md) {
+      const text = String(md || '');
+      if (!text.trim()) return false;
+      const head = text.split('\n').slice(0, 6).join('\n');
+      const bold = (text.match(/\*\*([^*]+)\*\*/) || [])[1] || '';
+      const t = `${head}\n${bold}`;
+      if (/沈黙/.test(t)) return true;
+      if (/\d+\s*日\s*(間|連続)?[^。\n]{0,24}(据え置き|動きなし|更新なし|新規なし)/.test(t)) return true;
+      if (/(据え置き|動きなし|更新なし)[^。\n]{0,24}\d+\s*日/.test(t)) return true;
+      if (/最上位のまま[^。\n]{0,28}(据え置き|動きなし|新規なし|新規はな)/.test(t)) return true;
+      // 「〜の新規はない／新規告知なし」など、更新不在そのものが主題の報告
+      if (/(新規はな[いい]|新規なし|新規告知はな|新規は無[いい]|動きなし)/.test(t)
+          && !/(新機能|新規モデル|新規リリース|新規発表|新規対応|新規追加)/.test(t)) {
+        return true;
+      }
+      return false;
+    }
+
+    function extractCategoryDay(md, slug) {
+      const catSec = catSliceH2(md, CATEGORY_TITLE);
+      const hlMap = catParseHighlights(md);
+      const usedHl = new Set();
+      const chunks = [];
+      if (catSec) {
+        for (const { title, body } of catSplitH3(catSec)) {
+          const target = catHeadingTarget(title);
+          const pieces = [];
+          if (target === slug) {
+            for (const item of catSplitItems(body)) pieces.push(item);
+          } else if (target === '*') {
+            for (const item of catSplitItems(body)) {
+              if (catClassifyText(item) === slug) pieces.push(item);
+            }
+          }
+          for (const p of pieces) {
+            for (const n of catHlRefs(p)) usedHl.add(n);
+            if (p.trim()) chunks.push(p.trim());
+          }
+        }
+      }
+      const highlights = [];
+      for (const n of usedHl) {
+        if (hlMap[n]) highlights.push(hlMap[n]);
+      }
+      for (const [n, block] of Object.entries(hlMap)) {
+        if (usedHl.has(n)) continue;
+        if (catClassifyText(block) === slug) highlights.push(block);
+      }
+      const hl = highlights.filter((b) => !isSilenceReport(b));
+      const items = chunks.filter((c) => !isSilenceReport(c));
+      if (!hl.length && !items.length) return null;
+      return { highlights: hl, items };
+    }
+
     // --- 状態 ---
-    // 既定は daily。3ソースを統合したまとめなので入口に適する。
-    const state = { sourceId: 'daily', entries: [], activeId: null, token: 0 };
+    // 既定はホーム。初めて開いた人に、今日／今週／カテゴリの読み方を先に見せる。
+    // navFocus はサイドバーの aria-current。daily と category はどちらも sourceId=daily。
+    // weekFilter は「今週の子」のときだけ日付一覧を月〜日に限る。
+    // treeOpen は枝の開閉。navFocus とは独立（開閉だけでは本文を動かさない）。
+    const state = {
+      sourceId: 'daily', navFocus: 'home', weekFilter: null, categorySlug: null,
+      entries: [], activeId: null, token: 0, catExtracted: {},
+      treeOpen: { daily: false, weekly: false, category: false },
+    };
     const mdCache = new Map();
 
     const $ = (sel) => document.querySelector(sel);
 
     function showFatal(msg) {
+      const raw = String(msg || '');
+      const text = /Failed to fetch|NetworkError|Load failed/.test(raw)
+        ? 'ファイルを読み込めませんでした。表示サーバが止まっています。http://127.0.0.1:8765/01_ai-news-Master/ を、親フォルダから起動したサーバで開き直してください。'
+        : raw;
       const el = $('#fatal');
-      el.textContent = 'ビューアでエラーが発生しました: ' + msg;
+      el.textContent = 'ビューアでエラーが発生しました: ' + text;
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.textContent = '再読み込み';
@@ -737,26 +1429,52 @@
       syncTopbarHeight();
     }
 
-    // ハッシュは `#daily`（後方互換）または `#daily/2026-08-02` / `#weekly/2026-W30`
+    // ハッシュは `#home` / `#daily` / `#daily/2026-08-02` / `#weekly/2026-W30`
+    // カテゴリは `#category`（目次）、`#category/<slug>`、`#category/<slug>/YYYY-MM-DD`
+    // ハッシュなしもホーム。
     function parseHash() {
       const raw = location.hash.replace(/^#/, '');
-      if (!raw) return { sourceId: null, entryId: null };
+      if (!raw || raw === 'home') return { sourceId: 'home', entryId: null, categorySlug: null };
       const i = raw.indexOf('/');
       const sourcePart = i === -1 ? raw : raw.slice(0, i);
+      if (sourcePart === 'category') {
+        const rest = i === -1 ? '' : decodeURIComponent(raw.slice(i + 1));
+        if (!rest) return { sourceId: 'category', entryId: null, categorySlug: null };
+        const j = rest.indexOf('/');
+        const slugPart = j === -1 ? rest : rest.slice(0, j);
+        if (!catOf(slugPart)) return { sourceId: 'category', entryId: null, categorySlug: null };
+        const day = j === -1 ? null : decodeURIComponent(rest.slice(j + 1));
+        return { sourceId: 'category', entryId: day || null, categorySlug: slugPart };
+      }
       const source = SOURCES.find((s) => s.id === sourcePart);
-      if (!source) return { sourceId: null, entryId: null };
+      if (!source) return { sourceId: null, entryId: null, categorySlug: null };
       const entryId = i === -1 ? null : decodeURIComponent(raw.slice(i + 1));
-      return { sourceId: source.id, entryId: entryId || null };
+      return { sourceId: source.id, entryId: entryId || null, categorySlug: null };
     }
 
     function writeHash(sourceId, entryId) {
-      const h = entryId ? `#${sourceId}/${encodeURIComponent(entryId)}` : `#${sourceId}`;
+      let h;
+      if (sourceId === 'home' || state.navFocus === 'home') {
+        h = '#home';
+      } else if (sourceId === 'category' || state.navFocus === 'category') {
+        if (!state.categorySlug) {
+          h = '#category';
+        } else {
+          h = entryId
+            ? `#category/${encodeURIComponent(state.categorySlug)}/${encodeURIComponent(entryId)}`
+            : `#category/${encodeURIComponent(state.categorySlug)}`;
+        }
+      } else {
+        h = entryId ? `#${sourceId}/${encodeURIComponent(entryId)}` : `#${sourceId}`;
+      }
       if (location.hash === h) return;
       history.replaceState(null, '', h);
     }
 
     async function loadIndex(sourceId, preferId) {
       const my = ++state.token;
+      state.categorySlug = null;
+      state.catExtracted = {};
       const base = baseOf(sourceId);
       // Pages はプリフライトを拒否するためカスタムヘッダは付けられない。
       // cache:'no-store' も共有キャッシュを回避できないのでクエリで破る。
@@ -766,9 +1484,24 @@
       if (my !== state.token) return; // 連打時の競合ガード
 
       // files.json の並び順に依存せず、必ず日付降順にする
-      state.entries = files.map(parseEntry).sort((a, b) => (a.sort < b.sort ? 1 : a.sort > b.sort ? -1 : 0));
+      let entries = files.map(parseEntry).sort((a, b) => (a.sort < b.sort ? 1 : a.sort > b.sort ? -1 : 0));
+
+      // 今週の子: 週次 ID（2026-W38）は preferId に使わない。日付一覧を月〜日に絞る。
+      if (state.weekFilter) {
+        const { start, end } = state.weekFilter;
+        const inRange = entries.filter((e) => e.kind === 'date' && e.ymd >= start && e.ymd <= end);
+        if (inRange.length) {
+          entries = inRange;
+        } else {
+          showWarn(`指定の週（${start}〜${end}）に日付が見つかりませんでした。最新を表示します。`);
+          state.weekFilter = null;
+        }
+      }
+
+      state.entries = entries;
       state.sourceId = sourceId;
       state.activeId = null;
+      renderSourceTree();
       renderList();
       if (state.entries.length) {
         const hit = preferId && state.entries.some((e) => e.id === preferId);
@@ -817,7 +1550,7 @@
 
         const ul = document.createElement('ul');
         ul.className = 'items';
-        for (const e of items) ul.appendChild(itemNode(e));
+        appendDateItems(ul, items, bucket);
 
         det.append(sum, ul);
         list.appendChild(det);
@@ -846,6 +1579,42 @@
       return null;
     }
 
+    function utcMonday(ymd) {
+      const d = dateUTC(ymd);
+      const dow = (d.getUTCDay() + 6) % 7;
+      return new Date(d.getTime() - dow * 86400000);
+    }
+    function sideWeekLabel(mon, bucket) {
+      const firstYmd = bucket && bucket !== 'unknown' ? `${bucket}-01` : ymdOf(mon);
+      const firstMon = utcMonday(firstYmd);
+      const n = Math.round((mon - firstMon) / (7 * 86400000)) + 1;
+      return `${n}週`;
+    }
+    function weekRangeLabel(mon) {
+      const sun = new Date(mon.getTime() + 6 * 86400000);
+      return `${mon.getUTCMonth() + 1}/${mon.getUTCDate()}–${sun.getUTCMonth() + 1}/${sun.getUTCDate()}`;
+    }
+    function appendDateItems(ul, items, bucket) {
+      if (!items.length || items[0].kind !== 'date') {
+        for (const e of items) ul.appendChild(itemNode(e));
+        return;
+      }
+      let lastKey = '';
+      for (const e of items) {
+        const mon = utcMonday(e.ymd);
+        const key = ymdOf(mon);
+        if (key !== lastKey) {
+          lastKey = key;
+          const sep = document.createElement('li');
+          sep.className = 'week-sep';
+          sep.setAttribute('aria-hidden', 'true');
+          sep.textContent = sideWeekLabel(mon, bucket);
+          ul.appendChild(sep);
+        }
+        ul.appendChild(itemNode(e));
+      }
+    }
+
     function itemNode(e) {
       const li = document.createElement('li');
       const btn = document.createElement('button');
@@ -855,33 +1624,56 @@
       btn.title = e.fullLabel || e.label;
       if (e.kind === 'date') {
         btn.setAttribute('aria-label', `${e.ymd} ${DAYS[dateUTC(e.ymd).getUTCDay()]}曜日`);
+        const d = dateUTC(e.ymd);
+        const day = d.getUTCDay();
+        const dowCls = day === 0 ? ' dow-sun' : day === 6 ? ' dow-sat' : '';
+        const date = document.createElement('span');
+        date.className = 'i-date' + dowCls;
+        date.textContent = `${d.getUTCMonth() + 1}/${d.getUTCDate()}`;
+        const w = document.createElement('span');
+        w.className = 'i-dow' + dowCls;
+        w.textContent = DAYS[day];
+        btn.append(date, w);
+      } else if (e.kind === 'week') {
+        const nLabel = sideWeekLabel(e.mon, e.bucket);
+        const sun = new Date(e.mon.getTime() + 6 * 86400000);
+        const monD = e.mon.getUTCDay();
+        const sunD = sun.getUTCDay();
+        const monCls = monD === 0 ? 'dow-sun' : monD === 6 ? 'dow-sat' : '';
+        const sunCls = sunD === 0 ? 'dow-sun' : sunD === 6 ? 'dow-sat' : '';
+        const when = `${nLabel}（${weekRangeLabel(e.mon)}）`;
+        btn.title = when;
+        btn.setAttribute('aria-label', when);
+        const week = document.createElement('span');
+        week.className = 'i-week';
+        week.textContent = nLabel;
+        const range = document.createElement('span');
+        range.className = 'i-range';
+        const a = document.createElement('span');
+        if (monCls) a.className = monCls;
+        a.textContent = `${e.mon.getUTCMonth() + 1}/${e.mon.getUTCDate()}`;
+        const sep = document.createTextNode('–');
+        const b = document.createElement('span');
+        if (sunCls) b.className = sunCls;
+        b.textContent = `${sun.getUTCMonth() + 1}/${sun.getUTCDate()}`;
+        range.append(a, sep, b);
+        btn.append(week, range);
       } else {
         btn.setAttribute('aria-label', e.fullLabel || e.label);
-      }
-
-      const body = document.createElement('span');
-      body.className = 'i-body';
-      const t = document.createElement('span');
-      t.className = 'i-title';
-      if (e.kind === 'date') {
-        const day = dateUTC(e.ymd).getUTCDay();
-        t.append(`${+e.ymd.slice(5, 7)}/${+e.ymd.slice(8, 10)} `);
-        const w = document.createElement('span');
-        if (day === 0) w.className = 'dow-sun';
-        else if (day === 6) w.className = 'dow-sat';
-        w.textContent = DAYS[day];
-        t.appendChild(w);
-      } else {
+        const body = document.createElement('span');
+        body.className = 'i-body';
+        const t = document.createElement('span');
+        t.className = 'i-title';
         t.textContent = e.label;
+        body.appendChild(t);
+        if (e.sub) {
+          const s = document.createElement('span');
+          s.className = 'i-sub';
+          s.textContent = e.sub;
+          body.appendChild(s);
+        }
+        btn.appendChild(body);
       }
-      body.appendChild(t);
-      if (e.sub) {
-        const s = document.createElement('span');
-        s.className = 'i-sub';
-        s.textContent = e.sub;
-        body.appendChild(s);
-      }
-      btn.appendChild(body);
 
       const b = badgeOf(e);
       if (b) {
@@ -895,7 +1687,116 @@
       return li;
     }
 
+    // 右ペイン共通クローム（日時を主見出しにする）
+    function formatEntryWhen(e) {
+      if (!e) return '';
+      if (e.kind === 'date') {
+        const d = dateUTC(e.ymd);
+        const dow = DAYS[d.getUTCDay()];
+        return `${d.getUTCFullYear()}年${d.getUTCMonth() + 1}月${d.getUTCDate()}日（${dow}）`;
+      }
+      if (e.kind === 'week') {
+        return `${sideWeekLabel(e.mon, e.bucket)}（${weekRangeLabel(e.mon)}）`;
+      }
+      return e.fullLabel || e.label || '';
+    }
+
+    function navContextLabel() {
+      if (state.categorySlug) {
+        const cat = catOf(state.categorySlug);
+        return cat ? cat.name : CATEGORY_TITLE;
+      }
+      if (state.navFocus === 'daily' || state.navFocus === 'weekly') {
+        return srcOf(state.navFocus).name;
+      }
+      if (isChildId(state.navFocus)) {
+        const parent = state.weekFilter ? 'weekly' : 'daily';
+        return `${srcOf(parent).name} / ${srcOf(state.navFocus).name}`;
+      }
+      return srcOf(state.sourceId).name;
+    }
+
+    function buildPageHead(opts) {
+      const head = document.createElement('header');
+      head.className = 'page-head' + (opts.variant === 'home' ? ' home-head' : '');
+      if (opts.variant === 'home') {
+        const mark = document.createElement('div');
+        mark.className = 'home-mark';
+        mark.setAttribute('aria-hidden', 'true');
+        mark.innerHTML = HOME_SVG.mark;
+        head.appendChild(mark);
+      }
+      if (opts.context) {
+        const ctx = document.createElement('p');
+        ctx.className = 'page-context';
+        ctx.textContent = opts.context;
+        head.appendChild(ctx);
+      }
+      const when = document.createElement('h1');
+      when.className = 'page-when' + (opts.variant === 'home' ? ' home-title' : '');
+      when.textContent = opts.when || '';
+      head.appendChild(when);
+      if (opts.overview) {
+        const ov = document.createElement('p');
+        ov.className = 'page-overview';
+        ov.textContent = opts.overview;
+        head.appendChild(ov);
+      }
+      if (opts.meta != null && opts.meta !== '') {
+        const meta = document.createElement('p');
+        meta.className = 'page-meta';
+        meta.textContent = opts.meta;
+        head.appendChild(meta);
+      }
+      if (opts.nav) head.appendChild(opts.nav);
+      return head;
+    }
+
+    function mountPage(box, opts) {
+      const nodes = [buildPageHead(opts)];
+      if (opts.body) nodes.push(opts.body);
+      box.replaceChildren(...nodes);
+    }
+
+    // entries は新しい順。隣の日／週へ。
+    function buildDayNav(entries, activeId, onPick) {
+      if (!entries || entries.length < 2) return null;
+      const i = entries.findIndex((x) => x.id === activeId);
+      if (i < 0) return null;
+      const newer = i > 0 ? entries[i - 1] : null;
+      const older = i < entries.length - 1 ? entries[i + 1] : null;
+      const unit = (entries[i].kind === 'week') ? '週' : '日';
+      const nav = document.createElement('div');
+      nav.className = 'page-nav';
+      nav.setAttribute('role', 'navigation');
+      nav.setAttribute('aria-label', `${unit}の移動`);
+
+      const mk = (e, label, rel) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = label;
+        if (!e) {
+          b.disabled = true;
+          return b;
+        }
+        b.dataset.id = e.id;
+        b.setAttribute('aria-label', `${rel}: ${formatEntryWhen(e)}`);
+        b.addEventListener('click', () => onPick(e.id));
+        return b;
+      };
+
+      nav.append(
+        mk(newer, `← 新しい${unit}`, `新しい${unit}`),
+        mk(older, `古い${unit} →`, `古い${unit}`),
+      );
+      return nav;
+    }
+
     async function selectEntry(id) {
+      if (state.categorySlug) {
+        focusCategoryDay(id);
+        return;
+      }
       const e = state.entries.find((x) => x.id === id);
       if (!e) return;
       const my = state.token;
@@ -913,23 +1814,42 @@
       if (my !== state.token) return; // ソース切り替えと競合したら描画しない
 
       const box = $('#content');
+      const frag = document.createElement('div');
       if (typeof marked === 'undefined') {
         showWarn('Markdown ライブラリを読み込めませんでした。整形なしで表示します。');
         const pre = document.createElement('pre');
         pre.textContent = md;
-        box.replaceChildren(pre);
+        frag.appendChild(pre);
       } else {
-        box.innerHTML = marked.parse(md);
+        frag.innerHTML = marked.parse(md);
         // 装飾は失敗しても素の本文を残す（本文が消えるより崩れたまま出す方が安全）
         try {
-          decorate(box);
+          decorate(frag);
         } catch (err) {
           console.warn('装飾に失敗:', err);
           showWarn('本文の装飾に失敗しました。素の表示のまま読めます。');
         }
       }
+      // 文書内 h1（日付入りタイトル）は共通クロームの日時見出しに一本化する
+      frag.querySelector('h1')?.remove();
+      const body = document.createElement('div');
+      body.className = 'page-body';
+      while (frag.firstChild) body.appendChild(frag.firstChild);
+      const overview = (state.navFocus === 'daily' || state.navFocus === 'weekly')
+        ? PAGE_OVERVIEW[state.navFocus]
+        : null;
+      mountPage(box, {
+        context: navContextLabel(),
+        when: formatEntryWhen(e),
+        overview,
+        nav: buildDayNav(state.entries, id, (nextId) => {
+          selectEntry(nextId).catch((err) => showFatal(String(err.message || err)));
+        }),
+        body,
+      });
       writeHash(state.sourceId, id);
       syncBreadcrumb();
+      syncExpandBtn();
       $('.main').scrollTop = 0;
     }
 
@@ -945,13 +1865,22 @@
 
     // 新フォーマット（2026-07-26 以降）と旧フォーマット（既存437ファイル）の両方に対応する
     const LABELS = {
+      '要約': 'key',
       '要点': 'key',    '事実': 'key',
       '詳細': 'detail', '根拠': 'detail',
       '意味': 'mean',   '影響': 'mean',
       '行動指針': 'act',
+      /* 2026-09-21 午前の多段ラベル（廃止済み）。過去日ダイジェスト用に残す */
+      'いま起きていること': 'key',
+      '関係ある人': 'mean',
+      '関係が薄い人': 'detail',
+      '通知が出る人（関係あり）': 'mean',
+      '通知が出ない人': 'detail',
+      'まずやること': 'act',
+      '一次（検証用）': 'detail',
     };
 
-    function decorate(box) {
+    function decorate(box, opts) {
       decorateLinks(box);
       decorateLabels(box);
       splitClosedCircledLists(box);
@@ -961,7 +1890,13 @@
       splitLongItemsByPeriod(box);
       decorateNote(box);
       decorateLede(box);
+      if (opts && opts.group === false) {
+        syncExpandBtn();
+        return;
+      }
       groupSections(box); // ノードを移動するので必ず最後に実行する
+      decorateSchedule(box); // data-sched 付与後に日付／本文を2列化し、週トグルへ分ける
+      applySectionOpen(box);
       // groupSections は節が1つ以下だと早期 return するため、
       // ボタンの表示可否はここで必ず更新する
       syncExpandBtn();
@@ -991,6 +1926,10 @@
         // HTML 仕様上 summary の内容モデルは「phrasing content ＋ heading content」なので h2 を入れてよい。
         const t = h2.cloneNode(true);
         t.className = 'sec-t';
+        // 日付一覧節は先頭太字を日付列として揃える（表記ゆれで目が滑るのを防ぐ）
+        if (/注目予定|注目スケジュール|今後の期限/.test(h2.textContent || '')) {
+          det.dataset.sched = '1';
+        }
         const body = kids.slice(start + 1, end);
         const n3 = body.filter((el) => el.tagName === 'H3').length;
         // ⚠️ 数えるのは「最上位のリスト項目」だけ。
@@ -1127,14 +2066,12 @@
 
       li.insertBefore(k, li.firstChild);
       if (v.childNodes.length) {
-        const lbl = document.createElement('div');
-        lbl.className = 'lbl lbl-detail';
-        const lab = document.createElement('div');
-        lab.className = 'k';
-        lab.textContent = '詳細';
-        lbl.append(lab, v);
-        k.after(lbl);
-        let at = lbl;
+        // 色箱（.lbl）にしない。ハイライトの要約／詳細コールアウトと序列を分ける。
+        // 旧実装はここに `詳細` ラベル付きコールアウトを付けていたが、
+        // カテゴリまで枠が並びハイライトが埋もれた（2026-09-21）
+        v.className = 'cat-v';
+        k.after(v);
+        let at = v;
         for (const c of chips) { at.after(c); at = c; }
       }
     }
@@ -1159,16 +2096,16 @@
 
     function applySectionOpen(box) {
       const all = wantExpandAll();
-      // .sub は dataset.n を持たないので「全開のときだけ開く」に落ちる（既定は閉じ）
+      // .sub は既定クローズ。注目予定の「今週・来週」だけ data-near で開く
       for (const det of (box || document).querySelectorAll('details.sec, details.sub')) {
-        det.open = all || det.dataset.n === '0';
+        det.open = all || det.dataset.n === '0' || det.dataset.near === '1';
       }
       syncExpandBtn();
     }
 
     // 「すべて開く」は第2階層（.sub）も対象にする。
     // 畳んだ中身はブラウザのページ内検索に掛からないため、検索前に全部開ける必要がある
-    const allSections = () => [...document.querySelectorAll('details.sec, details.sub')];
+    const allSections = () => [...document.querySelectorAll('details.sec, details.sub, details.cat-month, details.cat-week, details.cat-day')];
     const isAllOpen = () => { const s = allSections(); return s.length > 0 && s.every((d) => d.open); };
 
     // ボタンの表示は保存値ではなく「今の DOM の状態」から導く。
@@ -1210,7 +2147,8 @@
             if (state.entries.some((x) => x.id === id)) {
               a.addEventListener('click', (ev) => {
                 ev.preventDefault();
-                selectEntry(id).catch((err) => showFatal(String(err.message || err)));
+                if (state.categorySlug) focusCategoryDay(id);
+                else selectEntry(id).catch((err) => showFatal(String(err.message || err)));
               });
             }
           }
@@ -1764,31 +2702,494 @@
       if (n && n.tagName === 'P') n.classList.add('lede');
     }
 
+    function digestYear() {
+      const id = String(state.activeId || '');
+      const m = id.match(/^(\d{4})/);
+      if (m) return Number(m[1]);
+      const t = document.querySelector('.content h1')?.textContent || '';
+      const m2 = t.match(/(20\d{2})/);
+      return m2 ? Number(m2[1]) : new Date().getFullYear();
+    }
+    function schedMD(month, day) { return `${Number(month)}/${Number(day)}`; }
+    function finishSchedLabel(out, digestY) {
+      const quals = [...out.quals];
+      if (out.year && out.year !== digestY && !quals.includes(String(out.year))) {
+        quals.unshift(String(out.year));
+      }
+      return { day: out.day, quals, year: out.year || null };
+    }
+    function parseScheduleLabel(raw) {
+      const s = String(raw || '').trim();
+      const y = digestYear();
+      const out = { day: '', year: null, quals: [] };
+
+      let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})\s*〜\s*・\s*(\d{1,2})-(\d{1,2})\s*〜$/);
+      if (m) {
+        out.day = schedMD(m[2], m[3]); out.year = Number(m[1]);
+        out.quals.push('以降', `・${schedMD(m[4], m[5])}`);
+        return finishSchedLabel(out, y);
+      }
+      m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})\s*〜$/);
+      if (m) {
+        out.day = schedMD(m[2], m[3]); out.year = Number(m[1]); out.quals.push('以降');
+        return finishSchedLabel(out, y);
+      }
+      m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})\s*・\s*(?:(\d{4})-)?(\d{1,2})-(\d{1,2})\s*〜?$/);
+      if (m) {
+        out.day = schedMD(m[2], m[3]); out.year = Number(m[1]);
+        out.quals.push(`・${schedMD(m[5], m[6])}`);
+        if (/〜$/.test(s)) out.quals.push('以降');
+        return finishSchedLabel(out, y);
+      }
+      m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+      if (m) {
+        out.day = schedMD(m[2], m[3]); out.year = Number(m[1]);
+        return finishSchedLabel(out, y);
+      }
+      m = s.match(/^(\d{4})-(\d{1,2})\s*〜$/);
+      if (m) {
+        out.year = Number(m[1]); out.quals.push(`${Number(m[2])}月〜`);
+        return finishSchedLabel(out, y);
+      }
+      m = s.match(/^(\d{4})-(\d{1,2})$/);
+      if (m) {
+        out.year = Number(m[1]); out.quals.push(`${Number(m[2])}月`);
+        return finishSchedLabel(out, y);
+      }
+      m = s.match(/^(\d{4})年末$/);
+      if (m) { out.year = Number(m[1]); out.quals.push('年末'); return finishSchedLabel(out, y); }
+      m = s.match(/^(\d{4})$/);
+      if (m) return { day: '', quals: [m[1]], year: Number(m[1]) };
+
+      m = s.match(/^(\d{1,2})\/(\d{1,2})\s*[–—−-]\s*(\d{1,2})\/(\d{1,2})$/);
+      if (m) {
+        out.day = schedMD(m[1], m[2]); out.quals.push(`–${schedMD(m[3], m[4])}`);
+        return finishSchedLabel(out, y);
+      }
+      m = s.match(/^(\d{1,2})\/(\d{1,2})\s*[–—−-]\s*(\d{1,2})$/);
+      if (m) {
+        out.day = schedMD(m[1], m[2]); out.quals.push(`–${schedMD(m[1], m[3])}`);
+        return finishSchedLabel(out, y);
+      }
+      m = s.match(/^(\d{1,2})\/(\d{1,2})\s*・\s*(\d{1,2})\/(\d{1,2})$/);
+      if (m) {
+        out.day = schedMD(m[1], m[2]); out.quals.push(`・${schedMD(m[3], m[4])}`);
+        return finishSchedLabel(out, y);
+      }
+      m = s.match(/^(\d{1,2})\/(\d{1,2})\s*頃$/);
+      if (m) { out.day = schedMD(m[1], m[2]); out.quals.push('頃'); return finishSchedLabel(out, y); }
+      m = s.match(/^(\d{1,2})\/(\d{1,2})\s*〜$/);
+      if (m) { out.day = schedMD(m[1], m[2]); out.quals.push('以降'); return finishSchedLabel(out, y); }
+      m = s.match(/^(\d{1,2})\/(\d{1,2})$/);
+      if (m) { out.day = schedMD(m[1], m[2]); return finishSchedLabel(out, y); }
+
+      m = s.match(/^(\d{1,2})月末$/);
+      if (m) { out.quals.push(`${Number(m[1])}月末`); return finishSchedLabel(out, y); }
+      m = s.match(/^(\d{1,2})月(.+)$/);
+      if (m) { out.quals.push(`${Number(m[1])}月${m[2]}`); return finishSchedLabel(out, y); }
+      m = s.match(/^(\d{1,2})月$/);
+      if (m) { out.quals.push(`${Number(m[1])}月`); return finishSchedLabel(out, y); }
+      if (/^(年末|年内|今秋|今冬|今春|今夏|今年度内)$/.test(s)) {
+        out.quals.push(s); return finishSchedLabel(out, y);
+      }
+      m = s.match(/^(\d{1,2})\/(\d{1,2})(.*)$/);
+      if (m) {
+        out.day = schedMD(m[1], m[2]);
+        const rest = m[3].trim().replace(/^〜$/, '以降');
+        if (rest) out.quals.push(rest);
+        return finishSchedLabel(out, y);
+      }
+      if (s) out.quals.push(s);
+      return finishSchedLabel(out, y);
+    }
+
+    // 注目予定の「**日付**: 本文」を日付列＋本文列に組み替える。
+    // groupSections が data-sched を付けるので、その後に呼ぶこと。
+    function decorateSchedule(box) {
+      for (const sec of box.querySelectorAll('details.sec[data-sched]')) {
+        for (const li of sec.querySelectorAll(':scope > ul:not(.src) > li, :scope > ol > li')) {
+          if (li.querySelector(':scope > .sched-d')) continue;
+
+          const firstEl = li.firstElementChild;
+          const host = (firstEl && firstEl.tagName === 'P' && li.firstChild === firstEl) ? firstEl : li;
+
+          const strong = host.firstElementChild;
+          if (!strong || strong.tagName !== 'STRONG') continue;
+          const after = strong.nextSibling;
+          if (!after || after.nodeType !== Node.TEXT_NODE || !/^\s*[:：]/.test(after.nodeValue || '')) continue;
+
+          after.nodeValue = after.nodeValue.replace(/^\s*[:：]\s*/, '');
+          const parsed = parseScheduleLabel(strong.textContent);
+
+          const date = document.createElement('span');
+          date.className = 'sched-d' + (parsed.day ? '' : ' is-empty');
+          date.textContent = parsed.day || '–';
+          date.title = strong.textContent;
+
+          const body = document.createElement('span');
+          body.className = 'sched-b';
+
+          const move = [];
+          for (let n = strong.nextSibling; n; n = n.nextSibling) move.push(n);
+          strong.remove();
+          for (const n of move) body.appendChild(n);
+
+          const firstText = body.firstChild;
+          if (firstText && firstText.nodeType === Node.TEXT_NODE) {
+            const tm = firstText.nodeValue.match(/^（本日）\s*/);
+            if (tm) {
+              const badge = document.createElement('span');
+              badge.className = 'sched-today';
+              badge.textContent = '本日';
+              firstText.nodeValue = firstText.nodeValue.slice(tm[0].length);
+              body.insertBefore(badge, firstText);
+            }
+          }
+
+          splitScheduleParts(body);
+
+          const today = body.querySelector('.sched-today');
+          const ref = today ? today.nextSibling : body.firstChild;
+          for (const q of parsed.quals) {
+            const chip = document.createElement('span');
+            chip.className = 'sched-chip';
+            chip.textContent = q;
+            body.insertBefore(chip, ref);
+          }
+
+          if (host !== li) {
+            host.replaceWith(date, body);
+          } else {
+            host.prepend(date, body);
+          }
+        }
+        groupScheduleWeeks(sec);
+      }
+    }
+
+    function digestDate() {
+      const id = String(state.activeId || '');
+      let m = id.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+      m = id.match(/^(\d{4})-W(\d{2})$/);
+      if (m) {
+        const jan4 = new Date(Number(m[1]), 0, 4);
+        const mon = mondayOf(jan4);
+        mon.setDate(mon.getDate() + (Number(m[2]) - 1) * 7);
+        return mon;
+      }
+      return new Date();
+    }
+    function mondayOf(d) {
+      const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
+      return x;
+    }
+    function ymd(d) {
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+    function schedAnchor(parsed, digest) {
+      const y0 = digest.getFullYear();
+      const year = parsed.year || y0;
+      if (parsed.day) {
+        const md = parsed.day.match(/^(\d{1,2})\/(\d{1,2})$/);
+        if (md) return { kind: 'day', y: year, m: Number(md[1]), d: Number(md[2]) };
+      }
+      const joined = parsed.quals.join(' ');
+      const mm = joined.match(/(\d{1,2})月/);
+      if (mm) return { kind: 'month', y: year, m: Number(mm[1]) };
+      if (parsed.year && !parsed.day) return { kind: 'year', y: parsed.year };
+      const per = parsed.quals.find((q) => /^(年内|年末|今秋|今冬|今春|今夏|今年度内)$/.test(q));
+      if (per) return { kind: 'period', y: y0, label: per };
+      return { kind: 'period', y: y0, label: parsed.quals[0] || '時期' };
+    }
+    function weekTitle(monday, digest) {
+      const thisMon = mondayOf(digest);
+      const diff = Math.round((monday - thisMon) / 86400000 / 7);
+      const sun = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6);
+      const range = `${schedMD(monday.getMonth() + 1, monday.getDate())}–${schedMD(sun.getMonth() + 1, sun.getDate())}`;
+      const y = monday.getFullYear() !== digest.getFullYear() ? `${monday.getFullYear()} ` : '';
+      if (diff === 0) return y + '今週';
+      if (diff === 1) return y + '来週';
+      if (diff === 2) return y + '再来週';
+      if (diff === -1) return y + '先週';
+      return y + range;
+    }
+
+    // 注目予定を週（月・年内）のトグルに分ける。カテゴリ節と同じ外形にする（2026-09-21）
+    function groupScheduleWeeks(sec) {
+      const digest = digestDate();
+      const thisMon = ymd(mondayOf(digest));
+      const next = mondayOf(digest); next.setDate(next.getDate() + 7);
+      const nextMon = ymd(next);
+
+      for (const ul of [...sec.querySelectorAll(':scope > ul:not(.src), :scope > ol')]) {
+        const groups = [];
+        const map = new Map();
+        for (const li of [...ul.children]) {
+          if (li.tagName !== 'LI') continue;
+          const raw = li.querySelector('.sched-d')?.title || '';
+          const a = schedAnchor(parseScheduleLabel(raw), digest);
+          let rec;
+          if (a.kind === 'day') {
+            const dt = new Date(a.y, a.m - 1, a.d);
+            const mon = mondayOf(dt);
+            const key = 'w:' + ymd(mon);
+            rec = map.get(key);
+            if (!rec) {
+              rec = { type: 'week', key, monday: mon, sort: ymd(mon), items: [] };
+              map.set(key, rec); groups.push(rec);
+            }
+          } else if (a.kind === 'month') {
+            const key = `m:${a.y}-${String(a.m).padStart(2, '0')}`;
+            rec = map.get(key);
+            if (!rec) {
+              rec = { type: 'month', key, y: a.y, m: a.m, sort: `${a.y}-${String(a.m).padStart(2, '0')}-32`, items: [] };
+              map.set(key, rec); groups.push(rec);
+            }
+          } else if (a.kind === 'year') {
+            const key = `y:${a.y}`;
+            rec = map.get(key);
+            if (!rec) {
+              rec = { type: 'year', key, y: a.y, sort: `${a.y}-12-32`, items: [] };
+              map.set(key, rec); groups.push(rec);
+            }
+          } else {
+            const key = 'p:' + a.label;
+            rec = map.get(key);
+            if (!rec) {
+              rec = { type: 'period', key, label: a.label, sort: `${a.y}-12-31`, items: [] };
+              map.set(key, rec); groups.push(rec);
+            }
+          }
+          rec.items.push(li);
+        }
+        groups.sort((a, b) => (a.sort < b.sort ? -1 : a.sort > b.sort ? 1 : 0));
+
+        for (const g of groups) {
+          const sub = document.createElement('details');
+          sub.className = 'sub';
+          if (g.key === 'w:' + thisMon || g.key === 'w:' + nextMon) sub.dataset.near = '1';
+
+          const sum = document.createElement('summary');
+          sum.className = 'sub-h';
+          const t = document.createElement('h3');
+          t.className = 'sub-t';
+          t.textContent = g.type === 'week' ? weekTitle(g.monday, digest)
+            : g.type === 'month' ? (g.y !== digest.getFullYear() ? `${g.y}年${g.m}月` : `${g.m}月`)
+            : g.type === 'year' ? String(g.y)
+            : g.label;
+          const c = document.createElement('span');
+          c.className = 'sub-n';
+          c.textContent = `${g.items.length}件`;
+          sum.append(t, c);
+
+          const inner = document.createElement(ul.tagName);
+          for (const li of g.items) inner.appendChild(li);
+          sub.append(sum, inner);
+          ul.before(sub);
+        }
+        ul.remove();
+      }
+    }
+
+    // 本文中の「 ／ 」を境に .sched-part へ分ける。code 等を跨がない素朴な実装。
+    // 区切りが無い・1件だけのときは何もしない（余計なラッパを増やさない）。
+    function splitScheduleParts(body) {
+      const nodes = [...body.childNodes];
+      if (!nodes.some((n) => n.nodeType === Node.TEXT_NODE && /／/.test(n.nodeValue || ''))) return;
+
+      const parts = [[]];
+      for (const n of nodes) {
+        if (n.nodeType === Node.TEXT_NODE && /／/.test(n.nodeValue || '')) {
+          const chunks = n.nodeValue.split(/／/);
+          chunks.forEach((chunk, i) => {
+            if (i > 0) parts.push([]);
+            const t = chunk.replace(/^\s+|\s+$/g, '');
+            if (t) parts[parts.length - 1].push(document.createTextNode(t));
+          });
+        } else {
+          parts[parts.length - 1].push(n);
+        }
+      }
+      if (parts.length < 2) return;
+
+      body.replaceChildren();
+      for (const nodes of parts) {
+        if (!nodes.length) continue;
+        const part = document.createElement('div');
+        part.className = 'sched-part';
+        for (const n of nodes) part.appendChild(n);
+        body.appendChild(part);
+      }
+      if (body.querySelectorAll('.sched-part').length >= 2) {
+        body.classList.add('sched-multi');
+      }
+    }
+
     // ============ ナビゲーション ============
+
+    function currentDayId() {
+      const id = String(state.activeId || '');
+      return /^\d{4}-\d{2}-\d{2}$/.test(id) ? id : null;
+    }
+
+    function weekFilterFromEntry(e) {
+      if (!e || e.kind !== 'week' || !e.mon) return null;
+      const start = ymdOf(e.mon);
+      const end = ymdOf(new Date(e.mon.getTime() + 6 * 86400000));
+      return { start, end };
+    }
+
+    function currentWeekRange() {
+      if (state.weekFilter) return state.weekFilter;
+      if (state.sourceId === 'weekly') {
+        return weekFilterFromEntry(state.entries.find((x) => x.id === state.activeId));
+      }
+      return null;
+    }
+
+    // パンくず・weekFilter 用の親。展開 UI は treeOpen を見る。
+    function navParent() {
+      const f = state.navFocus;
+      if (f === 'home') return 'home';
+      if (f === 'category' || state.categorySlug) return 'category';
+      if (f === 'daily' || f === 'weekly') return f;
+      if (isChildId(f)) return state.weekFilter ? 'weekly' : 'daily';
+      return 'daily';
+    }
+
+    function openTree(id) {
+      if (!(id in state.treeOpen)) return;
+      if (!state.treeOpen[id]) state.treeOpen[id] = true;
+    }
+
+    function toggleTree(id) {
+      state.treeOpen[id] = !state.treeOpen[id];
+      renderSourceTree();
+    }
+
+    function srcButton(opts) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'side-src' + (opts.active ? ' is-active' : '');
+      b.dataset.nav = opts.nav;
+      if (opts.from) b.dataset.from = opts.from;
+      if (opts.slug) b.dataset.slug = opts.slug;
+      b.textContent = opts.label;
+      if (opts.active) b.setAttribute('aria-current', 'true');
+      return b;
+    }
+
+    function appendSourceLeaves(host, from) {
+      const lab = document.createElement('div');
+      lab.className = 'side-subhead';
+      lab.textContent = SOURCE_SUBHEAD;
+      host.appendChild(lab);
+      const nav = document.createElement('div');
+      nav.className = 'side-children';
+      nav.setAttribute('role', 'group');
+      nav.setAttribute('aria-label', SOURCE_SUBHEAD);
+      for (const s of SOURCES.filter((x) => x.group === 'source')) {
+        nav.appendChild(srcButton({
+          nav: s.id,
+          from,
+          label: s.name,
+          active: state.navFocus === s.id && (
+            from === 'weekly' ? !!state.weekFilter : !state.weekFilter
+          ) && !state.categorySlug,
+        }));
+      }
+      host.appendChild(nav);
+    }
+
+    function appendCategoryLeaves(host) {
+      const nav = document.createElement('div');
+      nav.className = 'side-children';
+      nav.setAttribute('role', 'group');
+      nav.setAttribute('aria-label', CATEGORY_TITLE);
+      for (const c of CATEGORIES) {
+        nav.appendChild(srcButton({
+          nav: 'cat',
+          slug: c.slug,
+          label: c.name,
+          active: state.categorySlug === c.slug,
+        }));
+      }
+      host.appendChild(nav);
+    }
+
+    function appendBranch(wrap, opts) {
+      const branch = document.createElement('div');
+      branch.className = 'side-branch';
+      const row = document.createElement('div');
+      row.className = 'side-parent-row';
+      const open = !!state.treeOpen[opts.id];
+      const twist = document.createElement('button');
+      twist.type = 'button';
+      twist.className = 'side-twist';
+      twist.dataset.twist = opts.id;
+      twist.setAttribute('aria-expanded', String(open));
+      twist.setAttribute('aria-label', open ? `${opts.label}を閉じる` : `${opts.label}を開く`);
+      row.appendChild(twist);
+      row.appendChild(srcButton({
+        nav: opts.nav,
+        label: opts.label,
+        active: opts.active,
+      }));
+      branch.appendChild(row);
+      if (open) {
+        const nest = document.createElement('div');
+        nest.className = 'side-nest';
+        opts.fill(nest);
+        branch.appendChild(nest);
+      }
+      wrap.appendChild(branch);
+    }
 
     function renderSourceTree() {
       const tree = $('#source-tree');
       tree.innerHTML = '';
-      for (const g of ['digest', 'source']) {
-        const lab = document.createElement('div');
-        lab.className = 'side-group-label';
-        lab.textContent = GROUP_LABEL[g];
-        tree.appendChild(lab);
-        const nav = document.createElement('div');
-        nav.className = 'side-group';
-        nav.setAttribute('role', 'navigation');
-        nav.setAttribute('aria-label', GROUP_LABEL[g]);
-        for (const s of SOURCES.filter((x) => x.group === g)) {
-          const b = document.createElement('button');
-          b.type = 'button';
-          b.className = 'side-src' + (s.id === state.sourceId ? ' is-active' : '');
-          b.dataset.id = s.id;
-          b.textContent = s.name;
-          if (s.id === state.sourceId) b.setAttribute('aria-current', 'true');
-          nav.appendChild(b);
-        }
-        tree.appendChild(nav);
-      }
+      const wrap = document.createElement('div');
+      wrap.className = 'side-group';
+      wrap.setAttribute('role', 'navigation');
+      wrap.setAttribute('aria-label', 'ソース');
+
+      const homeRow = document.createElement('div');
+      homeRow.className = 'side-parent-row';
+      const homeGap = document.createElement('span');
+      homeGap.setAttribute('aria-hidden', 'true');
+      homeRow.appendChild(homeGap);
+      homeRow.appendChild(srcButton({
+        nav: 'home',
+        label: 'ホーム',
+        active: state.navFocus === 'home',
+      }));
+      wrap.appendChild(homeRow);
+
+      appendBranch(wrap, {
+        id: 'daily',
+        nav: 'daily',
+        label: srcOf('daily').name,
+        active: state.navFocus === 'daily',
+        fill: (nest) => appendSourceLeaves(nest, 'daily'),
+      });
+      appendBranch(wrap, {
+        id: 'weekly',
+        nav: 'weekly',
+        label: srcOf('weekly').name,
+        active: state.navFocus === 'weekly',
+        fill: (nest) => appendSourceLeaves(nest, 'weekly'),
+      });
+      appendBranch(wrap, {
+        id: 'category',
+        nav: 'category',
+        label: CATEGORY_TITLE,
+        active: state.navFocus === 'category' && !state.categorySlug,
+        fill: appendCategoryLeaves,
+      });
+
+      tree.appendChild(wrap);
       syncBreadcrumb();
       syncTopbarHeight();
     }
@@ -1800,24 +3201,677 @@
       return s;
     }
 
+    function crumbHomeLink() {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'crumb-link';
+      b.dataset.crumb = 'home';
+      b.textContent = 'ホーム';
+      b.setAttribute('aria-label', 'ホームへ戻る');
+      return b;
+    }
+
     function syncBreadcrumb() {
       const crumb = $('#crumb');
       if (!crumb) return;
-      const src = srcOf(state.sourceId);
-      const group = GROUP_LABEL[src.group];
       const e = state.entries.find((x) => x.id === state.activeId);
+      const dateLabel = !e || state.navFocus === 'home' ? ''
+        : (e.kind === 'week' || e.kind === 'date') ? formatEntryWhen(e)
+        : (e.fullLabel || e.label);
+      const names = [];
+      if (state.navFocus === 'home') {
+        names.push('ホーム');
+      } else if (state.navFocus === 'category' && !state.categorySlug) {
+        names.push(CATEGORY_TITLE);
+      } else if (state.categorySlug) {
+        const cat = catOf(state.categorySlug);
+        names.push(CATEGORY_TITLE);
+        if (cat) names.push(cat.name);
+      } else if (state.navFocus === 'daily' || state.navFocus === 'weekly') {
+        names.push(srcOf(state.navFocus).name);
+      } else if (isChildId(state.navFocus)) {
+        names.push(srcOf(state.weekFilter ? 'weekly' : 'daily').name);
+        names.push(srcOf(state.navFocus).name);
+      } else {
+        names.push(srcOf(state.sourceId).name);
+      }
       crumb.replaceChildren();
-      crumb.append(
-        crumbPart(group, 'crumb-item crumb-group'),
-        crumbPart('/', 'crumb-sep crumb-sep-group'),
-        crumbPart(src.name, 'crumb-item crumb-source' + (e ? '' : ' crumb-current')),
-      );
-      if (e) {
+      // ホーム以外では先頭の「ホーム」が戻り先。モバイルでは途中の階層を隠し、このボタンを残す。
+      if (state.navFocus !== 'home') {
+        crumb.append(crumbHomeLink(), crumbPart('/', 'crumb-sep'));
+      }
+      names.forEach((name, i) => {
+        const last = i === names.length - 1 && !dateLabel;
+        if (i) crumb.append(crumbPart('/', 'crumb-sep crumb-sep-group'));
+        crumb.append(crumbPart(name, 'crumb-item' + (last ? ' crumb-current' : ' crumb-group')));
+      });
+      if (dateLabel) {
         crumb.append(
-          crumbPart('/', 'crumb-sep'),
-          crumbPart(e.fullLabel || e.label, 'crumb-item crumb-current'),
+          crumbPart('/', 'crumb-sep crumb-sep-group'),
+          crumbPart(dateLabel, 'crumb-item crumb-current'),
         );
       }
+    }
+
+    function clearJumpSpacer() {
+      document.getElementById('nav-jump-spacer')?.remove();
+    }
+
+    function scrollMainTo(el) {
+      const main = $('.main');
+      if (!main || !el) return;
+      let spacer = document.getElementById('nav-jump-spacer');
+      if (!spacer) {
+        spacer = document.createElement('div');
+        spacer.id = 'nav-jump-spacer';
+        spacer.setAttribute('aria-hidden', 'true');
+        $('#content').appendChild(spacer);
+      }
+      spacer.style.height = '0px';
+      const topOf = () => el.getBoundingClientRect().top - main.getBoundingClientRect().top + main.scrollTop;
+      const want = topOf();
+      const max = main.scrollHeight - main.clientHeight;
+      if (want > max) spacer.style.height = (want - max + 8) + 'px';
+      main.scrollTop = topOf();
+    }
+
+    function clipCatTitle(s) {
+      const t = String(s || '').replace(/\s+/g, ' ').trim();
+      if (!t) return '';
+      return t.length > CAT_TITLE_MAX ? t.slice(0, CAT_TITLE_MAX - 1) + '…' : t;
+    }
+
+    function catHighlightTitle(block) {
+      const first = String(block || '').split('\n')[0].replace(/^#+\s*/, '');
+      let t = first.replace(/^\d+\s*[.．、]\s*/, '');
+      t = t.replace(/\s+[—–−\-]\s+.+$/, '');
+      return clipCatTitle(t) || clipCatTitle(first) || '項目';
+    }
+
+    function catItemTitle(chunk) {
+      const m = String(chunk || '').match(/\*\*([^*]+)\*\*/);
+      if (m) {
+        const t = clipCatTitle(m[1]);
+        if (t) return t;
+      }
+      for (const raw of String(chunk || '').split('\n')) {
+        const line = raw.replace(/^[-*]\s+/, '').replace(/^#+\s*/, '').replace(/\*\*/g, '').trim();
+        if (line) return clipCatTitle(line) || '項目';
+      }
+      return '項目';
+    }
+
+    function fillCatBody(el, md) {
+      if (typeof marked === 'undefined') {
+        const pre = document.createElement('pre');
+        pre.textContent = md;
+        el.replaceChildren(pre);
+        return;
+      }
+      el.innerHTML = marked.parse(md);
+      try { decorate(el, { group: false }); } catch (err) { console.warn('装飾に失敗:', err); }
+    }
+
+    function catPieceNode(piece) {
+      const art = document.createElement('article');
+      art.className = 'cat-piece';
+      const h = document.createElement('h3');
+      h.className = 'cat-piece-t';
+      h.textContent = piece.kind === 'hl' ? catHighlightTitle(piece.md) : catItemTitle(piece.md);
+      art.appendChild(h);
+      const body = document.createElement('div');
+      let md = piece.md;
+      if (piece.kind === 'hl') md = md.replace(/^###[^\n]*\n+/, '');
+      fillCatBody(body, md);
+      art.appendChild(body);
+      return art;
+    }
+
+    function showHome() {
+      ++state.token;
+      state.navFocus = 'home';
+      state.categorySlug = null;
+      state.weekFilter = null;
+      state.entries = [];
+      state.activeId = null;
+      state.catExtracted = {};
+      clearJumpSpacer();
+      renderSourceTree();
+      renderList();
+      $('#warn').hidden = true;
+      syncTopbarHeight();
+      writeHash('home', null);
+      if (isMobile()) setDrawer(false);
+      const body = document.createElement('div');
+      body.className = 'page-body home-page';
+
+      const cover = document.createElement('section');
+      cover.className = 'home-block';
+      cover.setAttribute('aria-label', '集めている情報');
+      const coverKicker = document.createElement('h2');
+      coverKicker.className = 'home-kicker';
+      coverKicker.textContent = '集めている情報';
+      const table = document.createElement('div');
+      table.className = 'home-table';
+      table.setAttribute('role', 'table');
+      const headRow = document.createElement('div');
+      headRow.className = 'home-tr home-th';
+      headRow.setAttribute('role', 'row');
+      for (const label of ['分野', '対象']) {
+        const cell = document.createElement('span');
+        cell.setAttribute('role', 'columnheader');
+        cell.textContent = label;
+        headRow.appendChild(cell);
+      }
+      table.appendChild(headRow);
+      for (const stream of HOME_STREAMS) {
+        const row = document.createElement('div');
+        row.className = 'home-tr';
+        row.setAttribute('role', 'row');
+        const who = document.createElement('div');
+        who.className = 'home-name';
+        who.setAttribute('role', 'cell');
+        who.textContent = stream.name;
+        const picks = document.createElement('div');
+        picks.className = 'home-picks';
+        picks.setAttribute('role', 'cell');
+        const picksMain = document.createElement('div');
+        picksMain.textContent = stream.picks;
+        const kind = document.createElement('div');
+        kind.className = 'home-kind';
+        kind.textContent = stream.kind;
+        picks.append(picksMain, kind);
+        row.append(who, picks);
+        table.appendChild(row);
+      }
+      cover.append(coverKicker, table);
+
+      const doors = document.createElement('section');
+      doors.className = 'home-block';
+      doors.setAttribute('aria-label', '読み始める場所');
+      const doorKicker = document.createElement('h2');
+      doorKicker.className = 'home-kicker';
+      doorKicker.textContent = '読み始める';
+      const list = document.createElement('div');
+      list.className = 'home-pages';
+      for (const entry of HOME_ENTRIES) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'home-page-row home-entry';
+        b.dataset.nav = entry.nav;
+        const ico = document.createElement('span');
+        ico.className = 'home-ico';
+        ico.setAttribute('aria-hidden', 'true');
+        ico.innerHTML = HOME_SVG[entry.icon] || '';
+        const text = document.createElement('span');
+        const title = document.createElement('span');
+        title.className = 'home-page-name';
+        title.textContent = entry.name;
+        const hint = document.createElement('span');
+        hint.className = 'home-page-hint';
+        hint.textContent = entry.hint;
+        text.append(title, hint);
+        b.append(ico, text);
+        list.appendChild(b);
+      }
+      doors.append(doorKicker, list);
+
+      const note = document.createElement('aside');
+      note.className = 'home-callout';
+      const noteIco = document.createElement('span');
+      noteIco.className = 'home-callout-ico';
+      noteIco.setAttribute('aria-hidden', 'true');
+      noteIco.innerHTML = HOME_SVG.link;
+      const noteText = document.createElement('p');
+      noteText.textContent = '気になった項目には出典が付いています。原文はそこから開けます。';
+      note.append(noteIco, noteText);
+
+      body.append(cover, doors, note);
+      mountPage($('#content'), {
+        variant: 'home',
+        when: 'AI News',
+        overview: PAGE_OVERVIEW.home,
+        body,
+      });
+      $('.main').scrollTop = 0;
+      syncBreadcrumb();
+      syncExpandBtn();
+    }
+
+    function showCategoryIndex() {
+      ++state.token;
+      state.navFocus = 'category';
+      state.categorySlug = null;
+      state.weekFilter = null;
+      state.sourceId = 'daily';
+      state.entries = [];
+      state.activeId = null;
+      state.catExtracted = {};
+      openTree('category');
+      clearJumpSpacer();
+      renderSourceTree();
+      renderList();
+      $('#warn').hidden = true;
+      syncTopbarHeight();
+      writeHash('category', null);
+      if (isMobile()) setDrawer(false);
+      const list = document.createElement('div');
+      list.className = 'cat-index page-body';
+      for (const c of CATEGORIES) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'cat-index-item';
+        b.dataset.slug = c.slug;
+        const name = document.createElement('span');
+        name.className = 'cat-index-name';
+        name.textContent = c.name;
+        const hint = document.createElement('span');
+        hint.className = 'cat-index-hint';
+        hint.textContent = c.blurb;
+        b.append(name, hint);
+        list.appendChild(b);
+      }
+      mountPage($('#content'), {
+        when: CATEGORY_TITLE,
+        overview: PAGE_OVERVIEW.categoryIndex,
+        body: list,
+      });
+      $('.main').scrollTop = 0;
+      syncBreadcrumb();
+      syncExpandBtn();
+    }
+
+    function catDayPieces(extracted) {
+      if (!extracted) return [];
+      return [
+        ...extracted.highlights.map((md) => ({ kind: 'hl', md })),
+        ...extracted.items.map((md) => ({ kind: 'item', md })),
+      ].filter((p) => !isSilenceReport(p.md));
+    }
+
+    function renderCategoryTimeline(focusId) {
+      const cat = catOf(state.categorySlug);
+      if (!cat || !state.entries.length) return;
+      const want = (focusId && state.entries.some((x) => x.id === focusId))
+        ? focusId
+        : (state.activeId && state.entries.some((x) => x.id === state.activeId)
+          ? state.activeId
+          : state.entries[0].id);
+      state.activeId = want;
+      markActive();
+      writeHash('category', want);
+      syncBreadcrumb();
+
+      const host = document.createElement('div');
+      host.className = 'cat-timeline page-body';
+      const months = new Map();
+      let total = 0;
+      for (const e of state.entries) {
+        const pieces = catDayPieces(state.catExtracted[e.id]);
+        if (!pieces.length || !e.ymd) continue;
+        const bucket = e.ymd.slice(0, 7);
+        if (!months.has(bucket)) months.set(bucket, []);
+        months.get(bucket).push({ e, pieces });
+        total += pieces.length;
+      }
+      const expand = wantExpandAll();
+      let firstMonth = true;
+      for (const [bucket, days] of months) {
+        const month = document.createElement('details');
+        month.className = 'cat-month';
+        const containsFocus = days.some((d) => d.e.id === want);
+        month.open = expand || firstMonth || containsFocus;
+        firstMonth = false;
+        const sum = document.createElement('summary');
+        const label = document.createElement('span');
+        label.className = 'cat-month-label';
+        label.textContent = `${bucket.slice(0, 4)}年${+bucket.slice(5)}月`;
+        const count = document.createElement('span');
+        count.className = 'm-count';
+        count.textContent = `${days.length}日`;
+        sum.append(label, count);
+        const box = document.createElement('div');
+        box.className = 'cat-month-days';
+        let week = null;
+        let weekDays = null;
+        let weekCount = null;
+        let lastWeek = '';
+        for (const { e, pieces } of days) {
+          const mon = utcMonday(e.ymd);
+          const weekKey = ymdOf(mon);
+          if (weekKey !== lastWeek) {
+            lastWeek = weekKey;
+            week = document.createElement('details');
+            week.className = 'cat-week';
+            const sum = document.createElement('summary');
+            const label = document.createElement('span');
+            label.className = 'cat-week-label';
+            label.textContent = sideWeekLabel(mon, bucket);
+            const range = document.createElement('span');
+            range.className = 'cat-week-range';
+            range.textContent = weekRangeLabel(mon);
+            weekCount = document.createElement('span');
+            weekCount.className = 'm-count';
+            weekCount.dataset.n = '0';
+            sum.append(label, range, weekCount);
+            weekDays = document.createElement('div');
+            weekDays.className = 'cat-week-days';
+            week.append(sum, weekDays);
+            const thisWeek = week;
+            const theseDays = weekDays;
+            thisWeek.addEventListener('toggle', (ev) => {
+              if (!thisWeek.open || !ev.isTrusted) return;
+              for (const day of theseDays.querySelectorAll('.cat-day')) day.open = true;
+            });
+            box.appendChild(week);
+          }
+          weekCount.dataset.n = String(+weekCount.dataset.n + 1);
+          weekCount.textContent = `${weekCount.dataset.n}日`;
+          if (expand || e.id === want) week.open = true;
+          const day = document.createElement('details');
+          day.className = 'cat-day';
+          day.id = `cat-day-${e.id}`;
+          day.dataset.day = e.id;
+          day.open = expand || e.id === want;
+          if (e.id === want) day.classList.add('is-focus');
+          const daySum = document.createElement('summary');
+          const h = document.createElement('h2');
+          h.className = 'cat-day-when';
+          const dow = dateUTC(e.ymd).getUTCDay();
+          if (dow === 0) h.classList.add('dow-sun');
+          else if (dow === 6) h.classList.add('dow-sat');
+          h.textContent = formatEntryWhen(e);
+          daySum.appendChild(h);
+          const body = document.createElement('div');
+          body.className = 'cat-day-body';
+          for (const p of pieces) body.appendChild(catPieceNode(p));
+          day.append(daySum, body);
+          weekDays.appendChild(day);
+        }
+        for (const openWeek of box.querySelectorAll('.cat-week[open]')) {
+          for (const day of openWeek.querySelectorAll('.cat-day')) day.open = true;
+        }
+        month.append(sum, box);
+        host.appendChild(month);
+      }
+
+      mountPage($('#content'), {
+        context: CATEGORY_TITLE,
+        when: cat.name,
+        overview: PAGE_OVERVIEW.category,
+        meta: total ? `更新 ${total}件` : 'この話題の更新はまだありません',
+        body: host,
+      });
+      const target = document.getElementById(`cat-day-${want}`);
+      if (target && focusId && focusId !== state.entries[0]?.id) {
+        target.scrollIntoView({ block: 'start', behavior: 'auto' });
+      } else {
+        $('.main').scrollTop = 0;
+      }
+      syncExpandBtn();
+    }
+
+    function focusCategoryDay(id) {
+      if (!state.entries.some((x) => x.id === id)) return;
+      const el = document.getElementById(`cat-day-${id}`);
+      if (el && state.categorySlug && $('#content').querySelector('.cat-timeline')) {
+        state.activeId = id;
+        markActive();
+        writeHash('category', id);
+        syncBreadcrumb();
+        for (const d of $('#content').querySelectorAll('.cat-day.is-focus')) d.classList.remove('is-focus');
+        el.classList.add('is-focus');
+        const month = el.closest('.cat-month');
+        if (month) month.open = true;
+        const week = el.closest('.cat-week');
+        if (week) {
+          const wasOpen = week.open;
+          week.open = true;
+          if (!wasOpen) {
+            for (const day of week.querySelectorAll('.cat-day')) day.open = true;
+          }
+        }
+        el.open = true;
+        el.scrollIntoView({ block: 'start', behavior: 'smooth' });
+        return;
+      }
+      renderCategoryTimeline(id);
+    }
+
+    async function loadCategory(slug, preferDay) {
+      const cat = catOf(slug);
+      if (!cat) {
+        showCategoryIndex();
+        return;
+      }
+      slug = cat.slug;
+      const my = ++state.token;
+      state.navFocus = 'category';
+      state.categorySlug = slug;
+      state.weekFilter = null;
+      state.sourceId = 'daily';
+      state.entries = [];
+      state.activeId = null;
+      state.catExtracted = {};
+      openTree('category');
+      clearJumpSpacer();
+      renderSourceTree();
+      renderList();
+      $('#warn').hidden = true;
+      syncTopbarHeight();
+      writeHash('category', null);
+      if (isMobile()) setDrawer(false);
+
+      const box = $('#content');
+      mountPage(box, {
+        context: CATEGORY_TITLE,
+        when: cat.name,
+        overview: PAGE_OVERVIEW.category,
+        meta: '日次からこの話題の更新を集めています',
+      });
+
+      const setMeta = (text) => {
+        const el = box.querySelector('.page-meta');
+        if (el) el.textContent = text;
+      };
+      const setWhen = (text) => {
+        const el = box.querySelector('h1.page-when');
+        if (el) el.textContent = text;
+      };
+
+      const res = await fetch(`${baseOf('daily')}files.json?_=${Date.now()}`);
+      if (!res.ok) throw new Error(`files.json の取得に失敗しました (HTTP ${res.status})`);
+      const files = await res.json();
+      if (my !== state.token) return;
+
+      const days = files.map(parseEntry).filter((e) => e.kind === 'date')
+        .sort((a, b) => (a.sort < b.sort ? 1 : a.sort > b.sort ? -1 : 0));
+      if (!days.length) {
+        setWhen(cat.name);
+        setMeta('この話題の更新はまだありません');
+        return;
+      }
+      const pending = new Array(days.length).fill(null);
+      let nextFlush = 0;
+      let failed = 0;
+      const found = [];
+
+      const maybeShow = () => {
+        if (state.activeId) return;
+        if (!found.length) return;
+        if (preferDay && found.some((e) => e.id === preferDay)) renderCategoryTimeline(preferDay);
+        else if (!preferDay) renderCategoryTimeline(found[0].id);
+      };
+
+      const flush = () => {
+        while (nextFlush < pending.length && pending[nextFlush] !== null) {
+          const row = pending[nextFlush++];
+          if (!row) continue;
+          found.push(row.entry);
+          state.catExtracted[row.entry.id] = row.extracted;
+          state.entries = found.slice();
+          renderList();
+          maybeShow();
+          if (!state.activeId) {
+            setMeta(`${found.length}日分を確認… ${nextFlush}/${days.length}`);
+          }
+        }
+        if (nextFlush < days.length && !found.length) {
+          setMeta(`読み込み中… ${nextFlush}/${days.length}`);
+        }
+      };
+
+      let cursor = 0;
+      const worker = async () => {
+        while (cursor < days.length) {
+          const i = cursor++;
+          const e = days[i];
+          try {
+            const url = baseOf('daily') + e.path;
+            let md = mdCache.get(url);
+            if (md === undefined) {
+              const r = await fetch(url);
+              if (!r.ok) throw new Error(String(r.status));
+              md = stripHiddenSections(await r.text());
+              mdCache.set(url, md);
+            }
+            if (my !== state.token) return;
+            const extracted = extractCategoryDay(md, slug);
+            pending[i] = extracted ? { entry: e, extracted } : false;
+          } catch (err) {
+            console.warn('カテゴリ日の取得に失敗:', e.id, err);
+            failed++;
+            pending[i] = false;
+          }
+          if (my !== state.token) return;
+          flush();
+        }
+      };
+
+      await Promise.all(Array.from({ length: Math.min(CAT_FETCH_LIMIT, days.length) }, worker));
+      if (my !== state.token) return;
+
+      if (!found.length) {
+        setWhen(cat.name);
+        setMeta('この話題の更新はまだありません');
+        syncBreadcrumb();
+        return;
+      }
+      if (failed) showWarn(`${failed} 日分の取得に失敗したため、一覧から省いています。`);
+      if (preferDay && !found.some((e) => e.id === preferDay)) {
+        showWarn(`指定の日付（${preferDay}）にはこのカテゴリの項目がありません。最新を表示します。`);
+      }
+      // 初回描画は entries が1件のときがあり、完了後に同じ日を描き直す。
+      const showId = (preferDay && found.some((e) => e.id === preferDay))
+        ? preferDay
+        : (state.activeId && found.some((e) => e.id === state.activeId) ? state.activeId : found[0].id);
+      renderCategoryTimeline(showId);
+      syncExpandBtn();
+    }
+
+    function beginLoad(sourceId, preferId) {
+      state.sourceId = sourceId;
+      state.categorySlug = null;
+      state.catExtracted = {};
+      clearJumpSpacer();
+      renderSourceTree();
+      $('#warn').hidden = true;
+      syncTopbarHeight();
+      $('#content').innerHTML = '<div class="empty">読み込み中…</div>';
+      writeHash(sourceId, null);
+      loadIndex(sourceId, preferId).catch((e) => showFatal(String(e.message || e)));
+    }
+
+    function sameWeekFilter(a, b) {
+      if (!a && !b) return true;
+      if (!a || !b) return false;
+      return a.start === b.start && a.end === b.end;
+    }
+
+    function navigate(navFocus, from, slug) {
+      if (navFocus === 'home') {
+        showHome();
+        return;
+      }
+
+      if (navFocus === 'daily') {
+        const fromCat = state.navFocus === 'category' || !!state.categorySlug;
+        const fromHome = state.navFocus === 'home';
+        state.navFocus = 'daily';
+        state.weekFilter = null;
+        state.categorySlug = null;
+        openTree('daily');
+        if (state.sourceId === 'daily' && !fromCat && !fromHome) {
+          $('#warn').hidden = true;
+          syncTopbarHeight();
+          clearJumpSpacer();
+          renderSourceTree();
+          applySectionOpen($('#content'));
+          $('.main').scrollTop = 0;
+          return;
+        }
+        beginLoad('daily');
+        return;
+      }
+
+      if (navFocus === 'weekly') {
+        const fromHome = state.navFocus === 'home';
+        state.navFocus = 'weekly';
+        state.weekFilter = null;
+        state.categorySlug = null;
+        openTree('weekly');
+        if (state.sourceId === 'weekly' && !fromHome) {
+          $('#warn').hidden = true;
+          syncTopbarHeight();
+          clearJumpSpacer();
+          renderSourceTree();
+          applySectionOpen($('#content'));
+          $('.main').scrollTop = 0;
+          return;
+        }
+        beginLoad('weekly');
+        return;
+      }
+
+      if (navFocus === 'category') {
+        openTree('category');
+        showCategoryIndex();
+        return;
+      }
+
+      if (navFocus === 'cat') {
+        if (!slug || !catOf(slug)) {
+          openTree('category');
+          showCategoryIndex();
+          return;
+        }
+        openTree('category');
+        if (state.categorySlug === slug) {
+          $('.main').scrollTop = 0;
+          if (isMobile()) setDrawer(false);
+          return;
+        }
+        loadCategory(slug).catch((e) => showFatal(String(e.message || e)));
+        return;
+      }
+
+      if (!isChildId(navFocus)) return;
+
+      const wantWeekly = from === 'weekly';
+      openTree(wantWeekly ? 'weekly' : 'daily');
+      const nextFilter = wantWeekly ? currentWeekRange() : null;
+      if (
+        state.sourceId === navFocus &&
+        state.navFocus === navFocus &&
+        !state.categorySlug &&
+        sameWeekFilter(state.weekFilter, nextFilter)
+      ) return;
+
+      state.navFocus = navFocus;
+      state.weekFilter = nextFilter;
+      state.categorySlug = null;
+      // 今週の子は週次 ID を preferId に渡さない。絞り込みは loadIndex 内の weekFilter。
+      beginLoad(navFocus, wantWeekly ? undefined : currentDayId());
     }
 
     // トップバーの高さは固定値にできない。実測して CSS 変数に反映する。
@@ -1828,18 +3882,6 @@
       document.documentElement.style.setProperty('--banner-h', bh + 'px');
       const h = document.querySelector('.topbar').offsetHeight;
       if (h) document.documentElement.style.setProperty('--topbar', (h + bh) + 'px');
-    }
-
-    function switchSource(id) {
-      if (id === state.sourceId) return;
-      state.sourceId = id;
-      renderSourceTree();
-      $('#warn').hidden = true;
-      syncTopbarHeight();   // 消えたバナーのぶん押し戻す
-      $('#content').innerHTML = '<div class="empty">読み込み中…</div>';
-      // ソース切替では日付を持ち越さない（ソースごとに存在する日付が違うため）
-      writeHash(id, null);
-      loadIndex(id).catch((e) => showFatal(String(e.message || e)));
     }
 
     const isMobile = () => window.matchMedia('(max-width: 820px)').matches;
@@ -1863,16 +3905,47 @@
       }
     }
 
-    function boot() {
-      const { sourceId, entryId } = parseHash();
-      if (sourceId) state.sourceId = sourceId;
+    async function boot() {
+      try { await resolveContentSources(); } catch (err) { console.warn('掲載ミラーの選択に失敗:', err); }
+      const { sourceId, entryId, categorySlug } = parseHash();
+      if (sourceId === 'category') {
+        state.navFocus = 'category';
+        state.categorySlug = categorySlug;
+        state.sourceId = 'daily';
+      } else if (sourceId) {
+        state.sourceId = sourceId;
+        state.navFocus = sourceId;
+      }
+      openTree(navParent());
       initThemeControls();
       renderSourceTree();
 
       // イベント委譲。要素を作り直しても listener を張り直さなくてよい
+      $('#home-brand').addEventListener('click', () => navigate('home'));
+      $('#crumb').addEventListener('click', (ev) => {
+        const back = ev.target.closest('.crumb-link');
+        if (back && back.dataset.crumb === 'home') navigate('home');
+      });
       $('#source-tree').addEventListener('click', (ev) => {
+        const twist = ev.target.closest('.side-twist');
+        if (twist && twist.dataset.twist) {
+          toggleTree(twist.dataset.twist);
+          return;
+        }
         const b = ev.target.closest('.side-src');
-        if (b) switchSource(b.dataset.id);
+        if (b) navigate(b.dataset.nav, b.dataset.from, b.dataset.slug);
+      });
+      $('#content').addEventListener('click', (ev) => {
+        const home = ev.target.closest('.home-entry');
+        if (home && home.dataset.nav) {
+          navigate(home.dataset.nav);
+          if (isMobile()) setDrawer(false);
+          return;
+        }
+        const b = ev.target.closest('.cat-index-item');
+        if (b && b.dataset.slug) {
+          loadCategory(b.dataset.slug).catch((e) => showFatal(String(e.message || e)));
+        }
       });
       $('#file-list').addEventListener('click', (ev) => {
         const btn = ev.target.closest('.item');
@@ -1898,7 +3971,7 @@
       // CSS からは details の open を変えられないので JS で行い、印刷後に元へ戻す
       let printClosed = [];
       window.addEventListener('beforeprint', () => {
-        printClosed = [...document.querySelectorAll('details.sec:not([open]), details.sub:not([open]), details.month:not([open])')];
+        printClosed = [...document.querySelectorAll('details.sec:not([open]), details.sub:not([open]), details.month:not([open]), details.cat-month:not([open]), details.cat-week:not([open]), details.cat-day:not([open])')];
         printClosed.forEach((d) => { d.open = true; });
       });
       window.addEventListener('afterprint', () => {
@@ -1921,7 +3994,17 @@
         }
       });
 
-      loadIndex(state.sourceId, entryId).catch((e) => showFatal(String(e.message || e)));
+      if (sourceId === 'category') {
+        if (categorySlug) {
+          loadCategory(categorySlug, entryId).catch((e) => showFatal(String(e.message || e)));
+        } else {
+          showCategoryIndex();
+        }
+      } else if (sourceId === 'home' || !sourceId) {
+        showHome();
+      } else {
+        loadIndex(state.sourceId, entryId).catch((e) => showFatal(String(e.message || e)));
+      }
     }
 
     // Node からパーサだけを検証できるようブラウザ判定で囲む
