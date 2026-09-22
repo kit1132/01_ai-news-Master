@@ -106,7 +106,9 @@
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       min-width: 0; flex: none;
     }
-    .crumb-item.crumb-current { flex: 0 1 auto; color: var(--fg); font-weight: 500; }
+    .crumb-item.crumb-current,
+    .crumb-item.crumb-context { flex: 0 1 auto; min-width: 0; }
+    .crumb-item.crumb-current { color: var(--fg); font-weight: 500; }
     .crumb-link {
       flex: none; background: none; border: none; color: var(--muted);
       font: inherit; font-size: 14px; line-height: 1.2;
@@ -196,6 +198,7 @@
     .side-src:hover { background: var(--border2); color: var(--fg-strong); }
     .side-src.is-active {
       background: var(--active-bg); color: var(--fg-strong); font-weight: 600;
+      box-shadow: inset 2px 0 0 var(--accent);
     }
     .side-src:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
     /* 親の下: レールで親子を示す。元ソース小見出し → 葉 */
@@ -260,7 +263,8 @@
     .home-mark {
       width: 46px; height: 46px; margin: 0 0 14px; border-radius: 8px;
       display: flex; align-items: center; justify-content: center;
-      background: var(--callout-bg); color: var(--fg-strong);
+      background: color-mix(in srgb, var(--accent) 14%, var(--callout-bg));
+      color: var(--fg-strong);
       border: 1px solid var(--border);
     }
     .home-mark svg, .home-ico svg { display: block; }
@@ -802,7 +806,7 @@
     .scrim { display: none; }
     @media (max-width: 820px) {
       #menu-btn { display: block; }
-      /* モバイルのパンくずはソース名だけ（グループはサイドバーで見える） */
+      /* モバイルは途中の階層だけ隠す。ホームと、日付の直前の名前は残す */
       .crumb-group, .crumb-sep-group { display: none; }
       .sidebar {
         position: fixed; top: var(--topbar); bottom: 0; left: 0; z-index: 30;
@@ -1268,6 +1272,23 @@
       if (/開発ツール|コーディングエージェント|Microsoft（その他）|Microsoft \(その他\)|セキュリティ/.test(h)) return '*';
       if (/Microsoft\s*\/\s*GitHub/.test(n) || /Microsoft\s*\/\s*Copilot$/.test(n)) return '*';
       return null;
+    }
+    // 今日のまとめの ### は生成時の見出しのままなので、画面上だけカテゴリの表示名に寄せる。
+    // 1本の見出しが複数カテゴリにまたがるものだけ、ここで両方の名前を出す。
+    const CAT_DISPLAY_MIXED = {
+      'Microsoft（その他）': 'M365 Copilot / M365 管理',
+      'Microsoft (その他)': 'M365 Copilot / M365 管理',
+      'MCP / オープンウェイト': 'MCP / エージェント標準 / オープンウェイト',
+      'Apple / 市場データ / 企業構造': 'Apple / 市場・企業',
+      'Apple / 市場データ': 'Apple / 市場・企業',
+    };
+    function categoryDisplayTitle(raw) {
+      const text = String(raw || '').replace(/\s+/g, ' ').trim();
+      if (CAT_DISPLAY_MIXED[text]) return CAT_DISPLAY_MIXED[text];
+      const slug = catHeadingTarget(text);
+      if (!slug || slug === '*') return '';
+      const name = catOf(slug)?.name || '';
+      return name && name !== text ? name : '';
     }
     function catClassifyText(text) {
       const scores = {};
@@ -1991,6 +2012,11 @@
         // h2 と同じ理由で h3 を「置き換えない」。見出し階層を保つため要素ごと summary に入れる
         const t = h3.cloneNode(true);
         t.className = 'sub-t';
+        const secTitle = det.querySelector('.sec-t')?.textContent || '';
+        if (secTitle.includes('カテゴリ別まとめ')) {
+          const shown = categoryDisplayTitle(h3.textContent);
+          if (shown) t.textContent = shown;
+        }
 
         const body = kids.slice(start + 1, end);
         // 数え方は節バッジと同じ（最上位のリスト項目のみ・出典チップと入れ子は除く）
@@ -3236,18 +3262,24 @@
         names.push(srcOf(state.sourceId).name);
       }
       crumb.replaceChildren();
-      // ホーム以外では先頭の「ホーム」が戻り先。モバイルでは途中の階層を隠し、このボタンを残す。
+      // ホーム以外では先頭の「ホーム」が戻り先。
+      // モバイルは途中の階層だけ隠し、日付の直前（今日のまとめ、または話題名）は残す。
       if (state.navFocus !== 'home') {
         crumb.append(crumbHomeLink(), crumbPart('/', 'crumb-sep'));
       }
       names.forEach((name, i) => {
-        const last = i === names.length - 1 && !dateLabel;
+        const isLastName = i === names.length - 1;
+        const isCurrent = isLastName && !dateLabel;
         if (i) crumb.append(crumbPart('/', 'crumb-sep crumb-sep-group'));
-        crumb.append(crumbPart(name, 'crumb-item' + (last ? ' crumb-current' : ' crumb-group')));
+        let cls = 'crumb-item';
+        if (isCurrent) cls += ' crumb-current';
+        else if (!isLastName) cls += ' crumb-group';
+        else cls += ' crumb-context';
+        crumb.append(crumbPart(name, cls));
       });
       if (dateLabel) {
         crumb.append(
-          crumbPart('/', 'crumb-sep crumb-sep-group'),
+          crumbPart('/', 'crumb-sep'),
           crumbPart(dateLabel, 'crumb-item crumb-current'),
         );
       }
