@@ -1,0 +1,21 @@
+# クラウドの生成が検査を飛ばして main に載せたときの警報。
+# commit 前に止める本体は .claude/settings.json のフック。
+name: check-update-tags
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'digests/**'
+      - 'scripts/check-update-tags.py'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: 更新タグを検査する
+        run: python3 scripts/check-update-tags.py --since "${{ github.event.before }}"
