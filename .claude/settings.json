@@ -18,6 +18,10 @@
           {
             "type": "command",
             "command": "python3 scripts/check-update-tags.py --hook || exit 2"
+          },
+          {
+            "type": "command",
+            "command": "python3 scripts/check-viewer-chips.py --hook || exit 2"
           }
         ]
       }

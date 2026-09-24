@@ -1,0 +1,19 @@
+# ビューアが折りたたみ見出しの件数を文字へ戻したときの警報。
+# commit 前に止める本体は .claude/settings.json のフック。
+name: check-viewer-chips
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'scripts/check-viewer-chips.py'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: 見出しの件数チップを検査する
+        run: python3 scripts/check-viewer-chips.py
