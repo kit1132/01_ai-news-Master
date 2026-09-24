@@ -810,7 +810,9 @@
     }
     .cat-k.has-tag .cat-k-t { width: 100%; }
     .tag-row, .hl-kicker { display: inline-flex; gap: 4px; flex: none; align-items: center; }
-    .cat-k > .tag-row { margin: 0; }
+    /* 箇条書きの内容はタグの下に続ける。横に置くと本文の先頭が狭くなる */
+    .content li > .tag-row { display: flex; width: max-content; margin: 0 0 4px; }
+    .content .cat-k > .tag-row { margin: 0; }
     /* タグはタイトルの下。横に置くと見出しの幅を奪う */
     .content h3:has(> .hl-kicker) {
       display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
@@ -2285,7 +2287,9 @@
         const rest = document.createElement('span');
         rest.className = 'h3-main';
         while (h.firstChild) rest.appendChild(h.firstChild);
-        h.append(rest, kick);
+        // カテゴリ別は見出しの下に本文が続く。タグは本文の前、先頭に置く
+        if (h.classList.contains('cat-piece-t')) h.append(kick, rest);
+        else h.append(rest, kick);
       }
       for (const li of scope.querySelectorAll('li[data-tag-primary]')) {
         if (li.dataset.aiUnrelated === '1') continue;
@@ -2299,12 +2303,12 @@
           const wrap = document.createElement('span');
           wrap.className = 'cat-k-t';
           while (k.firstChild) wrap.appendChild(k.firstChild);
-          k.append(wrap, row);
+          k.append(row, wrap);
           k.classList.add('has-tag');
         } else {
           const block = [...li.children].find((c) => c.matches('.sent, p'));
-          if (block) block.after(row);
-          else li.append(row);
+          if (block) block.before(row);
+          else li.prepend(row);
         }
       }
       for (const sub of scope.querySelectorAll('details.sub')) {
