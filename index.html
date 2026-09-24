@@ -817,6 +817,11 @@
     }
     .content h3 > .hl-kicker { margin: 0; }
     .content h3 > .h3-main { flex: 1 1 12em; min-width: 0; }
+    /* カテゴリの記事見出しは、タグの横幅だけ残して折り返すと行が短くなる。
+       タグは先頭に置き、タイトルは見出しの幅いっぱいに流す */
+    .content h3.cat-piece-t:has(> .hl-kicker) { display: block; }
+    .content h3.cat-piece-t > .hl-kicker { margin-right: 8px; vertical-align: 0.1em; }
+    .content h3.cat-piece-t > .h3-main { display: inline; }
     .tag {
       display: inline-block; flex: none; font-size: 11px; font-weight: 600; line-height: 1.4;
       padding: 1px 6px; border-radius: 4px; border: none; white-space: nowrap;
