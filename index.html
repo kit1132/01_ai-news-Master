@@ -1547,13 +1547,15 @@
       }
       return out;
     }
-    // 沈黙／N日更新なし報告は時系列に載せない（生成MD改稿はスコープ外）
+    // 沈黙／N日更新なし報告は時系列に載せない（生成MD改稿はスコープ外）。
+    // 見るのはタイトル（先頭行と最初の太字）だけ。子行の「N日連続据え置き」まで
+    // 拾うと、新機能の配布注記まで沈黙扱いになりカテゴリから消える。
     function isSilenceReport(md) {
       const text = String(md || '');
       if (!text.trim()) return false;
-      const head = text.split('\n').slice(0, 6).join('\n');
+      const first = text.split('\n')[0];
       const bold = (text.match(/\*\*([^*]+)\*\*/) || [])[1] || '';
-      const t = `${head}\n${bold}`;
+      const t = `${first}\n${bold}`;
       if (/沈黙/.test(t)) return true;
       if (/\d+\s*日\s*(間|連続)?[^。\n]{0,24}(据え置き|動きなし|更新なし|新規なし)/.test(t)) return true;
       if (/(据え置き|動きなし|更新なし)[^。\n]{0,24}\d+\s*日/.test(t)) return true;
