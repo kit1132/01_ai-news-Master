@@ -806,22 +806,17 @@
       margin: 0 0 6px;
     }
     .cat-k.has-tag {
-      display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;
+      display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
     }
-    .cat-k.has-tag .cat-k-t { flex: 1; min-width: 0; }
+    .cat-k.has-tag .cat-k-t { width: 100%; }
     .tag-row, .hl-kicker { display: inline-flex; gap: 4px; flex: none; align-items: center; }
-    .tag-row { margin-right: 8px; }
-    .cat-k > .tag-row { margin-right: 0; }
+    .cat-k > .tag-row { margin: 0; }
+    /* タグはタイトルの下。横に置くと見出しの幅を奪う */
     .content h3:has(> .hl-kicker) {
-      display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 8px; row-gap: 4px;
+      display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
     }
     .content h3 > .hl-kicker { margin: 0; }
-    .content h3 > .h3-main { flex: 1 1 12em; min-width: 0; }
-    /* カテゴリの記事見出しは、タグの横幅だけ残して折り返すと行が短くなる。
-       タグは先頭に置き、タイトルは見出しの幅いっぱいに流す */
-    .content h3.cat-piece-t:has(> .hl-kicker) { display: block; }
-    .content h3.cat-piece-t > .hl-kicker { margin-right: 8px; vertical-align: 0.1em; }
-    .content h3.cat-piece-t > .h3-main { display: inline; }
+    .content h3 > .h3-main { display: block; }
     .tag {
       display: inline-block; flex: none; font-size: 11px; font-weight: 600; line-height: 1.4;
       padding: 1px 6px; border-radius: 4px; border: none; white-space: nowrap;
@@ -838,6 +833,14 @@
     .sub-tags {
       display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px;
       flex: none; min-width: 0;
+    }
+    .sub > summary > .sub-tags {
+      flex: 1 1 100%; box-sizing: border-box; padding-left: calc(1em + 8px);
+    }
+    /* 日付行の件数チップは、下に続く記事タイトルと同じ列に置く */
+    .cat-day > summary > .sub-tags {
+      flex: 1 1 100%; box-sizing: border-box;
+      padding-left: calc(10px + 8px + 21px);
     }
     .content li[data-ai-unrelated="1"],
     .content .cat-piece[data-ai-unrelated="1"] { display: none; }
@@ -2282,7 +2285,7 @@
         const rest = document.createElement('span');
         rest.className = 'h3-main';
         while (h.firstChild) rest.appendChild(h.firstChild);
-        h.append(kick, rest);
+        h.append(rest, kick);
       }
       for (const li of scope.querySelectorAll('li[data-tag-primary]')) {
         if (li.dataset.aiUnrelated === '1') continue;
@@ -2296,12 +2299,12 @@
           const wrap = document.createElement('span');
           wrap.className = 'cat-k-t';
           while (k.firstChild) wrap.appendChild(k.firstChild);
-          k.append(row, wrap);
+          k.append(wrap, row);
           k.classList.add('has-tag');
         } else {
           const block = [...li.children].find((c) => c.matches('.sent, p'));
-          if (block) block.insertBefore(row, block.firstChild);
-          else li.insertBefore(row, li.firstChild);
+          if (block) block.after(row);
+          else li.append(row);
         }
       }
       for (const sub of scope.querySelectorAll('details.sub')) {
