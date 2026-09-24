@@ -45,6 +45,14 @@
       --callout-bg:#262626;
       /* 日付一覧の土日。本文リンク青・通知赤とは役割が違う（カレンダーの曜日） */
       --dow-sat:#6cb6e0; --dow-sun:#f07178;
+      --tag-retire-bg:#9f1239; --tag-retire-fg:#ffffff;
+      --tag-break-bg:#c2410c; --tag-break-fg:#ffffff;
+      --tag-security-bg:#a21caf; --tag-security-fg:#ffffff;
+      --tag-price-bg:#facc15; --tag-price-fg:#422006;
+      --tag-feature-bg:#6d28d9; --tag-feature-fg:#ffffff;
+      --tag-spec-bg:#78716c; --tag-spec-fg:#ffffff;
+      --tag-plan-bg:#be185d; --tag-plan-fg:#ffffff;
+      --tag-trend-bg:#a8a29e; --tag-trend-fg:#1c1917;
       --side:240px;
       --topbar:45px;   /* 実際の高さは JS で測って上書きする */
     }
@@ -61,6 +69,14 @@
       --shadow:#37352f40; --scrim:#37352f66;
       --callout-bg:#f7f6f3;
       --dow-sat:#0b6e99; --dow-sun:#c62828;
+      --tag-retire-bg:#9f1239; --tag-retire-fg:#ffffff;
+      --tag-break-bg:#c2410c; --tag-break-fg:#ffffff;
+      --tag-security-bg:#a21caf; --tag-security-fg:#ffffff;
+      --tag-price-bg:#854d0e; --tag-price-fg:#ffffff;
+      --tag-feature-bg:#6d28d9; --tag-feature-fg:#ffffff;
+      --tag-spec-bg:#57534e; --tag-spec-fg:#ffffff;
+      --tag-plan-bg:#be185d; --tag-plan-fg:#ffffff;
+      --tag-trend-bg:#44403c; --tag-trend-fg:#ffffff;
     }
 
     body {
@@ -123,7 +139,8 @@
 
     /* 折りたたむ節が無い日に消すのは「すべて開く」ボタンだけ。
        `display:inline-flex` があるので hidden 属性ではなくクラスで制御する */
-    #expand-all.hide { display: none; }
+    #expand-all.hide, #tag-tools.hide { display: none; }
+    #tag-tools { display: inline-flex; align-items: center; gap: 8px; }
 
     /* 表示モード（ライト / システム / ダーク）。選択はグレー（ナビの青と分離） */
     .theme-switch {
@@ -143,11 +160,12 @@
     .theme-opt:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; z-index: 1; }
     .theme-opt svg { width: 16px; height: 16px; display: block; }
 
-    #expand-all {
+    #expand-all, #tag-all, #tag-only {
       background: none; border: none; color: var(--fg);
       font: inherit; font-size: 12px; padding: 6px 0; border-radius: 0; cursor: pointer;
       min-height: 36px; white-space: nowrap; display: inline-flex; align-items: center; gap: 7px;
     }
+    #tag-all[aria-pressed="true"], #tag-only[aria-pressed="true"] { color: var(--fg-strong); }
     /* 押すとどちらへ向かうかを三角で示す。閉じている状態＝これから開く＝▼
        ナビ選択の塗りにしない（操作トグル ≠ ナビ選択） */
     #expand-all::before { content: "▼"; font-size: 9px; color: var(--fg); }
@@ -739,7 +757,7 @@
       margin: 0;
     }
     .sub > summary {
-      list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px;
+      list-style: none; cursor: pointer; display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
       margin: 0; padding: 10px 8px; min-height: 40px; border-radius: 6px;
       border-bottom: none;
     }
@@ -756,7 +774,7 @@
     /* 節 24 / カテゴリ 15 / 項目 14 / 本文 14。トグルが親で中身は一段落とす */
     .content h3.sub-t {
       font-size: 15px; font-weight: 600; color: var(--fg-strong); line-height: 1.45;
-      margin: 0; padding: 0; flex: 1; min-width: 0; overflow: hidden;
+      margin: 0; padding: 0; flex: 1 1 auto; min-width: min(100%, 8em); overflow: hidden;
     }
     .sub[open] > summary .sub-t { color: var(--fg-strong); }
     .sub-n { font-size: 12px; font-weight: 400; color: var(--muted-strong); flex: none; padding-left: 8px; }
@@ -782,6 +800,39 @@
       font-size: 14px; font-weight: 600; color: var(--fg-strong); line-height: 1.45;
       margin: 0 0 6px;
     }
+    .cat-k.has-tag {
+      display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;
+    }
+    .cat-k.has-tag .cat-k-t { flex: 1; min-width: 0; }
+    .tag-row, .hl-kicker { display: inline-flex; gap: 4px; flex: none; align-items: center; }
+    .tag-row { margin-right: 8px; }
+    .cat-k > .tag-row { margin-right: 0; }
+    .content h3:has(> .hl-kicker) {
+      display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 8px; row-gap: 4px;
+    }
+    .content h3 > .hl-kicker { margin: 0; }
+    .content h3 > .h3-main { flex: 1 1 12em; min-width: 0; }
+    .tag {
+      display: inline-block; flex: none; font-size: 11px; font-weight: 600; line-height: 1.4;
+      padding: 1px 6px; border-radius: 4px; border: none; white-space: nowrap;
+      background: var(--tag-bg); color: var(--tag-fg);
+    }
+    .tag-retire { --tag-bg: var(--tag-retire-bg); --tag-fg: var(--tag-retire-fg); }
+    .tag-break { --tag-bg: var(--tag-break-bg); --tag-fg: var(--tag-break-fg); }
+    .tag-security { --tag-bg: var(--tag-security-bg); --tag-fg: var(--tag-security-fg); }
+    .tag-price { --tag-bg: var(--tag-price-bg); --tag-fg: var(--tag-price-fg); }
+    .tag-feature { --tag-bg: var(--tag-feature-bg); --tag-fg: var(--tag-feature-fg); }
+    .tag-spec { --tag-bg: var(--tag-spec-bg); --tag-fg: var(--tag-spec-fg); }
+    .tag-plan { --tag-bg: var(--tag-plan-bg); --tag-fg: var(--tag-plan-fg); }
+    .tag-trend { --tag-bg: var(--tag-trend-bg); --tag-fg: var(--tag-trend-fg); }
+    .sub-tags {
+      display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px;
+      flex: 1 1 12em; min-width: 0;
+    }
+    .content li[data-ai-unrelated="1"],
+    .content .cat-piece[data-ai-unrelated="1"] { display: none; }
+    .content.tags-only li[data-tag-listed="0"],
+    .content.tags-only .cat-piece[data-tag-listed="0"] { display: none; }
     .content .sub .cat-v,
     .content .sub .cat-v p {
       line-height: 1.7; font-size: 14px; color: var(--fg);
@@ -964,7 +1015,7 @@
       .lbl > .k { padding-top: 0; }
 
       /* 操作子のタップ領域を44px確保する（設計書の合格条件） */
-      .about-link, #expand-all, .side-src, .side-twist, .item, .month > summary,
+      .about-link, #expand-all, #tag-all, #tag-only, .side-src, .side-twist, .item, .month > summary,
       .cat-index-item, .cat-item > summary, .cat-month > summary, .cat-week > summary, .cat-day > summary,
       .page-nav button, .crumb-link { min-height: 44px; }
       .theme-opt { width: 44px; height: 44px; }
@@ -1014,6 +1065,7 @@
       .content code { background: #eee; border-color: #999; color: #000; }
       .content em, .content .lede, .content h3 .h3-sub { color: #333; }
       ul.src a { color: #333; background: none; border-color: #999; }
+      .tag { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .content h1, .content h2, .content h3, .sec > summary { page-break-after: avoid; }
     }
   </style>
@@ -1028,6 +1080,10 @@
     <button id="menu-btn" type="button" aria-label="ソースと日付の一覧を開く" aria-expanded="false" aria-controls="sidebar">☰</button>
     <nav class="crumb" id="crumb" aria-label="現在位置"></nav>
     <div class="topbar-end">
+      <div id="tag-tools" class="hide">
+        <button id="tag-all" type="button" aria-pressed="false">すべてのタグ</button>
+        <button id="tag-only" type="button" aria-pressed="false">タグありのみ</button>
+      </div>
       <button id="expand-all" type="button" aria-pressed="false">すべて開く</button>
     </div>
   </header>
@@ -1891,6 +1947,8 @@
       const nodes = [buildPageHead(opts)];
       if (opts.body) nodes.push(opts.body);
       box.replaceChildren(...nodes);
+      const tools = $('#tag-tools');
+      if (tools) tools.classList.toggle('hide', !box.querySelector('[data-tag-primary]'));
     }
 
     // entries は新しい順。隣の日／週へ。
@@ -2015,7 +2073,289 @@
       '一次（検証用）': 'detail',
     };
 
+    // 更新タグ。ビューアはトークンを剥がすだけで、語から種類は推定しない。
+    // 値は設計書の11語。チップを出さない3語もトークンとしては認める。
+    const TAG_NAMES = ['廃止', '破壊的変更', 'セキュリティ', '料金', '新機能', '仕様', '予定', '動向', '版更新', '据え置き', '観測'];
+    const TAG_SET = new Set(TAG_NAMES);
+    const CHIP_ORDER = ['廃止', '破壊的変更', 'セキュリティ', '料金', '新機能', '仕様', '予定', '動向'];
+    const DEFAULT_CHIP = new Set(['廃止', '破壊的変更', 'セキュリティ', '料金', '新機能']);
+    const SECOND_ON_CAT = new Set(['料金', '破壊的変更']);
+    const NEUTRAL_CHIP = new Set(['仕様', '予定', '動向']);
+    const NO_CHIP = new Set(['版更新', '据え置き', '観測']);
+    const TAG_SLUG = {
+      '廃止': 'retire', '破壊的変更': 'break', 'セキュリティ': 'security', '料金': 'price',
+      '新機能': 'feature', '仕様': 'spec', '予定': 'plan', '動向': 'trend',
+    };
+    const TAG_ALL_KEY = 'ai-news-tags-all';
+    const TAG_ONLY_KEY = 'ai-news-tags-only';
+
+    function tagsAllOn() {
+      try { return localStorage.getItem(TAG_ALL_KEY) === '1'; } catch { return false; }
+    }
+    function tagsOnlyOn() {
+      try { return localStorage.getItem(TAG_ONLY_KEY) === '1'; } catch { return false; }
+    }
+    function parseTagValue(raw) {
+      const parts = String(raw || '').split('+').map((s) => s.trim()).filter(Boolean);
+      if (parts.length < 1 || parts.length > 2) return null;
+      if (!parts.every((p) => TAG_SET.has(p))) return null;
+      return { primary: parts[0], secondary: parts[1] || '' };
+    }
+    function stripKnownTag(s) {
+      return String(s || '').replace(/^\s*\[([^\]]+)\]\s*/, (all, inner) => (
+        parseTagValue(inner) ? '' : all
+      ));
+    }
+    function asciiDigits(s) {
+      return String(s).replace(/[０-９]/g, (ch) => String(ch.charCodeAt(0) - 0xFF10));
+    }
+    function fileYmdFrom(box) {
+      const h1 = box.querySelector('h1');
+      const m = h1 && h1.textContent.match(/(\d{4}-\d{2}-\d{2})/);
+      if (m) return m[1];
+      const id = String(state.activeId || '');
+      return /^\d{4}-\d{2}-\d{2}$/.test(id) ? id : '';
+    }
+    function pad2(n) { return String(n).padStart(2, '0'); }
+    function deadlineFrom(text, fileYmd) {
+      if (!fileYmd || !text) return null;
+      const fy = +fileYmd.slice(0, 4);
+      const fm = +fileYmd.slice(5, 7);
+      const cands = [];
+      const push = (ymd, precision) => {
+        if (ymd > fileYmd) cands.push({ ymd, precision });
+      };
+      for (const m of text.matchAll(/(\d{4})-(\d{2})-(\d{2})/g)) {
+        push(`${m[1]}-${m[2]}-${m[3]}`, 'day');
+      }
+      for (const m of text.matchAll(/(\d{1,2})\/(\d{1,2})/g)) {
+        const month = +m[1], day = +m[2];
+        if (month < 1 || month > 12 || day < 1 || day > 31) continue;
+        push(`${fy}-${pad2(month)}-${pad2(day)}`, 'day');
+      }
+      for (const m of text.matchAll(/(\d{1,2})月(\d{1,2})日/g)) {
+        const month = +m[1], day = +m[2];
+        if (month < 1 || month > 12 || day < 1 || day > 31) continue;
+        push(`${fy}-${pad2(month)}-${pad2(day)}`, 'day');
+      }
+      for (const m of text.matchAll(/(\d{1,2})月/g)) {
+        const month = +m[1];
+        if (month < 1 || month > 12 || month <= fm) continue;
+        const next = text[m.index + m[0].length] || '';
+        if (next === '日' || /\d/.test(next)) continue;
+        push(`${fy}-${pad2(month)}-01`, 'month');
+      }
+      if (!cands.length) return null;
+      cands.sort((a, b) => (a.ymd < b.ymd ? -1 : a.ymd > b.ymd ? 1 : 0));
+      return cands[0];
+    }
+    function firstTextNode(el) {
+      let n = el.firstChild;
+      while (n && (n.nodeType !== 3 || !/\S/.test(n.nodeValue))) n = n.nextSibling;
+      return (n && n.nodeType === 3) ? n : null;
+    }
+    function tagHost(li) {
+      const firstEl = li.firstElementChild;
+      if (firstEl && firstEl.tagName === 'P' && li.firstChild === firstEl) return firstEl;
+      return li;
+    }
+    function stubNum(li) {
+      const clone = li.cloneNode(true);
+      clone.querySelectorAll('strong').forEach((s) => s.remove());
+      const t = clone.textContent.replace(/[：:]/g, '').replace(/\s+/g, '');
+      const m = t.match(/^（ハイライト([0-9０-９]+)参照）$/);
+      return m ? asciiDigits(m[1]) : '';
+    }
+    function assignTagData(el, parsed, fileYmd, heading) {
+      el.dataset.tagPrimary = parsed.primary;
+      if (parsed.secondary) el.dataset.tagSecondary = parsed.secondary;
+      else delete el.dataset.tagSecondary;
+      const listed = CHIP_ORDER.includes(parsed.primary) || CHIP_ORDER.includes(parsed.secondary);
+      el.dataset.tagListed = listed ? '1' : '0';
+      const dl = deadlineFrom(heading, fileYmd);
+      if (dl) {
+        el.dataset.deadline = dl.ymd;
+        el.dataset.deadlinePrecision = dl.precision;
+      }
+      if (el.innerHTML.includes('ai_unrelated')) el.dataset.aiUnrelated = '1';
+    }
+    function stripTagTokens(box) {
+      const fileYmd = fileYmdFrom(box);
+      const byNum = new Map();
+      for (const h of box.querySelectorAll('h3')) {
+        const node = firstTextNode(h);
+        if (!node) continue;
+        const m = node.nodeValue.match(/^(\s*\d+\.\s*)\[([^\]]+)\]\s*/);
+        if (!m) continue;
+        const parsed = parseTagValue(m[2]);
+        if (!parsed) continue;
+        node.nodeValue = m[1] + node.nodeValue.slice(m[0].length);
+        const num = (m[1].match(/\d+/) || [''])[0];
+        if (num) byNum.set(num, parsed);
+        assignTagData(h, parsed, fileYmd, h.textContent);
+      }
+      for (const li of box.querySelectorAll('li')) {
+        if (li.parentElement?.closest('li')) continue;
+        const host = tagHost(li);
+        const node = firstTextNode(host);
+        let parsed = null;
+        if (node) {
+          const m = node.nodeValue.match(/^\s*\[([^\]]+)\]\s*/);
+          if (m) {
+            parsed = parseTagValue(m[1]);
+            if (parsed) {
+              node.nodeValue = node.nodeValue.slice(m[0].length);
+              if (!node.nodeValue) node.remove();
+            }
+          }
+        }
+        const ref = stubNum(li);
+        if (ref && byNum.has(ref)) {
+          parsed = byNum.get(ref);
+          li.dataset.tagStub = '1';
+        }
+        if (!parsed) continue;
+        const heading = li.querySelector('strong')?.textContent || '';
+        assignTagData(li, parsed, fileYmd, heading);
+      }
+    }
+    function visibleTags(primary, secondary, place, allTags) {
+      const out = [];
+      const take = (name, asSecondary) => {
+        if (!name || NO_CHIP.has(name) || !CHIP_ORDER.includes(name)) return;
+        if (place === 'highlight') { out.push(name); return; }
+        if (!asSecondary && (DEFAULT_CHIP.has(name) || (allTags && NEUTRAL_CHIP.has(name)))) out.push(name);
+        if (asSecondary && (SECOND_ON_CAT.has(name) || (allTags && NEUTRAL_CHIP.has(name)))) out.push(name);
+      };
+      take(primary, false);
+      if (secondary && secondary !== primary) take(secondary, true);
+      return out;
+    }
+    function makeChip(name) {
+      const s = document.createElement('span');
+      s.className = 'tag tag-' + (TAG_SLUG[name] || 'trend');
+      s.textContent = name;
+      return s;
+    }
+    function clearTagPaint(scope) {
+      scope.querySelectorAll('.hl-kicker, .tag-row, .sub-tags').forEach((el) => el.remove());
+      scope.querySelectorAll('h3 > .h3-main').forEach((wrap) => {
+        const h = wrap.parentElement;
+        while (wrap.firstChild) h.insertBefore(wrap.firstChild, wrap);
+        wrap.remove();
+      });
+      scope.querySelectorAll('.cat-k.has-tag').forEach((el) => {
+        const t = el.querySelector('.cat-k-t');
+        if (t) {
+          while (t.firstChild) el.insertBefore(t.firstChild, t);
+          t.remove();
+        }
+        el.classList.remove('has-tag');
+      });
+    }
+    function paintUpdateTags(box) {
+      const scope = box.querySelector('.page-body') || box;
+      clearTagPaint(scope);
+      const all = tagsAllOn();
+      for (const h of scope.querySelectorAll('h3[data-tag-primary]')) {
+        if (h.dataset.aiUnrelated === '1' || h.closest('.sub')) continue;
+        const place = h.dataset.tagPlace || 'highlight';
+        const tags = visibleTags(h.dataset.tagPrimary, h.dataset.tagSecondary || '', place, all);
+        if (!tags.length) continue;
+        const kick = document.createElement('span');
+        kick.className = 'hl-kicker';
+        for (const name of tags) kick.appendChild(makeChip(name));
+        const rest = document.createElement('span');
+        rest.className = 'h3-main';
+        while (h.firstChild) rest.appendChild(h.firstChild);
+        h.append(kick, rest);
+      }
+      for (const li of scope.querySelectorAll('li[data-tag-primary]')) {
+        if (li.dataset.aiUnrelated === '1') continue;
+        const tags = visibleTags(li.dataset.tagPrimary, li.dataset.tagSecondary || '', 'category', all);
+        if (!tags.length) continue;
+        const row = document.createElement('span');
+        row.className = 'tag-row';
+        for (const name of tags) row.appendChild(makeChip(name));
+        const k = li.querySelector('.cat-k');
+        if (k) {
+          const wrap = document.createElement('span');
+          wrap.className = 'cat-k-t';
+          while (k.firstChild) wrap.appendChild(k.firstChild);
+          k.append(row, wrap);
+          k.classList.add('has-tag');
+        } else {
+          const block = [...li.children].find((c) => c.matches('.sent, p'));
+          if (block) block.insertBefore(row, block.firstChild);
+          else li.insertBefore(row, li.firstChild);
+        }
+      }
+      for (const sub of scope.querySelectorAll('details.sub')) {
+        const counts = new Map();
+        const items = sub.querySelectorAll(':scope > ul:not(.src) > li[data-tag-primary], :scope > ol > li[data-tag-primary]');
+        for (const li of items) {
+          if (li.dataset.tagStub === '1' || li.dataset.aiUnrelated === '1') continue;
+          for (const name of visibleTags(li.dataset.tagPrimary, li.dataset.tagSecondary || '', 'category', all)) {
+            counts.set(name, (counts.get(name) || 0) + 1);
+          }
+        }
+        if (!counts.size) continue;
+        const span = document.createElement('span');
+        span.className = 'sub-tags';
+        for (const name of CHIP_ORDER) {
+          if (!counts.has(name)) continue;
+          const chip = makeChip(name);
+          chip.append(document.createTextNode(String(counts.get(name))));
+          span.append(chip);
+        }
+        const num = sub.querySelector(':scope > summary .sub-n');
+        if (num) num.after(span);
+        else sub.querySelector(':scope > summary')?.append(span);
+      }
+      for (const day of scope.querySelectorAll('details.cat-day')) {
+        const counts = new Map();
+        const heads = day.querySelectorAll(':scope > .cat-day-body h3.cat-piece-t[data-tag-primary]');
+        for (const h of heads) {
+          if (h.dataset.aiUnrelated === '1') continue;
+          const place = h.dataset.tagPlace || 'category';
+          for (const name of visibleTags(h.dataset.tagPrimary, h.dataset.tagSecondary || '', place, all)) {
+            counts.set(name, (counts.get(name) || 0) + 1);
+          }
+        }
+        if (!counts.size) continue;
+        const span = document.createElement('span');
+        span.className = 'sub-tags';
+        for (const name of CHIP_ORDER) {
+          if (!counts.has(name)) continue;
+          const chip = makeChip(name);
+          chip.append(document.createTextNode(String(counts.get(name))));
+          span.append(chip);
+        }
+        day.querySelector(':scope > summary')?.append(span);
+      }
+    }
+    function applyTagMode() {
+      const all = tagsAllOn();
+      const only = tagsOnlyOn();
+      $('#content')?.classList.toggle('tags-all', all);
+      $('#content')?.classList.toggle('tags-only', only);
+      $('#tag-all')?.setAttribute('aria-pressed', String(all));
+      $('#tag-only')?.setAttribute('aria-pressed', String(only));
+    }
+    function syncTagTools(box) {
+      applyTagMode();
+      const tools = $('#tag-tools');
+      if (!tools) return;
+      tools.classList.toggle('hide', !box.querySelector('[data-tag-primary]'));
+    }
+    function repaintTags() {
+      const body = $('#content')?.querySelector('.page-body');
+      if (body) paintUpdateTags($('#content'));
+      applyTagMode();
+    }
+
     function decorate(box, opts) {
+      stripTagTokens(box);
       decorateLinks(box);
       decorateLabels(box);
       splitClosedCircledLists(box);
@@ -2026,15 +2366,19 @@
       decorateNote(box);
       decorateLede(box);
       if (opts && opts.group === false) {
+        paintUpdateTags(box);
         syncExpandBtn();
+        syncTagTools(box);
         return;
       }
       groupSections(box); // ノードを移動するので必ず最後に実行する
       decorateSchedule(box); // data-sched 付与後に日付／本文を2列化し、週トグルへ分ける
+      paintUpdateTags(box);
       applySectionOpen(box);
       // groupSections は節が1つ以下だと早期 return するため、
       // ボタンの表示可否はここで必ず更新する
       syncExpandBtn();
+      syncTagTools(box);
     }
 
     // `## セクション` を折りたたみ可能にする。
@@ -2906,7 +3250,14 @@
         out.day = schedMD(m[1], m[2]); out.quals.push(`–${schedMD(m[3], m[4])}`);
         return finishSchedLabel(out, y);
       }
-      m = s.match(/^(\d{1,2})\/(\d{1,2})\s*[–—−-]\s*(\d{1,2})$/);
+      m = s.match(/^(\d{4})年\s*(\d{1,2})月(.*)$/);
+      if (m) {
+        out.year = Number(m[1]);
+        const rest = m[3].trim();
+        out.quals.push(rest ? `${Number(m[2])}月${rest}` : `${Number(m[2])}月`);
+        return finishSchedLabel(out, y);
+      }
+      m = s.match(/^(\d{1,2})\/(\d{1,2})\s*[–—−\-〜~]\s*(\d{1,2})$/);
       if (m) {
         out.day = schedMD(m[1], m[2]); out.quals.push(`–${schedMD(m[1], m[3])}`);
         return finishSchedLabel(out, y);
@@ -2925,10 +3276,12 @@
 
       m = s.match(/^(\d{1,2})月末$/);
       if (m) { out.quals.push(`${Number(m[1])}月末`); return finishSchedLabel(out, y); }
-      m = s.match(/^(\d{1,2})月(.+)$/);
-      if (m) { out.quals.push(`${Number(m[1])}月${m[2]}`); return finishSchedLabel(out, y); }
-      m = s.match(/^(\d{1,2})月$/);
-      if (m) { out.quals.push(`${Number(m[1])}月`); return finishSchedLabel(out, y); }
+      m = s.match(/^(\d{1,2})\s*月(.*)$/);
+      if (m) {
+        const rest = m[2].trim();
+        out.quals.push(rest ? `${Number(m[1])}月${rest}` : `${Number(m[1])}月`);
+        return finishSchedLabel(out, y);
+      }
       if (/^(年末|年内|今秋|今冬|今春|今夏|今年度内)$/.test(s)) {
         out.quals.push(s); return finishSchedLabel(out, y);
       }
@@ -2956,9 +3309,10 @@
           const strong = host.firstElementChild;
           if (!strong || strong.tagName !== 'STRONG') continue;
           const after = strong.nextSibling;
-          if (!after || after.nodeType !== Node.TEXT_NODE || !/^\s*[:：]/.test(after.nodeValue || '')) continue;
-
-          after.nodeValue = after.nodeValue.replace(/^\s*[:：]\s*/, '');
+          if (!after) continue;
+          if (after.nodeType === Node.TEXT_NODE) {
+            after.nodeValue = after.nodeValue.replace(/^\s*[:：]\s*/, '');
+          }
           const parsed = parseScheduleLabel(strong.textContent);
 
           const date = document.createElement('span');
@@ -2992,8 +3346,9 @@
           const ref = today ? today.nextSibling : body.firstChild;
           for (const q of parsed.quals) {
             const chip = document.createElement('span');
-            chip.className = 'sched-chip';
-            chip.textContent = q;
+            const todayMark = q === '（本日）' || q === '本日';
+            chip.className = todayMark ? 'sched-today' : 'sched-chip';
+            chip.textContent = todayMark ? '本日' : q;
             body.insertBefore(chip, ref);
           }
 
@@ -3444,6 +3799,7 @@
     function catHighlightTitle(block) {
       const first = String(block || '').split('\n')[0].replace(/^#+\s*/, '');
       let t = first.replace(/^\d+\s*[.．、]\s*/, '');
+      t = stripKnownTag(t);
       t = t.replace(/\s+[—–−\-]\s+.+$/, '');
       return clipCatTitle(t) || clipCatTitle(first) || '項目';
     }
@@ -3455,7 +3811,7 @@
         if (t) return t;
       }
       for (const raw of String(chunk || '').split('\n')) {
-        const line = raw.replace(/^[-*]\s+/, '').replace(/^#+\s*/, '').replace(/\*\*/g, '').trim();
+        const line = stripKnownTag(raw.replace(/^[-*]\s+/, '').replace(/^#+\s*/, '').replace(/\*\*/g, '')).trim();
         if (line) return clipCatTitle(line) || '項目';
       }
       return '項目';
@@ -3472,16 +3828,39 @@
       try { decorate(el, { group: false }); } catch (err) { console.warn('装飾に失敗:', err); }
     }
 
-    function catPieceNode(piece) {
+    function pieceParsedTag(md) {
+      const first = String(md || '').split('\n')[0];
+      const hl = first.match(/^#+\s*\d+\s*[.．、]\s*\[([^\]]+)\]/);
+      const item = first.match(/^[-*]\s+\[([^\]]+)\]/);
+      const raw = (hl || item || [])[1];
+      return raw ? parseTagValue(raw) : null;
+    }
+    function stripPieceToken(md) {
+      return String(md || '').replace(/^([-*]\s+)\[([^\]]+)\]\s*/, (all, pre, inner) => (
+        parseTagValue(inner) ? pre : all
+      ));
+    }
+    function catPieceNode(piece, fileYmd) {
       const art = document.createElement('article');
       art.className = 'cat-piece';
       const h = document.createElement('h3');
       h.className = 'cat-piece-t';
       h.textContent = piece.kind === 'hl' ? catHighlightTitle(piece.md) : catItemTitle(piece.md);
+      const parsed = pieceParsedTag(piece.md);
+      if (parsed) {
+        assignTagData(h, parsed, fileYmd, String(piece.md).split('\n')[0]);
+        h.dataset.tagPlace = piece.kind === 'hl' ? 'highlight' : 'category';
+        art.dataset.tagListed = h.dataset.tagListed || '0';
+        if (String(piece.md).includes('ai_unrelated')) {
+          h.dataset.aiUnrelated = '1';
+          art.dataset.aiUnrelated = '1';
+        }
+      }
       art.appendChild(h);
       const body = document.createElement('div');
       let md = piece.md;
       if (piece.kind === 'hl') md = md.replace(/^###[^\n]*\n+/, '');
+      else md = stripPieceToken(md);
       fillCatBody(body, md);
       art.appendChild(body);
       return art;
@@ -3819,7 +4198,7 @@
           daySum.appendChild(h);
           const body = document.createElement('div');
           body.className = 'cat-day-body';
-          for (const p of pieces) body.appendChild(catPieceNode(p));
+          for (const p of pieces) body.appendChild(catPieceNode(p, e.ymd));
           day.append(daySum, body);
           weekDays.appendChild(day);
         }
@@ -3829,6 +4208,7 @@
         month.append(sum, box);
         host.appendChild(month);
       }
+      paintUpdateTags(host);
 
       mountPage($('#content'), {
         context: CATEGORY_TITLE,
@@ -4192,6 +4572,15 @@
       $('#menu-btn').addEventListener('click', () => setDrawer(!$('#sidebar').classList.contains('open')));
       $('#scrim').addEventListener('click', () => setDrawer(false));
       $('#expand-all').addEventListener('click', toggleExpandAll);
+      applyTagMode();
+      $('#tag-all').addEventListener('click', () => {
+        try { localStorage.setItem(TAG_ALL_KEY, tagsAllOn() ? '0' : '1'); } catch { /* 保存できなくても表示は切り替える */ }
+        repaintTags();
+      });
+      $('#tag-only').addEventListener('click', () => {
+        try { localStorage.setItem(TAG_ONLY_KEY, tagsOnlyOn() ? '0' : '1'); } catch { /* 同上 */ }
+        applyTagMode();
+      });
       // 個別に節を開閉したときもボタンの表示を合わせる。
       // details の toggle イベントはバブルしないので capture で受ける
       $('#content').addEventListener('toggle', syncExpandBtn, true);
