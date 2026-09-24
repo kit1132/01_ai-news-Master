@@ -555,8 +555,8 @@
     .content h2.cat-day-when {
       font-size: 16px; font-weight: 600; color: var(--fg-strong);
       letter-spacing: -.01em; line-height: 1.3; margin: 0; padding: 0;
-      /* 基準幅 0% だと件数チップに幅を取られ、狭い画面で日付が4文字で折れる */
-      flex: 1 0 auto; white-space: nowrap;
+      /* 伸びると日付の文字と件数チップの間が空く。幅は文字幅のまま、狭い画面ではチップだけ次行へ */
+      flex: none; white-space: nowrap;
     }
     .content h2.cat-day-when.dow-sat { color: var(--dow-sat); }
     .content h2.cat-day-when.dow-sun { color: var(--dow-sun); }
@@ -779,10 +779,10 @@
     /* 節 24 / カテゴリ 15 / 項目 14 / 本文 14。トグルが親で中身は一段落とす */
     .content h3.sub-t {
       font-size: 15px; font-weight: 600; color: var(--fg-strong); line-height: 1.45;
-      margin: 0; padding: 0; flex: 1 1 auto; min-width: min(100%, 8em); overflow: hidden;
+      margin: 0; padding: 0; flex: 0 1 auto; min-width: 0; max-width: 100%; overflow: hidden;
     }
     .sub[open] > summary .sub-t { color: var(--fg-strong); }
-    .sub-n { font-size: 12px; font-weight: 400; color: var(--muted-strong); flex: none; padding-left: 8px; }
+    .sub-n { font-size: 12px; font-weight: 400; color: var(--muted-strong); flex: none; }
     /* シェブロン列の右＝タイトル先頭に揃えてから、レール＋一段インデント。
        `.content .sub > ul` の方が特異性が高いので、ネスト指定はそちらに書く */
     .content .sub[open] > ul:not(.src),
@@ -832,10 +832,8 @@
     .tag-trend { --tag-bg: var(--tag-trend-bg); --tag-fg: var(--tag-trend-fg); }
     .sub-tags {
       display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px;
-      flex: 1 1 12em; min-width: 0;
+      flex: none; min-width: 0;
     }
-    /* 日付見出しは縮めない。狭い画面では件数チップだけ次の行へ回す */
-    .cat-day > summary > .sub-tags { flex: 1 1 auto; }
     .content li[data-ai-unrelated="1"],
     .content .cat-piece[data-ai-unrelated="1"] { display: none; }
     .content.tags-only li[data-tag-listed="0"],
