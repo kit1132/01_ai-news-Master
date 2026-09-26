@@ -1479,20 +1479,22 @@
       const name = catOf(slug)?.name || '';
       return name && name !== text ? name : '';
     }
-    function catClassifyText(text) {
-      const scores = {};
-      const lower = text.toLowerCase();
+    // 当たったカテゴリを全部返す。同点で null にすると、混合見出しと
+    // ハイライト参照の無い本日トップが全カテゴリから消える
+    // （2026-09-26: GitHub の 10/22 既定ポリシーが Copilot と MCP で同点）。
+    function catClassifySlugs(text) {
+      const raw = String(text || '');
+      const lower = raw.toLowerCase();
+      const hits = [];
       for (const [slug, kws] of Object.entries(CAT_ITEM_KW)) {
-        let s = 0;
         for (const kw of kws) {
-          if (lower.includes(kw.toLowerCase()) || text.includes(kw)) s++;
+          if (lower.includes(kw.toLowerCase()) || raw.includes(kw)) {
+            hits.push(slug);
+            break;
+          }
         }
-        if (s) scores[slug] = s;
       }
-      const ranked = Object.entries(scores).sort((a, b) => b[1] - a[1]);
-      if (!ranked.length) return null;
-      if (ranked.length > 1 && ranked[0][1] === ranked[1][1]) return null;
-      return ranked[0][0];
+      return hits;
     }
     function catSliceH2(md, title) {
       const m = md.match(new RegExp(`^##[^\\S\\n]*${escapeRe(title)}\\s*$`, 'm'));
@@ -1579,7 +1581,7 @@
             for (const item of catSplitItems(body)) pieces.push(item);
           } else if (target === '*') {
             for (const item of catSplitItems(body)) {
-              if (catClassifyText(item) === slug) pieces.push(item);
+              if (catClassifySlugs(item).includes(slug)) pieces.push(item);
             }
           }
           for (const p of pieces) {
@@ -1594,7 +1596,7 @@
       }
       for (const [n, block] of Object.entries(hlMap)) {
         if (usedHl.has(n)) continue;
-        if (catClassifyText(block) === slug) highlights.push(block);
+        if (catClassifySlugs(block).includes(slug)) highlights.push(block);
       }
       const hl = highlights.filter((b) => !isSilenceReport(b));
       const items = chunks.filter((c) => !isSilenceReport(c));

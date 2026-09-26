@@ -1,0 +1,18 @@
+# カテゴリ分類が同点で項目を捨てたときの警報。
+name: check-category-classify
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'scripts/check-category-classify.js'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: カテゴリ分類を検査する
+        run: node scripts/check-category-classify.js
