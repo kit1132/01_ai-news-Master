@@ -868,10 +868,10 @@
     .content .sub ul.src { margin: 8px 0 0; }
 
     /* 注目予定: 週トグルの中はカテゴリと同じネスト。日付列は M/D のみ */
-    .content .sec[data-sched] .sub > ul:not(.src) > li,
-    .content .sec[data-sched] .sub > ol > li,
-    .content .sec[data-sched] > ul:not(.src) > li,
-    .content .sec[data-sched] > ol > li {
+    .content .sec[data-sched] .sub > ul:not(.src) > li:has(> .sched-d),
+    .content .sec[data-sched] .sub > ol > li:has(> .sched-d),
+    .content .sec[data-sched] > ul:not(.src) > li:has(> .sched-d),
+    .content .sec[data-sched] > ol > li:has(> .sched-d) {
       display: grid;
       grid-template-columns: 3.5rem minmax(0, 1fr);
       column-gap: 12px;
@@ -1050,10 +1050,10 @@
       /* 畳んだ見出しがそのまま目次になる。タップ領域を44px確保する */
       .sec > summary { display: flex; margin-top: 16px; margin-bottom: 10px; padding: 10px 8px; min-height: 44px; }
       .sub > summary { padding: 11px 6px; min-height: 44px; }
-      .content .sec[data-sched] .sub > ul:not(.src) > li,
-      .content .sec[data-sched] .sub > ol > li,
-      .content .sec[data-sched] > ul:not(.src) > li,
-      .content .sec[data-sched] > ol > li {
+      .content .sec[data-sched] .sub > ul:not(.src) > li:has(> .sched-d),
+      .content .sec[data-sched] .sub > ol > li:has(> .sched-d),
+      .content .sec[data-sched] > ul:not(.src) > li:has(> .sched-d),
+      .content .sec[data-sched] > ol > li:has(> .sched-d) {
         grid-template-columns: 3.25rem minmax(0, 1fr);
         column-gap: 10px; padding: 10px 0;
       }
@@ -3325,6 +3325,11 @@
       return finishSchedLabel(out, y);
     }
 
+    // 週次は **日付** ではなく「9/21: 本文」。日付らしい先頭だけをラベルにする。
+    function looksLikeScheduleLabel(s) {
+      return /^(?:\d{4}(?:-\d{1,2}(?:-\d{1,2})?|年)?|\d{1,2}\/\d{1,2}|\d{1,2}月|年末|年内|今秋|今冬|今春|今夏|今年度内|Q[1-4]\b)/.test(String(s || '').trim());
+    }
+
     // 注目予定の「**日付**: 本文」を日付列＋本文列に組み替える。
     // groupSections が data-sched を付けるので、その後に呼ぶこと。
     function decorateSchedule(box) {
@@ -3336,26 +3341,43 @@
           const host = (firstEl && firstEl.tagName === 'P' && li.firstChild === firstEl) ? firstEl : li;
 
           const strong = host.firstElementChild;
-          if (!strong || strong.tagName !== 'STRONG') continue;
-          const after = strong.nextSibling;
-          if (!after) continue;
-          if (after.nodeType === Node.TEXT_NODE) {
-            after.nodeValue = after.nodeValue.replace(/^\s*[:：]\s*/, '');
+          let labelText = '';
+          let labelNode = null;
+          if (strong && strong.tagName === 'STRONG' && strong.nextSibling) {
+            const after = strong.nextSibling;
+            if (after.nodeType === Node.TEXT_NODE) {
+              after.nodeValue = after.nodeValue.replace(/^\s*[:：]\s*/, '');
+            }
+            labelText = strong.textContent;
+            labelNode = strong;
+          } else {
+            const first = host.firstChild;
+            if (first && first.nodeType === Node.TEXT_NODE) {
+              const m = first.nodeValue.match(/^\s*(.+?)[:：]\s*/);
+              if (m && looksLikeScheduleLabel(m[1])) {
+                labelText = m[1];
+                first.nodeValue = first.nodeValue.slice(m[0].length);
+              }
+            }
           }
-          const parsed = parseScheduleLabel(strong.textContent);
+          if (!labelText) continue;
+          const parsed = parseScheduleLabel(labelText);
 
           const date = document.createElement('span');
           date.className = 'sched-d' + (parsed.day ? '' : ' is-empty');
           date.textContent = parsed.day || '–';
-          date.title = strong.textContent;
+          date.title = labelText;
 
           const body = document.createElement('span');
           body.className = 'sched-b';
 
           const move = [];
-          for (let n = strong.nextSibling; n; n = n.nextSibling) move.push(n);
-          strong.remove();
-          for (const n of move) body.appendChild(n);
+          for (let n = labelNode ? labelNode.nextSibling : host.firstChild; n; n = n.nextSibling) move.push(n);
+          if (labelNode) labelNode.remove();
+          for (const n of move) {
+            if (n.nodeType === Node.TEXT_NODE && !n.nodeValue) continue;
+            body.appendChild(n);
+          }
 
           const firstText = body.firstChild;
           if (firstText && firstText.nodeType === Node.TEXT_NODE) {
