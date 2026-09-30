@@ -1455,19 +1455,35 @@
     function catNormHeading(h) {
       return h.replace(/（[^）]*）/g, '').replace(/\([^)]*\)/g, '').trim();
     }
-    function catHeadingTarget(h) {
+    // 見出しが指すカテゴリ。別名1件、または正規表現で当たった分。
+    function catHeadingSlugs(h) {
       const n = catNormHeading(h);
-      if (CAT_ALIAS[n]) return CAT_ALIAS[n];
-      if (/^(その他|継続ウォッチ|ウォッチ|Meta)$/.test(n)) return null;
+      if (CAT_ALIAS[n]) return [CAT_ALIAS[n]];
+      if (/^(その他|継続ウォッチ|ウォッチ|Meta)$/.test(n)) return [];
       const hits = [];
       for (const [slug, re] of CAT_HEAD_RE) {
         if (re.test(n) && !hits.includes(slug)) hits.push(slug);
       }
+      return hits;
+    }
+    function catHeadingTarget(h) {
+      const hits = catHeadingSlugs(h);
       if (hits.length === 1) return hits[0];
       if (hits.length > 1) return '*';
+      const n = catNormHeading(h);
       if (/開発ツール|コーディングエージェント|Microsoft（その他）|Microsoft \(その他\)|セキュリティ/.test(h)) return '*';
       if (/Microsoft\s*\/\s*GitHub/.test(n) || /Microsoft\s*\/\s*Copilot$/.test(n)) return '*';
       return null;
+    }
+    function catHasKeywordHit(text) {
+      const raw = String(text || '');
+      const lower = raw.toLowerCase();
+      for (const kws of Object.values(CAT_ITEM_KW)) {
+        for (const kw of kws) {
+          if (lower.includes(kw.toLowerCase()) || raw.includes(kw)) return true;
+        }
+      }
+      return false;
     }
     // 今日のまとめの ### は生成時の見出しのままなので、画面上だけカテゴリの表示名に寄せる。
     // 1本の見出しが複数カテゴリにまたがるものだけ、ここで両方の名前を出す。
@@ -1585,8 +1601,14 @@
           if (target === slug) {
             for (const item of catSplitItems(body)) pieces.push(item);
           } else if (target === '*') {
+            // 複合見出しは項目の語で振り分ける。語が1つも無い項目は
+            // 見出しが既に指名したカテゴリへ戻す。同点で null になる件は
+            // 語が当たっているのでここでは拾わない。
+            const headSlugs = catHeadingSlugs(title);
             for (const item of catSplitItems(body)) {
-              if (catClassifyText(item) === slug) pieces.push(item);
+              const got = catClassifyText(item);
+              if (got === slug) pieces.push(item);
+              else if (got == null && !catHasKeywordHit(item) && headSlugs.includes(slug)) pieces.push(item);
             }
           }
           for (const p of pieces) {
