@@ -1,0 +1,18 @@
+# 複合見出しの下で、語の無い項目を時系列から落とさないこと。
+name: check-category-heading-fallback
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'scripts/check-category-heading-fallback.js'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: 複合見出しのフォールバックを検査する
+        run: node scripts/check-category-heading-fallback.js
