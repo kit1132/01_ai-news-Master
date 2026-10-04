@@ -14,6 +14,12 @@
 
 ## 提案中
 
+- **B-083: Gemini App Release Notes の登録 URL（`support.google.com/gemini/answer/13594961`）を、Gemini アプリのリリースノート本体を返す URL へ差し替える**（起票 2026-10-05 / 最終確認 2026-10-05 / 回数 1）
+  - 対象: `.claude/rules/sites/daily-sources.md`「最優先」の **Google Gemini App Release Notes** 項の URL 欄と備考欄
+  - 変更内容: ① URL 欄を、日付つきのリリースノートを返す URL（候補: `gemini.google/release-notes/`。ゲートウェイ拒否のため本文は未確認）へ差し替える ② 備考に「`support.google.com` はゲートウェイを通過する（2026-10-05 `curl` 200）が、`/gemini/answer/13594961` の WebFetch 本文は **Gemini Apps Privacy Hub** でリリースノートではない。到達できることを取得成功と見なさない」と書く
+  - 根拠: 2026-10-05 の週次復旧チェックで `support.google.com/gemini/answer/13594961` が `curl` 200 を返した（08-03 以降ゲートウェイ拒否として記録してきたホスト）。WebFetch で日付つきエントリを問うと、返った本文は Privacy Hub（privacy notice 6/29 更新・privacy questions 9/24 更新）で、リリースノートのエントリは0件だった。同日は Gemini アプリ無料枠の Flash-Lite 限定（10/9 発効）がハイライトになったが、**一次の登録 URL が別ページを返すため一次確定できなかった**。`fetch-flow.md`「復旧チェック」手順2の「取得方法欄を戻すのは本文取得が成功したときだけ」に該当し、ホストの到達性ではなく **URL 定義の陳腐化**として扱う
+  - 制約: 差し替え候補の `gemini.google` はゲートウェイ拒否が継続しているため、差し替えても当面は WebSearch 依存のまま。`support.google.com` 配下で Gemini アプリのリリースノートを返す別の answer ID が見つかればそちらを優先する
+
 - **B-082: 日付降順ページの差分判定を「日付が前回チェック日以降か」から「前回記録した最上位エントリより上にあるか」へ変える（B-079 の ID 集合差分を HF 以外へ広げる）**（起票 2026-09-23 / 最終確認 2026-10-04 / 回数 11）
   - 対象: `.claude/rules/sites/fetch-flow.md`「WebFetch の要約取りこぼし対策」（B-024 の手順群）に1項を新設し、`daily-sources.md`「最優先」の **Gemini API Changelog** 項の備考欄に同趣旨を書く
   - 変更内容: 2点。① 「**日付降順の changelog / release notes は、取得のたびに最上位エントリの日付と見出しを `.last-check-state.md` に残し、翌日は『前回記録した最上位（日付と見出し）より上にあるエントリを全件挙げよ』と問う**。『前回チェック日以降のエントリを挙げよ』では、前回チェック日より前の日付を持つエントリが後から上位に加わった場合に検出できない」と規定する ② Gemini API Changelog 項の備考に「⚠️ **掲載日と記載日付が一致しないことがある**。差分は日付ではなく掲載位置で取る」を追記する
@@ -302,7 +308,7 @@
   - 根拠: 2026-08-13 に DeepSeek が **① V4-Pro-0813 の重みを MIT で Hugging Face に公開**し、同日 **② V4-Flash / V4-Pro の API 料金を最大 1,100% 引き上げると告知**（発効 2026-08-16 16:00 UTC）した。**本ダイジェストは①②のどちらも 08-13・08-14・08-15 の3セッションで検出できず、08-16 に3日遅れで初検出した**。②は発効が検出当日であり、**値上げ前に気づける最後の日にようやく載った**形になる。⚠️ 検出の経路も登録手順ではない——B-032 の HF org 一覧を Qwen 以外の org へ横展開した副産物として `deepseek-ai/DeepSeek-V4-Pro-0813`（8/13 03:05 UTC 作成 / `private: false` / `gated: false` / safetensors 66シャード / `safetensors.total` 1,650,497,936,906 / `license: mit`）が現れ、そこから料金改定に辿り着いた。**DeepSeek は `daily-sources.md` に1項目も登録されていない**にもかかわらず、08-02・08-03・08-04 のダイジェストでは V4-Flash-0731 が3日連続で主要項目（うち2日はハイライト）になっており、**実態として毎日追っているソースがルール上は存在しない**状態が2週間続いた。⚠️ さらに構造的な問題として、**現行の登録ソースは「changelog / release notes」に寄っており「料金ページ」を見る項目が1つも無い**。料金は退役日と同じく不可逆な期限を持つ（`output-style.md` のハイライト選定基準1）が、値上げは changelog には載らない
   - 制約: 一次2ホストがゲートウェイ拒否のため、**登録しても料金は二次依存のまま**である（B-013 の許可リスト追加が要る）。重み公開だけは `huggingface.co` が到達可のため一次で判定できる。⚠️ 本提案は B-015（HF のソース登録）と重なるが置き換えではない——B-015 は HF というホストの登録、本提案は **DeepSeek というベンダーの登録**であり、料金という HF に載らない軸を含む。同型の欠落は他のオープンウェイト系ベンダー（Moonshot / Z.ai / MiniMax）にもあるため、採用時は DeepSeek 1社ではなく**オープンウェイト系ベンダー節としてまとめる**ことも検討に値する
 
-- **B-035: Claude Code の版検出に npm dist-tags（`registry.npmjs.org`）を加える**（起票 2026-08-15 / 最終確認 2026-10-04 / 回数 49）
+- **B-035: Claude Code の版検出に npm dist-tags（`registry.npmjs.org`）を加える**（起票 2026-08-15 / 最終確認 2026-10-05 / 回数 50）
   - 追記（2026-08-26・**`stable` の遅れが14版に拡大し、npm 限定版は5例目が出た**）: 本日の `dist-tags` は **`{stable: 2.1.231, latest: 2.1.245, next: 2.1.245}`**。⚠️ **`stable` は 2.1.231（8/13 publish）から13日間動いておらず、`latest` との差は10版 → 14版に拡大した**。この14版には本日のハイライト1で扱った v2.1.243 の管理設定4件（`modelPricing` / `modelPicker` / Console キーレスサインイン / `Skipped sources`）と、v2.1.245 の glibc 2.44 環境での起動クラッシュ修正が含まれる。**stable チャネル固定の組織では、起動すらできない環境の修正が届いていない**ことになる。⚠️ あわせて **v2.1.242（8/24 19:16 UTC publish）が changelog にも `raw.githubusercontent.com` の CHANGELOG.md にも存在しない**ことを確認した（npm にだけ出る版の5例目）。さらに **v2.1.244 は npm・changelog のどちらにも無い**——版番号の欠番自体は新しい形で、`latest` の連番だけを見て「取りこぼした版がある」と誤判定しないよう、**`time` の実 publish 記録を突き合わせる**必要がある
   - 追記（2026-08-19・**`next` 先行の3例目が出た。`stable` の遅れは8版で継続している**）: 本日の `dist-tags` は **`{stable: 2.1.226, latest: 2.1.234, next: 2.1.235}`**。前日（`{stable: 2.1.224, latest: 2.1.233, next: 2.1.234}`）と比べると、**前日 `next` にしか無かった v2.1.234 が本日 `latest` へ昇格し、同時に changelog と `raw.githubusercontent.com` の CHANGELOG.md にも掲載された**。08-16 と同じ形の再現で、npm `next` が changelog より丸1日先行する挙動は**3例目**にあたる。新たに `next` へ v2.1.235（8/18 18:24 UTC publish）が出ており、これも changelog / GitHub releases には無い。⚠️ `stable` は 2.1.224 → 2.1.226 と2版進んだが `latest` との差は **8版**で、v2.1.233 の Windows NT device path 修正と v2.1.234 の NT 名前空間パス拒否の拡張はどちらも stable 固定環境に未適用のままである。**セキュリティ修正のずれが2版ぶん積み増した**形で、登録済み2ソースだけを見ていると差の大きさが分からない状態が続いている
   - 追記（2026-08-16・**`next` → `latest` への昇格を追跡でき、`stable` の遅れが数値で確定した**）: 本日の `dist-tags` は **`{stable: 2.1.224, latest: 2.1.233, next: 2.1.233}`**。前日（`{stable: 2.1.223, latest: 2.1.232, next: 2.1.233}`）と比べると、**前日 `next` にしか無かった v2.1.233 が本日 `latest` へ昇格し、同時に changelog と GitHub releases にも掲載された**。つまり npm `next` は changelog より**丸1日先行**しており、起票時の見立て（①`next` には未掲載版が先に出る）が実測で裏づけられた。⚠️ より重要なのは `stable` 側で、**`stable` は 2.1.223 → 2.1.224 と1版しか進まず、`latest` との差は9版のまま**である。この9版には本日の v2.1.233 に入った **Windows の NT device path が UNC 検証を迂回する脆弱性の修正**が含まれており、**stable 固定の組織には未適用**にあたる。セキュリティ修正が `latest` と `stable` で9版ぶんずれる状態は、登録済み2ソース（changelog / GitHub releases）だけを見ていると**存在自体が見えない**
@@ -443,6 +449,13 @@
   - 根拠: 2026-07-27 に一次 URL `code.claude.com/docs/en/changelog` が 503 を返しフォールバックへ移行したところ、blob URL は GitHub の UI シェル（ファイルサイズ 466KB・5248行というメタ情報）のみが返り**本文が取得できなかった**。同一セッションで raw URL は本文取得に成功し v2.1.220 を確認できた。現行の備考にある「GitHub 版は大きいため 429 になることがある」への対策としても raw のほうが軽い
 
 ## 既知の取得障害
+
+- → **2026-10-05: 週次復旧チェック（月曜）を実施。復旧 0件・新規の取得障害 0件**（最終確認 2026-10-05）。WebFetch を先に当て、失敗したホストだけ `curl` で切り分けた。
+  - **ゲートウェイ拒否が継続（17ホスト・`EGRESS_BLOCKED` ／ `curl` exit 56・最終確認 2026-10-05）**: 前回 09-28 の一覧と同じ
+  - `openai.com` / `help.openai.com`: オリジン403（既知・最終確認 2026-10-05）→ 回避策: WebSearch
+  - `support.google.com`: `curl` 200 でゲートウェイは通過したが、登録 URL `/gemini/answer/13594961` の本文が Privacy Hub でリリースノートではなかった。**本文取得の成功ではないので復旧扱いにしない**（URL 定義の問題として B-083 を起票）
+  - 二次でゲートウェイ拒否を観測（記録のみ・要請対象外）: `tech-insider.org` / `securityonline.info` / `tbreak.com`（Gemini 無料枠の報道）
+  - GitHub releases.atom は `curl` 403（WebFetch は成功・既知の挙動）
 
 - → **2026-09-28: 週次復旧チェック（月曜）を実施。復旧 0件・新規の取得障害 0件**（最終確認 2026-09-28）。WebFetch を先に当て、失敗したホストだけ `curl` で切り分けた。
   - **ゲートウェイ拒否が継続（17ホスト・`EGRESS_BLOCKED` ／ `curl` exit 56・最終確認 2026-10-04）**: `www.testingcatalog.com` / `simonwillison.net` / `obsidian.md` / `x.ai` / `docs.x.ai` / `grok.com` / `docs.devin.ai` / `cli.devin.ai` / `qwen.ai` / `azure.microsoft.com` / `gemini.google` / `www.darioamodei.com` / `microsoft.ai` / `www.geekwire.com` / `openrouter.ai` / `the-decoder.com` / `docs.github.com`
