@@ -1,0 +1,18 @@
+# 「業界・政策」見出しを市場・企業の時系列から落とさないこと。
+name: check-industry-policy-heading
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'scripts/check-industry-policy-heading.js'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: 業界・政策見出しの分類を検査する
+        run: node scripts/check-industry-policy-heading.js
