@@ -1,0 +1,18 @@
+# 別名1件に独占された複合バケツから、別カテゴリの項目を落とさないこと。
+name: check-catch-all-heading
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'scripts/check-catch-all-heading.js'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: 独占バケツの項目振り分けを検査する
+        run: node scripts/check-catch-all-heading.js
