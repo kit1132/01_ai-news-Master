@@ -1584,7 +1584,11 @@
           const pieces = [];
           if (target === slug) {
             for (const item of catSplitItems(body)) pieces.push(item);
-          } else if (target === '*') {
+          } else if (target) {
+            // 複合見出し（*）に加え、別名1件に独占されたバケツ
+            // （「Cursor / AWS / その他エージェント」など）からも、
+            // この slug に一意に当たる項目は拾う。拾わないと
+            // オープンウェイト等がその日から消える。
             for (const item of catSplitItems(body)) {
               if (catClassifyText(item) === slug) pieces.push(item);
             }
