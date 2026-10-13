@@ -3305,6 +3305,24 @@
 
       m = s.match(/^(\d{1,2})月末$/);
       if (m) { out.quals.push(`${Number(m[1])}月末`); return finishSchedLabel(out, y); }
+      // industry の今後の期限は **10月9日** / **10月29〜30日**。
+      // 汎用の「N月…」より先に日を抜かないと kind が month になり、
+      // 今週・来週の自動オープン（data-near）に載らず閉じた月トグルへ埋まる。
+      m = s.match(/^(\d{1,2})月(\d{1,2})\s*[〜~–—−-]\s*(\d{1,2})日(.*)$/);
+      if (m) {
+        out.day = schedMD(m[1], m[2]);
+        out.quals.push(`–${schedMD(m[1], m[3])}`);
+        const rest = m[4].trim().replace(/^〜$/, '以降');
+        if (rest) out.quals.push(rest);
+        return finishSchedLabel(out, y);
+      }
+      m = s.match(/^(\d{1,2})月(\d{1,2})日(.*)$/);
+      if (m) {
+        out.day = schedMD(m[1], m[2]);
+        const rest = m[3].trim().replace(/^〜$/, '以降');
+        if (rest) out.quals.push(rest);
+        return finishSchedLabel(out, y);
+      }
       m = s.match(/^(\d{1,2})\s*月(.*)$/);
       if (m) {
         const rest = m[2].trim();
