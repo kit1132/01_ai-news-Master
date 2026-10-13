@@ -1421,6 +1421,7 @@
       '資本・M&A・市場データ': 'market', '企業動向 / 規制 / 市場データ': 'market',
       '市場データ・調査': 'market', '米国 AI 政策': 'market', '調査・レポート': 'market',
       '業界・インフラ投資': 'market', '規制 / 政策': 'market',
+      '業界・政策': 'market',
     };
     const CAT_HEAD_RE = [
       ['studio', /Copilot Studio|Power Platform|Power Apps/],
@@ -1434,7 +1435,7 @@
       ['mcp', /\bMCP\b|エージェント標準|A2A|WebMCP/],
       ['open-weight', /オープンウェイト|ローカル LLM|Hugging Face|\bHF\b|Mistral|Qwen/],
       ['cursor', /Cursor|Devin|Cognition|xAI|Grok|SpaceXAI/],
-      ['market', /市場|規制|GTM|企業構造|企業動向|資金調達|M&A|資本|国内|IPO|地政学|業界トレンド|業界動向/],
+      ['market', /市場|規制|政策|GTM|企業構造|企業動向|資金調達|M&A|資本|国内|IPO|地政学|業界/],
     ];
     const CAT_ITEM_KW = {
       claude: ['Claude', 'Anthropic', 'Sonnet', 'Opus', 'Haiku'],
