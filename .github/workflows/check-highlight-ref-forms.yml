@@ -1,0 +1,18 @@
+# ハイライト参照の回避形を時系列から落とさないこと。
+name: check-highlight-ref-forms
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'scripts/check-highlight-ref-forms.js'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: ハイライト参照の形式を検査する
+        run: node scripts/check-highlight-ref-forms.js

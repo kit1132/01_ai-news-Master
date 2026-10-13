@@ -1455,16 +1455,22 @@
     function catNormHeading(h) {
       return h.replace(/（[^）]*）/g, '').replace(/\([^)]*\)/g, '').trim();
     }
-    function catHeadingTarget(h) {
+    // 見出しが指すカテゴリ（別名1件、または正規表現で当たった分）。
+    function catHeadingKeywordSlugs(h) {
       const n = catNormHeading(h);
-      if (CAT_ALIAS[n]) return CAT_ALIAS[n];
-      if (/^(その他|継続ウォッチ|ウォッチ|Meta)$/.test(n)) return null;
+      if (CAT_ALIAS[n]) return [CAT_ALIAS[n]];
+      if (/^(その他|継続ウォッチ|ウォッチ|Meta)$/.test(n)) return [];
       const hits = [];
       for (const [slug, re] of CAT_HEAD_RE) {
         if (re.test(n) && !hits.includes(slug)) hits.push(slug);
       }
+      return hits;
+    }
+    function catHeadingTarget(h) {
+      const hits = catHeadingKeywordSlugs(h);
       if (hits.length === 1) return hits[0];
       if (hits.length > 1) return '*';
+      const n = catNormHeading(h);
       if (/開発ツール|コーディングエージェント|Microsoft（その他）|Microsoft \(その他\)|セキュリティ/.test(h)) return '*';
       if (/Microsoft\s*\/\s*GitHub/.test(n) || /Microsoft\s*\/\s*Copilot$/.test(n)) return '*';
       return null;
@@ -1544,13 +1550,14 @@
       }
       return map;
     }
+    // 手順の「ハイライトN参照」と、検査回避で使っている「ハイライト参照・N」の両方。
     function catHlRefs(text) {
       const out = [];
-      const re = /ハイライト\s*([0-9０-９]+)/g;
+      const re = /ハイライト\s*(?:参照\s*[・.]?\s*)?([0-9０-９]+)/g;
       let m;
-      while ((m = re.exec(text))) {
-        const n = m[1].replace(/[０-９]/g, (ch) => String(ch.charCodeAt(0) - 0xFF10));
-        if (!out.includes(n)) out.push(n);
+      while ((m = re.exec(String(text || '')))) {
+        const n = asciiDigits(m[1]);
+        if (n && !out.includes(n)) out.push(n);
       }
       return out;
     }
@@ -1585,8 +1592,14 @@
           if (target === slug) {
             for (const item of catSplitItems(body)) pieces.push(item);
           } else if (target === '*') {
+            // 複合見出しの参照行は語が無く分類できない。見出しが指名した
+            // カテゴリへ、参照先ハイライトだけは載せる（項目本体のフォールバックは別件）。
+            const headSlugs = catHeadingKeywordSlugs(title);
             for (const item of catSplitItems(body)) {
               if (catClassifyText(item) === slug) pieces.push(item);
+              else if (headSlugs.includes(slug)) {
+                for (const n of catHlRefs(item)) usedHl.add(n);
+              }
             }
           }
           for (const p of pieces) {
@@ -2185,12 +2198,15 @@
       if (firstEl && firstEl.tagName === 'P' && li.firstChild === firstEl) return firstEl;
       return li;
     }
+    function parseStubNum(text) {
+      const t = String(text || '').replace(/[：:]/g, '').replace(/\s+/g, '');
+      const m = t.match(/^（ハイライト(?:参照[・.]?)?([0-9０-９]+)(?:参照)?）$/);
+      return m ? asciiDigits(m[1]) : '';
+    }
     function stubNum(li) {
       const clone = li.cloneNode(true);
       clone.querySelectorAll('strong').forEach((s) => s.remove());
-      const t = clone.textContent.replace(/[：:]/g, '').replace(/\s+/g, '');
-      const m = t.match(/^（ハイライト([0-9０-９]+)参照）$/);
-      return m ? asciiDigits(m[1]) : '';
+      return parseStubNum(clone.textContent);
     }
     function assignTagData(el, parsed, fileYmd, heading) {
       el.dataset.tagPrimary = parsed.primary;
