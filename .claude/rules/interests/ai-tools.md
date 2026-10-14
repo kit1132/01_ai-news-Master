@@ -10,6 +10,8 @@
 - **Obsidian**（**AI連携に限定**）: MCP 対応、AIプラグイン向け API、プラグイン API の破壊的変更、Web Clipper、AI関連のライセンス条件。エディタ挙動・テーマ・同期の細目・個別コミュニティプラグインの更新は対象外。
   2026-07-26 追加。changelog の AI 言及は 2026年41件中 **0件**（実測）なので、**該当がない週は載せないのが正常**。無理に載せない
 - **AIエージェント全般**: コーディングエージェント、自律型エージェントの新プロダクト
+- **Orca（Stably AI）**: 複数のコーディングエージェントを git worktree ごとに並列実行するデスクトップ ADE。kit の作業環境なので、対応エージェントの追加、Claude Code / Codex 連携の変更、破壊的変更を追う（2026-10-14 追加）
+- **TypeSafe AI（Jev）**: 文章ではなく型付きの判断（分類・ルーティング・採点）を確率つきで返す「System One」モデルの API。LLM アプリの前段の判定に使えるかの観点で、料金・上限・提供状態（早期アクセスから一般提供へ）を追う（2026-10-14 追加）
 - **ChatGPT**（エンドユーザーレイヤー）: GPT-4o/GPT-5等のモデル更新、ChatGPT Plus/Pro/Team/Enterpriseのプラン変更、新機能（Canvas、Deep Research、Memory、Voice Mode等）・料金変更
 - **Custom GPTs / GPT Store**（カスタマイズレイヤー）: GPT Builder、Actions、GPT Storeの動向、企業向けカスタムGPT管理・共有機能
 - **OpenAI Blog / DevDay / ロードマップ**（計画レイヤー）: 未来のリリース予定、新モデル予告、ポリシー変更、モデル利用制限に直結する安全性アップデート

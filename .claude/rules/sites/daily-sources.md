@@ -33,6 +33,8 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 > **2026-08-26更新（B-015 / B-032採用）**: Hugging Face を高優先のオープンウェイト一次として追加。公開判定は org 一覧 API が一次で、製品名から ID を推測して 401 を「未公開」としない。同日実測: `author=Qwen` 一覧 200（`Qwen/Qwen3.8-2.4T-A95B` が公開済み）、`Qwen/Qwen3.8-Max` 直指定は 401。
 >
 > **2026-08-26更新（B-034採用）**: Gemini API changelog（`https://ai.google.dev/gemini-api/docs/changelog`）を最優先に追加。同日実測 200。登録済み Google 系5ソースはゲートウェイ拒否のままなので、これが到達できる Google 一次になる。既存5ソースの置き換えではない。
+>
+> **2026-10-14更新（kit 指示）**: 高優先に **Orca**（Stably AI のエージェント開発環境）と **TypeSafe AI**（System One モデル Jev）を追加した。どちらも自サイトに RSS が無い。Orca は GitHub releases の Atom、TypeSafe は `sitemap.xml` の slug 集合差分で新着を取る。クラウド環境の許可ドメインに `www.onorca.dev` / `typesafe.ai` / `docs.typesafe.ai` を足すよう同日 kit に依頼した（`github.com` は既定の許可一覧に入っている）。
 
 ---
 
@@ -294,6 +296,42 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
   2026-07-27〜08-03 はゲートウェイ拒否で到達不可だったが、**08-04 に復旧し RSS 一次で確定**（B-023採用、2026-08-06。08-06 に Announcements カテゴリの item 取得を再確認）。
   **changelog との役割が違う**: changelog RSS 全50件を全文検索して `Opus 5` 0件 / `GPT-5.6` 0件 / `Sonnet 5` 0件 / `Zero Data Retention` 0件。**モデル提供開始告知はフォーラム側にしか出ない**（例: `Claude Opus 5 now available!` 2026-07-24）。changelog だけでは「Cursor で Opus 5 が使えるようになった」を取り逃す。
   ⚠️ カテゴリIDは **11**。`/c/announcements/8.rss` は 301 で `/c/support/help/8.rss` に転送され Help カテゴリが 200 で返るため、バイト数だけ見ると成功に見える。IDは https://forum.cursor.com/categories.json で確認できる。
+
+### Orca（Stably AI・エージェント開発環境）
+- URL（一次）: https://github.com/stablyai/orca/releases
+- RSS URL: https://github.com/stablyai/orca/releases.atom
+- URL（見出しつきの要約）: https://www.onorca.dev/changelog
+- 検索キーワード（WebSearch用）: `Orca ADE Stably AI release 2026`
+- 取得方法: RSS（releases.atom）→ WebFetch（GitHub releases）→ WebFetch（onorca.dev/changelog）→ WebSearch
+- 注目点: デスクトップ版 `vX.Y.Z` の新機能、対応エージェントの追加（Claude Code / Codex / Cursor CLI など）、エージェント連携の破壊的変更、`orca` CLI、SSH リモート実行
+- 頻度: 毎日確認
+- 備考: 2026-10-14 追加（kit 指示）。複数のコーディングエージェントを git worktree ごとに並列実行するデスクトップアプリで、kit が作業環境として使っている。GitHub `stablyai/orca`（MIT）。
+  2026-10-14 ローカル実測: `releases.atom` 200 / `application/atom+xml` / 1,790,902 bytes / entry 10件 / `content` にリリース本文の全文。GitHub releases の HTML も WebFetch で本文が展開される。
+  ⚠️ **クラウドからの到達は未検証。** `github.com` は既定の許可一覧に入っているので通る見込み。`www.onorca.dev` は許可ドメインの追加を 10-14 に依頼した。拒否されたら `fetch-flow.md` どおり切り分けて台帳に記録する。
+  ⚠️ **同じ一覧にモバイル版（`mobile-android-vX.Y.Z`・pre-release）が混ざる。** デスクトップ版の新着判定から外し、別系統として扱う。
+  ⚠️ **Atom の `<updated>` は公開時刻ではなく最終編集時刻である**（例: `v1.4.223` は公開 10/8 22:09Z、`<updated>` は 10/9 01:15Z）。新着は日付ではなく、前回記録した版番号より上にある版で判定する（B-082 と同じ軸）。
+  ⚠️ **1版の本文が最大約18万字と重い**（`v1.4.224` は 181,876 字）。WebFetch では先頭しか読めないので、版番号は Atom から取り、要約は `onorca.dev/changelog` の見出しと箇条書きを使う。
+  ⚠️ **`onorca.dev/changelog` は間引きされた要約である。** 2026-10-14 時点で `1.4.222`（10/7）が載っていない。版の有無は GitHub で判定し、changelog は見出しを取る用途に限る。個別ページは `/changelog/1-4-224` 形式。
+  リリース間隔は1〜2日に1版（10/2〜10/10 で6版）。`onorca.dev` に RSS は無い（`/rss.xml`・`/feed.xml`・`/changelog/rss.xml` とも 404）。`api.github.com` はクラウドでは対象外リポジトリを 403 にするので使わない。
+  掲載節: `## Cursor / xAI / Devin / その他エージェント`（ビューアのカテゴリでは「Cursor / xAI」に入る）。
+
+### TypeSafe AI（System One モデル Jev）
+- URL（一次・新着検出）: https://typesafe.ai/sitemap.xml
+- URL（ブログ一覧）: https://typesafe.ai/blog
+- URL（モデル仕様・料金）: https://docs.typesafe.ai/models
+- URL（docs 目次）: https://docs.typesafe.ai/llms.txt
+- 検索キーワード（WebSearch用）: `TypeSafe AI Jev announcement 2026` / `TypeSafe "System One" model update 2026`
+- 取得方法: WebFetch（sitemap.xml で新しい `/blog/<slug>` を検出 → 個別記事）→ WebFetch（docs/models）→ WebSearch
+- 注目点: Jev の新版（`jev-1.x`）とエイリアス（`jev-latest` / `jev-preview`）の移動、料金、コンテキスト長、レート制限、早期アクセスから一般提供への移行、資金調達・提携（ブログの Company News）
+- 頻度: 毎日確認（2026-10-14 時点で記事は sitemap 全体で7本。差分が無い日は記録だけにする）
+- 備考: 2026-10-14 追加（kit 指示）。文章を生成せず、型付きの質問（Choice / Score / Noul）に確率と confidence つきの答えを返す「System One」モデルの API。2026-10-14 時点の `docs/models` は `jev-1.13.0`（`jev-latest`・`jev-preview` とも同じ版）、入力 $0.042 / 100万トークン・出力無料、リクエスト全体 64k トークン、レート制限 100K トークン/秒・80 リクエスト/秒。
+  2026-10-14 ローカル実測: `sitemap.xml` 200 / `text/xml`、`llms.txt` 200 / `text/plain` / 16,655 bytes。
+  ⚠️ **クラウドでは許可ドメイン（`typesafe.ai` / `docs.typesafe.ai`）が要る。** 10-14 に kit へ追加を依頼した。拒否されたら `fetch-flow.md` どおり WebSearch に倒し、台帳に記録する。
+  ⚠️ **RSS は無い**（`/rss.xml`・`/feed.xml`・`/blog/rss.xml`・`/blog/feed.xml` とも 404）。
+  ⚠️ **一覧にも個別記事にも公開日が無い。** ページ下部の「Oct 13, 2026, 11:26 PM UTC」はサイトのビルド時刻で、確認した4記事とも同じ値だった。これを公開日として書かない。新着は sitemap の `/blog/<slug>` 集合を `.last-check-state.md` に残し、前回との集合差分で判定する（B-079 と同じ軸）。出来事の日付は記事本文か二次で確定する。
+  ⚠️ **一覧に出ない記事がある。** `/blog/jack-jill-jev-case-study` は sitemap にだけ載っていた。sitemap を正とする。
+  `docs.typesafe.ai` は Mintlify。`/changelog`・`/release-notes`・`/pricing` は 404 なので、仕様の変化は `docs/models` と `llms.txt` の内容で見る。`GET https://api.typesafe.ai/v1/models` は API キーが要るので使わない。
+  掲載節: `## Cursor / xAI / Devin / その他エージェント`（ビューアのカテゴリでは「Cursor / xAI」に入る）。
 
 ### Obsidian Changelog（AI連携に限定）
 - URL（優先）: https://obsidian.md/changelog/
