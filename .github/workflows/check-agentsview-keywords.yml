@@ -1,0 +1,18 @@
+# 監視対象の AgentsView が複合見出しの下で Cursor から消えないこと。
+name: check-agentsview-keywords
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'scripts/check-agentsview-keywords.js'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: その他エージェントの AgentsView 振り分けを検査する
+        run: node scripts/check-agentsview-keywords.js
