@@ -14,14 +14,29 @@
 
 ## 提案中
 
-- **B-083: Gemini App Release Notes の登録 URL（`support.google.com/gemini/answer/13594961`）を、Gemini アプリのリリースノート本体を返す URL へ差し替える**（起票 2026-10-05 / 最終確認 2026-10-06 / 回数 2）
+- **B-084: 週次復旧チェック（2026-10-19）で本文取得を確認した8ソースの取得方法欄を一次（WebFetch / RSS）へ戻す**（起票 2026-10-19 / 最終確認 2026-10-19 / 回数 1）
+  - 対象: `.claude/rules/sites/daily-sources.md` の次の8項の取得方法欄・備考欄、および冒頭の更新履歴
+    - TestingCatalog（RSS `www.testingcatalog.com/rss/`）
+    - Simon Willison's Weblog（`simonwillison.net/tags/ai.atom`）
+    - Obsidian Changelog（`obsidian.md/changelog.xml`）
+    - xAI / Grok Release Notes（`docs.x.ai/developers/release-notes`。`x.ai/news`・`x.ai/build/changelog` はオリジン403のため候補から外す）
+    - Devin Release Notes（`docs.devin.ai/release-notes/overview`）
+    - Google Gemini App Release Notes（B-083 の差し替え先 `gemini.google/release-notes/`）
+    - Google Workspace Updates Blog（HTML。feedburner RSS は curl 000 のまま）
+    - Google The Keyword（RSS `blog.google/innovation-and-ai/technology/ai/rss/`）
+  - 変更内容: 取得方法欄を「WebSearch」から「RSS / WebFetch → 失敗時 WebSearch」へ戻し、備考に「2026-10-19 にゲートウェイ拒否が解消し本文取得を確認」と書く。xAI 項は B-081 の代替一次の記載と整合させる
+  - 根拠: 2026-10-19 実測。08-03 以降ゲートウェイ拒否だった17ホストのうち15ホストが `curl` で HTTP 応答を返し、上記8ソースで日付つきの本文を取得できた（例: `docs.x.ai` の October 14 Grok Voice 3.0 / 2.0 deprecation、`docs.devin.ai` の October 16、Workspace Updates の 10/15 Gmail Live）。⚠️ **WebSearch 運用では xAI の 10/14 の版更新・退役を5日間検出できていなかった**
+  - 制約: `fetch-flow.md`「復旧チェック」手順2は本文取得の成功で取得方法欄を戻すと定めるが、08-04 の8ホスト復旧では 08-06 まで定着を確認してから戻した（B-023）。同じ扱いにするなら 10-20・10-21 の本文取得を待ってから反映する。`deepmind.google/blog/` は 200 だが本文から日付を抽出できておらず、本提案の対象外とした
+
+- **B-083: Gemini App Release Notes の登録 URL（`support.google.com/gemini/answer/13594961`）を、Gemini アプリのリリースノート本体を返す URL へ差し替える**（起票 2026-10-05 / 最終確認 2026-10-19 / 回数 3）
   - 対象: `.claude/rules/sites/daily-sources.md`「最優先」の **Google Gemini App Release Notes** 項の URL 欄と備考欄
   - 変更内容: ① URL 欄を、日付つきのリリースノートを返す URL（候補: `gemini.google/release-notes/`。ゲートウェイ拒否のため本文は未確認）へ差し替える ② 備考に「`support.google.com` はゲートウェイを通過する（2026-10-05 `curl` 200）が、`/gemini/answer/13594961` の WebFetch 本文は **Gemini Apps Privacy Hub** でリリースノートではない。到達できることを取得成功と見なさない」と書く
   - 根拠: 2026-10-05 の週次復旧チェックで `support.google.com/gemini/answer/13594961` が `curl` 200 を返した（08-03 以降ゲートウェイ拒否として記録してきたホスト）。WebFetch で日付つきエントリを問うと、返った本文は Privacy Hub（privacy notice 6/29 更新・privacy questions 9/24 更新）で、リリースノートのエントリは0件だった。同日は Gemini アプリ無料枠の Flash-Lite 限定（10/9 発効）がハイライトになったが、**一次の登録 URL が別ページを返すため一次確定できなかった**。`fetch-flow.md`「復旧チェック」手順2の「取得方法欄を戻すのは本文取得が成功したときだけ」に該当し、ホストの到達性ではなく **URL 定義の陳腐化**として扱う
   - 制約: 差し替え候補の `gemini.google` はゲートウェイ拒否が継続しているため、差し替えても当面は WebSearch 依存のまま。`support.google.com` 配下で Gemini アプリのリリースノートを返す別の answer ID が見つかればそちらを優先する
   - 追記（2026-10-06）: 二次報道が「Google ヘルプが変更を確認した」と書く `support.google.com/gemini/answer/16275805`（Gemini Apps limits & upgrades）を WebFetch したが、10/9 の日付やプラン別のモデル制限の記載は無く「Model names, versions, and availability may change」の一文のみだった。差し替え候補にこの answer ID は使えない
+  - 追記（2026-10-19）: 週次復旧チェックで `gemini.google` がゲートウェイを通過し、`https://gemini.google/release-notes/` が 200 で**日付つきのリリースノート本文**を返した（最上位 2026.10.13 Gemini 4 Argon、次が 2026.09.30）。本提案の「制約」にあった「差し替え候補は本文未確認」が解消したので、差し替え先はこの URL で確定できる
 
-- **B-082: 日付降順ページの差分判定を「日付が前回チェック日以降か」から「前回記録した最上位エントリより上にあるか」へ変える（B-079 の ID 集合差分を HF 以外へ広げる）**（起票 2026-09-23 / 最終確認 2026-10-18 / 回数 24）
+- **B-082: 日付降順ページの差分判定を「日付が前回チェック日以降か」から「前回記録した最上位エントリより上にあるか」へ変える（B-079 の ID 集合差分を HF 以外へ広げる）**（起票 2026-09-23 / 最終確認 2026-10-19 / 回数 25）
   - 対象: `.claude/rules/sites/fetch-flow.md`「WebFetch の要約取りこぼし対策」（B-024 の手順群）に1項を新設し、`daily-sources.md`「最優先」の **Gemini API Changelog** 項の備考欄に同趣旨を書く
   - 変更内容: 2点。① 「**日付降順の changelog / release notes は、取得のたびに最上位エントリの日付と見出しを `.last-check-state.md` に残し、翌日は『前回記録した最上位（日付と見出し）より上にあるエントリを全件挙げよ』と問う**。『前回チェック日以降のエントリを挙げよ』では、前回チェック日より前の日付を持つエントリが後から上位に加わった場合に検出できない」と規定する ② Gemini API Changelog 項の備考に「⚠️ **掲載日と記載日付が一致しないことがある**。差分は日付ではなく掲載位置で取る」を追記する
   - 根拠: 2026-09-23 実測。`ai.google.dev/gemini-api/docs/changelog` の最上位が **9/18 付の「Gemini 2.5 系へのアクセスを過去に実際に使った利用者に限定する」**というエントリだった。⚠️ **09-19〜09-22 の4セッションはいずれも同ページの最上位を 9/17 の `antigravity-preview-09-2026` と記録しており、9/18 付のこのエントリを1度も挙げていない。** 内容は軽くない——新規の利用者は 2.5 系を API から呼べなくなり、新規プロジェクトの移行先として 3.5 Flash-Lite / 3.8 Flash が案内される。**5日の遅れ**である。⚠️ **本件は「ページ側が過去日付のエントリを後から足した」のか「前日までの WebFetch が最上位を落とした」のかを事後には切り分けられない**——どちらであっても、日付条件で問う限り再発する。B-024 の「最上位が落ちる形」は取得プロンプトの書き方（「最上部から3件以上列挙せよ」）で対処する規定だが、**前回の最上位を記録して突き合わせる規定を含まない**ため、落ちたことに気づく手段がない。B-079 は同じ欠陥を Hugging Face について「日付ではなく ID 集合差分で判定する」と規定しており、**本提案はその判定軸を日付降順ページ一般へ広げるもの**である。B-079 と同時に反映すると記録形式が揃う
@@ -456,6 +471,16 @@
   - 根拠: 2026-07-27 に一次 URL `code.claude.com/docs/en/changelog` が 503 を返しフォールバックへ移行したところ、blob URL は GitHub の UI シェル（ファイルサイズ 466KB・5248行というメタ情報）のみが返り**本文が取得できなかった**。同一セッションで raw URL は本文取得に成功し v2.1.220 を確認できた。現行の備考にある「GitHub 版は大きいため 429 になることがある」への対策としても raw のほうが軽い
 
 ## 既知の取得障害
+
+- → **2026-10-19: 週次復旧チェック（月曜）を実施。復旧 15ホスト・新規の取得障害 0件・分類の変化 1件**（最終確認 2026-10-19）
+  - **ゲートウェイを通過（復旧・2026-10-19）**: `www.testingcatalog.com` / `simonwillison.net` / `obsidian.md` / `docs.x.ai` / `grok.com` / `docs.devin.ai` / `cli.devin.ai` / `qwen.ai` / `azure.microsoft.com` / `gemini.google` / `www.darioamodei.com` / `microsoft.ai` / `openrouter.ai` / `the-decoder.com` / `docs.github.com` → 復旧（2026-10-19）
+    - 本文取得を確認した登録ソース: TestingCatalog RSS / Simon Willison Atom / Obsidian `changelog.xml` / `docs.x.ai` release notes / `docs.devin.ai` release notes / `gemini.google/release-notes/` / Workspace Updates（HTML）/ `blog.google` AI RSS。取得方法欄の差し戻しは B-084 として起票
+    - `workspaceupdates.googleblog.com` / `deepmind.google` / `blog.google` も 200
+  - **ゲートウェイ拒否が継続（`curl` exit 56・最終確認 2026-10-19）**: `www.geekwire.com` / `claude.dev`
+  - **分類の変化**: `x.ai` はゲートウェイを通過したが `/news`・`/build/changelog` とも HTTP 403（オリジン403・初出 2026-10-19）→ 回避策: `docs.x.ai/developers/release-notes`
+  - `openai.com` / `help.openai.com`: オリジン403（既知・最終確認 2026-10-19）→ 回避策: WebSearch
+  - `feeds.feedburner.com/GoogleAppsUpdates`: curl 000（既知・最終確認 2026-10-19）→ 回避策: Workspace Updates の HTML
+  - GitHub releases（copilot-cli / codex / orca）は `curl` 403（既知の挙動）。WebFetch で本文取得に成功した
 
 - → **2026-10-13: 新規の取得障害 0件・復旧 0件**（最終確認 2026-10-13）。⚠️ 火曜のため週次復旧チェックの対象日ではない（直近実施 10-12 ／ 次回 10-19）。
   - `openai.com` / `help.openai.com`: オリジン403（既知・最終確認 2026-10-13）→ 回避策: WebSearch
