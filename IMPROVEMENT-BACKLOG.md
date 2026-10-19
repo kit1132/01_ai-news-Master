@@ -14,7 +14,13 @@
 
 ## 提案中
 
-- **B-084: 週次復旧チェック（2026-10-19）で本文取得を確認した8ソースの取得方法欄を一次（WebFetch / RSS）へ戻す**（起票 2026-10-19 / 最終確認 2026-10-19 / 回数 1）
+- **B-085: `alignment.openai.com` の一覧は「First posted」列で差分を取り、OpenAI 退役一覧の最上位を `.last-check-state.md` に毎日残す**（起票 2026-10-20 / 最終確認 2026-10-20 / 回数 1）
+  - 対象: `.claude/rules/sites/daily-sources.md`「最優先」の **OpenAI Alignment / Misalignment Reports** 項と **OpenAI モデル退役一覧（Deprecations）** 項の備考欄
+  - 変更内容: 2点。① Alignment 項の備考に「**一覧の表は観測日（左の日付列）の降順で並び、掲載日順ではない。** 最上位の比較では新着が出ない。表の `First posted` 列を全行読み、前回チェック日以降の値を持つ行を新着とする」と書く ② Deprecations 項の備考に「最上位の告知（`YYYY-MM-DD: 見出し`）を毎日 `.last-check-state.md` の当日ブロックに1行で残す」と書く
+  - 根拠: 2026-10-20 実測。`misalignment-reports/` に 10/2・10/9・10/15 の掲載が計10本あったが、どれも未検出だった。表の先頭は観測日 10/6 の1本で、10/15 掲載の4本は観測日 6/16〜6/26 のため表の中ほどにある。あわせて状態ファイルの当日ブロックから 10-14 以降 deprecations と alignment の行が消えており、10/14 告知の GPT-4 系4モデル退役（停止 2027-01-14）を6日遅れで検出した
+  - 制約: 取得は curl 1回で済む（2ページとも 200・HTML）。表の列順は `タイトル | 観測日 | First posted | Last updated` で、観測日が2つある行（`6/19/26 , 6/20/26`）があるので列位置ではなく日付の個数で区切る
+
+- **B-084: 週次復旧チェック（2026-10-19）で本文取得を確認した8ソースの取得方法欄を一次（WebFetch / RSS）へ戻す**（起票 2026-10-19 / 最終確認 2026-10-20 / 回数 2）
   - 対象: `.claude/rules/sites/daily-sources.md` の次の8項の取得方法欄・備考欄、および冒頭の更新履歴
     - TestingCatalog（RSS `www.testingcatalog.com/rss/`）
     - Simon Willison's Weblog（`simonwillison.net/tags/ai.atom`）
