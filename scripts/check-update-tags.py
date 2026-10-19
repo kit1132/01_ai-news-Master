@@ -44,6 +44,8 @@ HL_RE = re.compile(r"^### (\d+)\. \[([^\]]+)\] .+ — .+")
 DAILY_CAT_RE = re.compile(r"^- \[([^\]]+)\] \*\*[^*]+\*\* — ")
 DIGEST_CAT_RE = re.compile(r"^- \[([^\]]+)\] ")
 URL_ONLY_RE = re.compile(r"^- https?://\S+\s*$")
+# 規約の「（ハイライトN参照）」も、従来の「ハイライト参照」も参照行として除外する。
+HL_REF_RE = re.compile(r"ハイライト\s*[0-9０-９]*\s*参照")
 
 
 def published_date(path: Path) -> date | None:
@@ -97,7 +99,7 @@ def section_spans(lines: list[str]) -> list[tuple[str, int, int]]:
 def skip_bullet(line: str) -> bool:
     if URL_ONLY_RE.match(line):
         return True
-    if "ハイライト参照" in line:
+    if HL_REF_RE.search(line):
         return True
     if line.startswith("- 直近の期限"):
         return True
