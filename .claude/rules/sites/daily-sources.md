@@ -85,7 +85,7 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 - 注目点: 新モデル、新プロダクト、API変更、料金変更。institute 配下の institutional position paper（B-004採用）。モデル評価・安全性に関するインシデント公表（`anthropic.com/news` 配下の incident / evaluation 系ポスト）。利用上限・プラン枠の変更、研究助成等のプログラム開始と応募期限（B-019採用、2026-08-02）。**`/research` の Publications 欄に載る評価・危険能力測定の公表**（モデル別の能力測定、オープンウェイトを含む横断評価）（B-068採用、2026-10-19）。**RSP に基づく Risk Report（3〜6ヶ月ごと）とその coverage date・リスク評価の変化**（B-071採用、2026-10-19）
 - 頻度: 毎日確認
 - 備考: 2026-04-02〜09-10 は到達できず WebSearch をプライマリにしていたが、**2026-09-11 に WebFetch 一次へ復帰した**（一覧・個別記事とも本文取得を確認。B-067採用、2026-10-19）。
-  **`/news` と `/research` は別の一覧で、`/research` の記事は `/news` に出ないことがある。** `/news` だけを見ると research 系の公表が丸ごと落ちるので、両方を毎日 WebFetch で読む（B-068採用、2026-10-19）。
+  **`/news` と `/research` は別の一覧で、`/research` の記事は `/news` に出ないことがある。** `/news` だけを見ると research 系の公表が丸ごと落ちるので、両方を毎日 WebFetch で読む（B-068採用、2026-10-19）。どちらも先頭に特集枠が固定される一覧なので、`fetch-flow.md`「特集枠つき一覧の読み方」に従う（B-060採用、2026-10-20）。
   上の検索キーワード5本はフォールバックとして維持する。到達できなかった期間は検索語彙の網羅性がそのまま検出可否を決めており、product announcement 寄りの語彙だけでは取りこぼす実例が2件あった: ① 7/30 公開の `/news/investigating-incidents-cybersecurity-evals`（サイバー評価中の Claude 3 が実在3組織へ侵入・141,006 セッション精査）を 7/31 に検出できず 8/1 に一般報道経由で初検出 ② Claude Code の週次上限50%増の 8/19 までの延長（7/19 期限から延長）と AI for Science 希少疾患グラント（7/20 開始）が約2週間未追跡だった。**キーワードを減らさないこと**（B-019採用、2026-08-02）
   **RSP に基づく Risk Report は `/news` にも `/research` にも載らない**（B-071採用、2026-10-19）。`www.anthropic.com/<slug>` の最上位パスに置かれ、307 で `www-cdn.anthropic.com` の PDF へ転送される（2026-10-19 実測: `/aug-2026-risk-report` → `/document/aug-2026-risk-report` → PDF）。一覧の全件列挙では見つからないので、**前回の発行から3ヶ月たった月に月1回、`Anthropic Risk Report <月> <年>` を WebSearch で当てる**（前回は 2026-08-14 公開の8月版。次は 2026-11 以降）。WebFetch は PDF を要約しないので `pypdf` で本文を抜き出す（`cryptography` のエラーが出たら先に `pip install --upgrade cffi`）。⚠️ **公開版は redacted である。** 報告書に書かれていないことを「事実が無い」と読まない
 
@@ -108,7 +108,7 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 - 取得方法: WebFetch → 失敗時 WebSearch
 - 注目点: Claudeプロダクト全体のリリースノート（Web/Desktop/Mobile/API含む）。Changelogとは別軸の情報源
 - 頻度: 毎日確認
-- 備考: 2026-04-02〜08-03 は取得不可で WebSearch プライマリ運用だったが、**2026-08-04 のゲートウェイ拒否解消により WebFetch 一次へ復帰**（B-023採用、2026-08-06）。08-06 に本文取得を再確認（最上位は 7/24 の Claude Opus 5 launch）。日付降順ページなので `fetch-flow.md`「WebFetch の要約取りこぼし対策」の列挙形式で問うこと
+- 備考: 2026-04-02〜08-03 は取得不可で WebSearch プライマリ運用だったが、**2026-08-04 のゲートウェイ拒否解消により WebFetch 一次へ復帰**（B-023採用、2026-08-06）。08-06 に本文取得を再確認（最上位は 7/24 の Claude Opus 5 launch）。日付降順ページなので `fetch-flow.md`「日付降順ページの差分判定」に従って問うこと（参照先を修正、B-024採用、2026-10-20）
 
 ### Anthropic Privacy Center（データ保持 / ZDR）
 - URL（一覧）: https://privacy.claude.com/
@@ -121,13 +121,13 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
   ⚠️ `support.claude.com` と同じ記事 ID（15425996）を共有し、内容が重なる。**別ソースとして二重に登録しない**
 
 ### Claude Blog（製品側発表）
-- URL: https://claude.com/blog
+- URL: https://claude.com/resources/articles （旧 `https://claude.com/blog` は 308 で転送される。B-060採用、2026-10-20）
 - 検索キーワード（WebSearch用）: `site:claude.com/blog 2026` / `Claude blog announcement <月> 2026`
 - 取得方法: WebFetch（一次・疎通確認 2026-08-08、2026-08-26 再確認）→ 失敗時 WebSearch
 - 注目点: Claude 本体（claude.ai / Desktop / Cowork）のプロダクト機能発表、コネクタ / MCP まわりの製品実装、Managed Agents の機能追加、Claude Code の既定変更・提供形態
 - 頻度: 毎日確認
 - 備考: 2026-08-26追加（B-017採用）。企業発表（`anthropic.com/news`）・API release notes・アプリ release notes・Claude Code changelog のどれにも載らない製品発表の一次。未登録のため 08-06 の self-hosted environments と 08-07 の auto mode 既定化を当日検出できなかった。
-  ⚠️ **一覧は日付降順ではない**（特集・ピン留め順）。2026-08-26 実測で一覧 HTML の日付サンプルは June 18 / June 8 / May 19 が先に出る一方、href 25件には 8/21 の Mythos 5 記事が含まれる。**「最上部から N 件」は使わない。** WebFetch では「`<前回チェック日>` 以降の記事を、日付と URL を対にして全て挙げよ」と問う。同一日に複数本が出るので件数固定も禁止。
+  ⚠️ **一覧は先頭に特集枠（1〜5件）が固定され、その下に日付降順の一覧が続く**（2026-10 実測）。先頭が何日も入れ替わらないので、**「最上部から N 件」も「前回の最上位より上」も使わない。** 読み方は `fetch-flow.md`「特集枠つき一覧の読み方」に従い、位置でも日付でも絞らずに全件を列挙させる（B-060採用、2026-10-20）。同一日に複数本が出るので件数固定も禁止。
   ⚠️ **記事 URL は一覧の href を使う。** タイトルから slug を組み立てない（2026-08-22 に推測 URL が4連続 404）。
   RSS は無い（`/blog/rss.xml`・`/feed.xml` とも 404、2026-08-26 実測）。当初のゲートウェイ拒否（2026-07-30）は 2026-08-04 に解消済みで、許可リスト待ちではない。
 
@@ -272,7 +272,7 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 - 注目点: オープンウェイトの重み公開（`private` / `gated` / safetensors 規模 / ライセンス）、新規チェックポイント
 - 頻度: 毎日確認
 - 備考: 2026-08-26追加（B-015 / B-032採用）。`interests/ai-tools.md` のオープンソース／ローカルLLMの一次。判定手順の本文は `fetch-flow.md`「オープンウェイトの公開判定は org 一覧から入る」。
-  ① org の作成日降順一覧を取り、対象期間のリポジトリを**名前を問わず全て見る** ② 候補の個別 API で `private` / `gated` / safetensors / license を確定する ③ ①に該当が無いときに限り「未公開」。
+  ① org の作成日降順一覧（`limit` 10以上）を取り、**前回記録したリポジトリ ID の集合に無いものを、名前と日付を問わず全て見る**（B-079採用、2026-10-20） ② 候補の個別 API で `private` / `gated` / safetensors / license を確定する ③ ①に該当が無いときに限り「未公開」。
   ⚠️ **製品名から ID を推測して 401 / 404 を「未公開」の根拠にしない。** HF の 401（`Invalid username or password.`）は「非公開」ではなく「その ID が存在しない」場合にも返る。2026-08-26 再実測: `Qwen/Qwen3.8-Max` は 401、org 一覧には公開済みの `Qwen/Qwen3.8-2.4T-A95B` がある。
   対象 org（登録ベンダーから機械的に導く。ベンダー登録が増えたらこの列を更新する）: `Qwen` / `moonshotai` / `deepseek-ai` / `meta-models` / `mistralai` / `zai-org` / `openai` / `google`
   第三者量子化（`-GGUF` / `-AWQ` / `-MLX` 等）の存在を公開の根拠にしない。当初のゲートウェイ拒否は 2026-08-03 に解消済みで、許可リスト待ちではない。
@@ -361,7 +361,7 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 - 頻度: 毎日確認
 - 備考: **公式RSS を 2026-07-26 に発見**（B-012採用）。curl 実測 200 / `application/rss+xml` / 138,344 bytes / item 50件 / `content:encoded` に本文全文（＝RSS 1回で要約まで完結し追加 WebFetch は不要）。HTML 側に `<link rel="alternate" type="application/rss+xml">` 宣言がないため自動検出では見つからない。
   **2026-08-04 に復旧し RSS 一次で確定**（B-023採用、2026-08-06）。07-26〜08-03 は「ローカル200・クラウド403」の併存で未復旧扱いとしていたが、08-04 にスケジュールタスク側の環境で 200 を確認し、以降 08-05 / 08-06 も本文取得に成功している（08-06 実測 131,910 bytes・最上位は 8/3 の Google Workspace Plugins）。
-  ⚠️ この 8/3 エントリは 08-04 のセッションで取りこぼし 08-05 に1日遅れで検出した。降順ページなので `fetch-flow.md`「WebFetch の要約取りこぼし対策」を必ず適用する。
+  ⚠️ この 8/3 エントリは 08-04 のセッションで取りこぼし 08-05 に1日遅れで検出した。降順ページなので `fetch-flow.md`「日付降順ページの差分判定」を必ず適用する（参照先を修正、B-024採用、2026-10-20）。
   `cursor-changelog.com/feed`（旧・代替候補）は**削除した**。応答なし（curl exit 92 / HTTPコード 000）で、DNS がドメインパーキング系への CNAME になっており内容を信頼できない。
 
 ### Cursor Forum Announcements
