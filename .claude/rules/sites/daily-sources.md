@@ -42,7 +42,7 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 
 ### Claude Code Changelog
 - URL（優先）: https://code.claude.com/docs/en/changelog
-- URL（フォールバック）: https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md
+- URL（フォールバック）: https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md（B-014採用、2026-10-19。`github.com/.../blob/main/CHANGELOG.md` は UI シェルだけを返し、本文が取れない）
 - URL（版検出の補助）: https://registry.npmjs.org/@anthropic-ai/claude-code
 - 取得方法: WebFetch。あわせて毎日、npm の `dist-tags` の `stable` / `latest` / `next` の3つを取得する（B-035採用、2026-10-19）
 - 注目点: 新バージョンリリース、破壊的変更、新機能、**管理設定（`managed-settings.json` に置ける設定キー）とサインイン方式・コスト表示・モデル提示の組織ポリシー**（B-045採用、2026-10-19）
@@ -74,6 +74,7 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 - URL: https://www.anthropic.com/news
 - URL（副・政策研究系）: https://www.anthropic.com/institute/
 - URL（副・研究）: https://www.anthropic.com/research
+- URL（副・定期文書）: `https://www.anthropic.com/<文書スラッグ>`（例: https://www.anthropic.com/aug-2026-risk-report）（B-071採用、2026-10-19）
 - 検索キーワード（WebSearch用）: 以下5本をすべて実行する（B-019採用、2026-08-02）
   - `Anthropic news announcement 2026`（新モデル・新プロダクト系）
   - `Anthropic safety incident report 2026`（安全性インシデント公表）
@@ -81,11 +82,12 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
   - `Claude Code usage limits change 2026`（利用上限・プラン枠の変更）
   - `Anthropic grant program application 2026`（研究助成等のプログラム開始・応募期限）
 - 取得方法: WebFetch（一次）→ 失敗時 WebSearch（B-067採用、2026-10-19）
-- 注目点: 新モデル、新プロダクト、API変更、料金変更。institute 配下の institutional position paper（B-004採用）。モデル評価・安全性に関するインシデント公表（`anthropic.com/news` 配下の incident / evaluation 系ポスト）。利用上限・プラン枠の変更、研究助成等のプログラム開始と応募期限（B-019採用、2026-08-02）。**`/research` の Publications 欄に載る評価・危険能力測定の公表**（モデル別の能力測定、オープンウェイトを含む横断評価）（B-068採用、2026-10-19）
+- 注目点: 新モデル、新プロダクト、API変更、料金変更。institute 配下の institutional position paper（B-004採用）。モデル評価・安全性に関するインシデント公表（`anthropic.com/news` 配下の incident / evaluation 系ポスト）。利用上限・プラン枠の変更、研究助成等のプログラム開始と応募期限（B-019採用、2026-08-02）。**`/research` の Publications 欄に載る評価・危険能力測定の公表**（モデル別の能力測定、オープンウェイトを含む横断評価）（B-068採用、2026-10-19）。**RSP に基づく Risk Report（3〜6ヶ月ごと）とその coverage date・リスク評価の変化**（B-071採用、2026-10-19）
 - 頻度: 毎日確認
 - 備考: 2026-04-02〜09-10 は到達できず WebSearch をプライマリにしていたが、**2026-09-11 に WebFetch 一次へ復帰した**（一覧・個別記事とも本文取得を確認。B-067採用、2026-10-19）。
   **`/news` と `/research` は別の一覧で、`/research` の記事は `/news` に出ないことがある。** `/news` だけを見ると research 系の公表が丸ごと落ちるので、両方を毎日 WebFetch で読む（B-068採用、2026-10-19）。
   上の検索キーワード5本はフォールバックとして維持する。到達できなかった期間は検索語彙の網羅性がそのまま検出可否を決めており、product announcement 寄りの語彙だけでは取りこぼす実例が2件あった: ① 7/30 公開の `/news/investigating-incidents-cybersecurity-evals`（サイバー評価中の Claude 3 が実在3組織へ侵入・141,006 セッション精査）を 7/31 に検出できず 8/1 に一般報道経由で初検出 ② Claude Code の週次上限50%増の 8/19 までの延長（7/19 期限から延長）と AI for Science 希少疾患グラント（7/20 開始）が約2週間未追跡だった。**キーワードを減らさないこと**（B-019採用、2026-08-02）
+  **RSP に基づく Risk Report は `/news` にも `/research` にも載らない**（B-071採用、2026-10-19）。`www.anthropic.com/<slug>` の最上位パスに置かれ、307 で `www-cdn.anthropic.com` の PDF へ転送される（2026-10-19 実測: `/aug-2026-risk-report` → `/document/aug-2026-risk-report` → PDF）。一覧の全件列挙では見つからないので、**前回の発行から3ヶ月たった月に月1回、`Anthropic Risk Report <月> <年>` を WebSearch で当てる**（前回は 2026-08-14 公開の8月版。次は 2026-11 以降）。WebFetch は PDF を要約しないので `pypdf` で本文を抜き出す（`cryptography` のエラーが出たら先に `pip install --upgrade cffi`）。⚠️ **公開版は redacted である。** 報告書に書かれていないことを「事実が無い」と読まない
 
 ### Model Context Protocol Blog
 - URL（優先）: https://blog.modelcontextprotocol.io/
@@ -108,6 +110,16 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 - 頻度: 毎日確認
 - 備考: 2026-04-02〜08-03 は取得不可で WebSearch プライマリ運用だったが、**2026-08-04 のゲートウェイ拒否解消により WebFetch 一次へ復帰**（B-023採用、2026-08-06）。08-06 に本文取得を再確認（最上位は 7/24 の Claude Opus 5 launch）。日付降順ページなので `fetch-flow.md`「WebFetch の要約取りこぼし対策」の列挙形式で問うこと
 
+### Anthropic Privacy Center（データ保持 / ZDR）
+- URL（一覧）: https://privacy.claude.com/
+- URL（Covered Models の保持実務）: https://privacy.claude.com/en/articles/15425996-data-retention-practices-for-covered-models
+- 取得方法: WebFetch（2026-08-21 に本文取得を確認）→ 失敗時 WebSearch
+- 注目点: Covered Models の指定範囲、保持期間、保持先（Anthropic / AWS / GCP / Azure）、ZDR 契約の適用除外
+- 頻度: 週1〜2回確認
+- 備考: B-040採用（2026-10-19）。データ保持ポリシーは changelog に載らない（6/9 発効の変更も載らなかった）が、組織で導入できるかを直接決める。
+  **記事の Last-Updated の日付を毎回控え、前回から動いたときだけ本文を読む。** 報道が先行したときは報道の日付と Last-Updated を突き合わせ、一次に反映済みかを判定する（実例: 2026-08-20 の Bloomberg 報道の時点で Last-Updated は 2026-07-09 のままで、「公式未確認」と書けた）。対応する公式アナウンスが `www.anthropic.com/news` にしか出ないこともある。
+  ⚠️ `support.claude.com` と同じ記事 ID（15425996）を共有し、内容が重なる。**別ソースとして二重に登録しない**
+
 ### Claude Blog（製品側発表）
 - URL: https://claude.com/blog
 - 検索キーワード（WebSearch用）: `site:claude.com/blog 2026` / `Claude blog announcement <月> 2026`
@@ -122,12 +134,36 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 ### OpenAI Blog / News
 - URL: https://openai.com/news
 - RSS URL（休止中）: https://openai.com/news/rss.xml
-- 検索キーワード（WebSearch用）: `OpenAI announcement release 2026`
+- 検索キーワード（WebSearch用）: 以下4本をすべて実行する（B-058採用、B-030 を統合、2026-10-19）
+  - `OpenAI announcement <前日の日付（例: October 18 2026）>`（前日の発表。日付を含む形を毎日1本は必ず実行する）
+  - `OpenAI announcement release 2026`（新モデル・新プロダクト系）
+  - `OpenAI Preparedness Framework capability threshold 2026`（Preparedness の閾値到達）
+  - `OpenAI safety model access restriction 2026`（安全性を理由にした提供制限）
 - 取得方法: WebSearch
 - フィード本文: 要約のみ（タイトル・説明・URL）。詳細が必要な場合は記事URLをWebFetchで追加取得
-- 注目点: 新モデル発表（GPT-5等）、DevDay、ポリシー変更、大型機能発表、パートナーシップ
+- 注目点: 新モデル発表（GPT-5等）、DevDay、ポリシー変更、大型機能発表、パートナーシップ。**Preparedness Framework の閾値到達とそれに伴う提供制限（提供対象の限定・gating）**（B-058採用、2026-10-19）
 - 頻度: 毎日確認
 - 備考: RSS/WebFetch ともに403が2026-04-02以降継続中（2026-04-14時点）。WebSearch をプライマリに変更。RSS復旧時は取得方法を `RSS → WebSearch` に戻すこと。WebFetch可能な二次ソースとして `https://techcrunch.com/tag/openai/` を補完利用可（2026-07-08疎通確認・B-011）。theverge.com はWebFetch不可
+  **`openai.com/index/` 配下はオリジン403で本文が読めないため、安全性系の公表は検索語彙の網羅性がそのまま検出可否を決める。キーワードを減らさないこと**（B-058採用、2026-10-19。実例: 9/1 の Astra の Critical サイバー閾値到達を 09-02・09-03 の2セッションが検出できなかった）。安全性系で拾うのは**モデルの提供対象・提供条件・利用制限が変わるもの**に限り、評価手法や解釈可能性の研究発表は対象外にする。日付入りの検索語はインデックス反映のラグを受けるので、年だけの語と併用する（B-030）
+
+### OpenAI Deployment Safety Hub（system card）
+- URL（一覧）: https://deploymentsafety.openai.com/
+- URL（個別）: `https://deploymentsafety.openai.com/<モデル slug>`（例: https://deploymentsafety.openai.com/gpt-6-astra）
+- 取得方法: WebFetch（疎通確認 2026-09-05）→ 失敗時 WebSearch
+- 注目点: Preparedness Framework の分類（High / Critical）とその対象カテゴリ、講じたセーフガード、提供制限（trust ベースのアクセス階層）、プロンプトインジェクション堅牢性などの安全性ベンチマーク
+- 頻度: 新モデルの発表を検出した日だけ開く
+- 備考: B-059採用（2026-10-19）。`openai.com` がオリジン403でも、system card はこのホストで一次確定できる（実例: GPT-6 Astra の「Critical はサイバーのみで生物・化学は High」「chain-of-thought の監視可能性の低下」は二次記事のどれにも無かった）。
+  モデル slug は一覧の href から取る（2026-10-19 実測で一覧に `/gpt-6-astra`・`/gpt-6-1-sol`・`/gpt-live-1-1` などが並ぶ）。
+  ⚠️ **system card 専用で、価格・コンテキスト長・API 仕様は載らない**（それらは `developers.openai.com/api/docs/models/<id>` と料金ページで見る）
+
+### OpenAI Alignment / Misalignment Reports
+- URL（一覧）: https://alignment.openai.com/misalignment-reports/
+- 取得方法: WebFetch（疎通確認 2026-09-18）→ 失敗時 WebSearch
+- 注目点: 訓練・評価中に観測されたミスアライメント事案の個別レポート、対象モデル（未公開の内部モデルを含む）、報告フレームワークの基準変更
+- 頻度: 毎日確認
+- 備考: B-075採用（2026-10-19）。OpenAI は 2026-09-16 に報告フレームワークを公開し、事案レポートを続けて出している。登録済みの OpenAI 系ソースはこの公表を扱わない（未登録の間、9/25 付の3本を3日遅れで検出した）。
+  ⚠️ **`openai.com` はオリジン403だが `alignment.openai.com` は到達できる。** 同じ企業でもホスト単位で可否が違う。
+  一覧は個別レポートへのリンク集なので、件数を固定せず href つきで全件挙げさせる。最上位を毎日 `.last-check-state.md` に記録する（`fetch-flow.md`「日付降順ページの差分判定」）
 
 ### OpenAI Developer Community Announcements（公式フォーラム）
 - URL: https://community.openai.com/c/announcements/6
@@ -139,13 +175,25 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 - 備考: 2026-07-08追加（B-011）。openai.com/news と重複する内容も多いが、API寄りの発表はこちらが先行・詳細な場合がある。2026-07-27〜08-03 はゲートウェイ拒否で到達不可だったが **08-04 に復旧し RSS 一次で確定**（B-023採用、2026-08-06。08-06 に item 取得を再確認・最上位は 7/30 の GPT-5.6 値下げ告知）。**登録済み OpenAI 系ソースで唯一到達できる一次**なので、ここが落ちると OpenAI は全て二次情報依存になる
 
 ### OpenAI Platform Changelog
-- URL（一次）: https://developers.openai.com/changelog
-- URL（旧・403継続）: https://platform.openai.com/docs/changelog
+- URL（一次）: https://developers.openai.com/api/docs/changelog
+- URL（旧・301 転送）: https://developers.openai.com/changelog ・ https://platform.openai.com/docs/changelog（どちらも 301 で上の一次 URL へ転送される）
+- URL（副・料金）: https://developers.openai.com/api/docs/pricing
 - 検索キーワード（WebSearch用）: `OpenAI platform changelog API update 2026`
 - 取得方法: WebFetch（一次URL・疎通確認済み 2026-07-08）→ 失敗時 WebSearch
-- 注目点: モデルリリース・廃止予定、API仕様変更、料金変更、新エンドポイント追加、SDK更新
+- 注目点: モデルリリース・廃止予定、API仕様変更、料金変更、新エンドポイント追加、SDK更新。**モデル別の実単価と、コンテキスト長で単価が変わる階層構造**（料金ページ。B-065採用、2026-10-19）
 - 頻度: 毎日確認
-- 備考: `platform.openai.com` は403継続中だが、新ドメイン `developers.openai.com/changelog` はWebFetch成功（2026-07-08確認、最新7/6エントリまで取得可）。一次URLを新ドメインに変更（B-011）
+- 備考: `platform.openai.com` は 2026-07-08 時点で403だったが、新ドメイン `developers.openai.com/changelog` はWebFetch成功（2026-07-08確認、最新7/6エントリまで取得可）。一次URLを新ドメインに変更（B-011）
+  2026-08-13 に `developers.openai.com/changelog` が 301 で `/api/docs/changelog` へ移ったため、一次 URL を転送先に差し替えた（B-033採用、B-048 を統合、2026-10-19。同日 301 を再確認）。転送先は同じホストで WebFetch できる。`platform.openai.com/docs/changelog` も 403 ではなく同じ転送先への 301 である。`learn.chatgpt.com` への 308（ChatGPT & Codex Changelog 項）とは別件で、こちらは API 側 changelog のパスの移設にすぎない
+  **料金ページは、価格に触れる項目を書く日と、新モデルを changelog で検出した日に開く**（B-065採用、2026-10-19）。changelog は値下げ・値上げを記事として載せないことがある（7/30 の Luna 80% 値下げも載らなかった）。`openai.com` はオリジン403なので、OpenAI の価格を一次で確かめられるのはこのページだけである。⚠️ 載るのは API の従量単価だけで、ChatGPT のプラン料金・Codex クレジットは載らない。⚠️ Standard / Batch / Priority は同じページの別表なので、どのティアの値かをダイジェストに書く
+
+### OpenAI モデル退役一覧（Deprecations）
+- URL: https://developers.openai.com/api/docs/deprecations
+- 取得方法: WebFetch（2026-08-26・08-28・08-29・09-01 に本文取得を確認）→ 失敗時 WebSearch
+- 注目点: **新規の退役告知（告知日・停止日・推奨移行先）**、既存告知の停止日の変更、エンドポイント単位の停止（Assistants API など）
+- 頻度: 毎日確認
+- 備考: B-055採用（2026-10-19）。Platform Changelog は退役を必ず載せるわけではない（2026-09-01 に、注目スケジュールに無い不可逆な期限がこのページで4件見つかった）。
+  ⚠️ **同名系列でも告知が分かれ、期限が違う**（例: `gpt-4o-mini-transcribe-2025-03-20` は 2027-01-20、`gpt-4o-mini-transcribe` は 2027-02-26）。型番ごとに期限と移行先を写す。
+  ⚠️ **API 側の期限だけを扱う。** ChatGPT 側のモデル退役は載らないので「ChatGPT & Codex Changelog」で見る（例: o3 は ChatGPT から 8/26 に退役したが、API の `o3-2025-04-16` は 12/11 まで残る）
 
 ### ChatGPT Release Notes
 - URL: https://help.openai.com/en/articles/6825453-chatgpt-release-notes
@@ -160,6 +208,7 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 - RSS URL: https://learn.chatgpt.com/docs/changelog/rss.xml
 - URL（プラグイン別）: https://learn.chatgpt.com/docs/security/plugin/changelog
 - URL（日付指定形式）: https://learn.chatgpt.com/docs/changelog?date=YYYY-MM-DD
+- URL（モデル一覧）: https://learn.chatgpt.com/docs/models（旧 `developers.openai.com/codex/models` からの 308 転送先。Codex で使えるモデルの追加・除外を確かめるときは changelog とあわせて見る。B-033採用で B-048 を統合、2026-10-19）
 - 検索キーワード（WebSearch用）: `site:learn.chatgpt.com changelog 2026` / `ChatGPT Codex changelog <月> 2026` / `Codex model deprecation retirement 2026`（退役期限の検知用）
 - 取得方法: RSS（`https://learn.chatgpt.com/docs/changelog/rss.xml`）→ WebFetch → WebSearch（B-070採用、2026-10-19）
 - 注目点: ChatGPT 本体の機能追加とプラン別開放、Codex アプリ / プラグイン / クラウドの更新、**Codex で使えるモデルの追加・除外（退役期限）**
@@ -172,15 +221,17 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 ### Gemini API Changelog
 - URL: https://ai.google.dev/gemini-api/docs/changelog
 - URL（本文・軽い）: https://ai.google.dev/gemini-api/docs/changelog.md.txt
+- URL（副・料金）: https://ai.google.dev/gemini-api/docs/pricing
 - 検索キーワード（WebSearch用）: `Gemini API changelog GA preview 2026`
 - 取得方法: WebFetch（疎通確認 2026-08-03、2026-08-26 再確認）→ 失敗時 WebSearch
-- 注目点: Gemini モデルの GA / preview 昇格、モデル ID、導入価格とその終了日、エンドポイント廃止日
+- 注目点: Gemini モデルの GA / preview 昇格、モデル ID、**モデル別の入出力単価と導入価格の終了日（changelog では確定できないため料金ページで突き合わせる）**（B-057採用、2026-10-19）、エンドポイント廃止日
 - 頻度: 毎日確認
 - 備考: 2026-08-26追加（B-034採用）。**登録済み Google 系5ソース（Workspace Updates / Gemini App Release Notes / The Keyword / DeepMind Blog / Workspace Admin Release Calendar）はゲートウェイ拒否が継続しており、`ai.google.dev` が唯一到達できる Google 一次である。** 7月以降の Gemini API 更新（3.6 Flash / 3.5 Flash-Lite GA、Robotics ER 2 preview、3.7 Flash GA と導入価格の 12/31 終了）はこのページ経由でしか一次確定できていなかった。
   本ソースは **Gemini API（開発者向け）の changelog に限る。** Gemini アプリ・Workspace 統合・DeepMind の研究発表は覆えない。既存5ソースの置き換えではなく追加。5ソースは復旧チェック対象から外さない。
   一覧は日付降順（2026-08-26 実測の見出し: August 13 / July 30 / July 21 / July 6）。WebFetch では「最上部から日付つきエントリを最低3件、日付とともに列挙せよ」と「前回記録した最上位エントリ（日付と見出し）より上にあるエントリを全件挙げよ」の両方を毎回問う。
   ⚠️ **掲載日と記載日付が一致しないことがある。** 差分は日付ではなく掲載位置で取る（`fetch-flow.md`「日付降順ページの差分判定」。B-082採用、2026-10-19）。
   `.md.txt` は同日実測 200 / `text/markdown` / 50,430 bytes。HTML が重いときの本文取得に使える。
+  **新モデルの GA / preview 昇格を changelog で検出した日は、料金ページも開く**（B-057採用、2026-10-19）。changelog のエントリはモデル ID と位置づけだけを書き、単価と期限を書かない（実例: 9/2 GA の `gemini-3.8-flash` は、料金ページで初めて「$0.75 / $3.75 が 2026-12-31 まで、2027-01-01 から $1.50 / $7.50」と確定できた）。料金ページは全モデルを1ページで扱い重いので、それ以外の日は開かない。
   `ai.google.dev` は 2026-08-02 にゲートウェイ拒否、08-03 に復旧したホスト。復旧済みという位置づけは台帳に残す。
 
 ### Google Workspace Updates Blog
@@ -193,12 +244,13 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 - 備考: FeedBurner RSS/WebFetch ともに403が2026-04-03以降継続中（2026-04-14時点）。WebSearch をプライマリに変更。RSS復旧時は取得方法を `RSS → WebFetch → WebSearch` に戻すこと
 
 ### Google Gemini App Release Notes
-- URL: https://support.google.com/gemini/answer/13594961
+- URL: https://gemini.google/release-notes/
 - 検索キーワード（WebSearch用）: `Gemini app release notes update 2026`
 - 取得方法: WebSearch → WebFetch
 - 注目点: Geminiアプリの機能追加・変更、モデル切替、プラン別機能差分
 - 頻度: 毎日確認
 - 備考: WebFetch 403が2026-04-03以降継続中（2026-04-14時点）。WebSearch をプライマリに変更
+  URL を `support.google.com/gemini/answer/13594961` から差し替えた（B-083採用、2026-10-19）。旧 URL はゲートウェイを通過する（2026-10-05 `curl` 200）が、WebFetch で返る本文は **Gemini Apps Privacy Hub** でリリースノートではない。**到達できることを取得成功と見なさない。** 新 URL は 2026-10-19 に日付つきのリリースノート本文を返した（最上位 2026.10.13 Gemini 4 Argon）
 
 ### Google The Keyword（AI カテゴリ）
 - URL: https://blog.google/technology/ai/
@@ -229,9 +281,10 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 - URL（一次）: https://github.com/github/copilot-cli/releases
 - URL（参考）: https://github.com/github/copilot-cli/blob/main/changelog.md
 - 取得方法: WebFetch（毎日）→ 失敗時 WebSearch
-- 注目点: 安定版（`vX.Y.Z`）と pre-release（`-0` / `-1` サフィックス）の両方。pre-release は日次で刻まれる
+- 注目点: 安定版（`vX.Y.Z`）と pre-release（`-0` / `-1` サフィックス）の両方。pre-release は日次で刻まれる。**安定版のリリース本文から、CLI フラグの削除・サブコマンドの再編・JSON 出力形状の変更を別枠で全件拾う。これらは `github.blog/changelog` には載らない**（B-074採用、2026-10-19）
 - 頻度: 毎日確認
 - 備考: WebFetch安定継続。**pre-releaseはWebSearchでは拾いにくいため必ずWebFetchで取得すること**。`changelog.md` よりreleasesページの方が新しい情報が載る場合があるため、releasesページを一次ソースとする。pre-releaseはダイジェスト上では安定版と1項目に集約してよい
+  安定版が数日〜2週間ぶりに出たときは、その間の pre-release の破壊的変更が1版にまとまる。リリース本文は要約させず全件列挙させ、該当する変更は「新機能」に混ぜず「破壊的変更」として書く（B-074。実例: 9/16 の `v1.0.85` で `copilot plugins list --json` の出力が配列に変わり、`--kind` / `--scope` が削除された）
 
 ### GitHub Copilot Changelog（github.blog）
 - URL: https://github.blog/changelog/
@@ -242,6 +295,15 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 - 頻度: 毎日確認
 - 備考: 2026-06-05〜06-10 の改善メモで3回提案され採用（B-002、2026-06-10）。2026-07-29〜08-03 はゲートウェイ拒否だったが **08-04 に復旧し WebFetch 一次へ復帰**（B-023採用、2026-08-06）。08-04 の復旧直後に Copilot からの Gemini 2.5 Pro / Gemini 3 Flash 廃止と Enterprise teams model policy targeting を検出しており、**WebSearch 運用では取りこぼしていた項目が一次取得で拾えている**。08-06 に本文取得を再確認（最上位は 8/4 の Billing Preview app 退役）。ラベル URL のほうが Copilot 項目に絞れるので一次はそちらを使う
   **weekly releases のまとめエントリは、VS Code / Visual Studio / JetBrains / Copilot CLI の各リリース内容を集約しており、個別の changelog エントリにも各リポジトリの releases にも載らない項目を含む。** IDE 側の変更を拾う唯一の経路なので、まとめエントリは必ず本文まで開く（B-052）
+
+### Windows Command Line ブログ（Intelligent Terminal）
+- URL: https://devblogs.microsoft.com/commandline/
+- 取得方法: WebFetch（2026-08-23 に一覧・個別記事とも本文取得を確認）→ 失敗時 WebSearch
+- 注目点: Intelligent Terminal の版更新、組み込みエージェントの追加と入れ替え、ローカルモデル（BYOM）対応、WSL 内でのエージェント実行、エージェント選択のポリシー制御
+- 頻度: 週1回確認（更新は月1本程度）
+- 備考: B-042採用（2026-10-19）。未登録だったため Intelligent Terminal 0.2（8/10）を13日間検出できなかった。
+  **GitHub Copilot Changelog では代替できない。** Intelligent Terminal は Copilot 以外のエージェント（OpenCode など）を載せる側の製品で、`github.blog/changelog` には載らない。
+  ⚠️ **AI / エージェント関連に限って取り上げる。** PowerToys・WSL・Run ダイアログなど AI と関係のない Windows ツールの記事が過半を占める（実例: 8/25 の PowerToys 0.101）。最上位が動いても AI と無関係なら載せない
 
 ### OpenAI Codex CLI Releases
 - URL（一次）: https://github.com/openai/codex/releases
