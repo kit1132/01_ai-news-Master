@@ -1546,7 +1546,8 @@
     }
     function catHlRefs(text) {
       const out = [];
-      const re = /ハイライト\s*([0-9０-９]+)/g;
+      // 規約の「（ハイライトN参照）」と、生成側が使う「（ハイライト参照・N）」の両方を読む
+      const re = /ハイライト\s*(?:参照・)?([0-9０-９]+)/g;
       let m;
       while ((m = re.exec(text))) {
         const n = m[1].replace(/[０-９]/g, (ch) => String(ch.charCodeAt(0) - 0xFF10));
@@ -2189,8 +2190,8 @@
       const clone = li.cloneNode(true);
       clone.querySelectorAll('strong').forEach((s) => s.remove());
       const t = clone.textContent.replace(/[：:]/g, '').replace(/\s+/g, '');
-      const m = t.match(/^（ハイライト([0-9０-９]+)参照）$/);
-      return m ? asciiDigits(m[1]) : '';
+      const m = t.match(/^（ハイライト(?:([0-9０-９]+)参照|参照・([0-9０-９]+))）$/);
+      return m ? asciiDigits(m[1] || m[2]) : '';
     }
     function assignTagData(el, parsed, fileYmd, heading) {
       el.dataset.tagPrimary = parsed.primary;
