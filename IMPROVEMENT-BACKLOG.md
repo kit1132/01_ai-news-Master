@@ -15,7 +15,7 @@
 
 ## 提案中
 
-- **B-084: 週次復旧チェック（2026-10-19）で本文取得を確認した8ソースの取得方法欄を一次（WebFetch / RSS）へ戻す**（起票 2026-10-19 / 最終確認 2026-10-20 / 回数 2）
+- **B-084: 週次復旧チェック（2026-10-19）で本文取得を確認した8ソースの取得方法欄を一次（WebFetch / RSS）へ戻す**（起票 2026-10-19 / 最終確認 2026-10-21 / 回数 3）
   - 対象: `.claude/rules/sites/daily-sources.md` の次の8項の取得方法欄・備考欄、および冒頭の更新履歴
     - TestingCatalog（RSS `www.testingcatalog.com/rss/`）
     - Simon Willison's Weblog（`simonwillison.net/tags/ai.atom`）
@@ -56,6 +56,12 @@
   - 統合（2026-10-19 棚卸し）: B-054 をこの提案へ統合した（要旨はアーカイブ参照）
 
 ## 既知の取得障害
+
+- → **2026-10-21: 新規の取得障害 0件・復旧 0件**（最終確認 2026-10-21）。⚠️ 水曜のため週次復旧チェックの対象日ではない（直近実施 10-19 ／ 次回 10-26）。
+  - B-084 の8ソース（TestingCatalog RSS / Simon Willison Atom / Obsidian `changelog.xml` / `docs.x.ai` / `docs.devin.ai` / `gemini.google/release-notes/` / Workspace Updates HTML / `blog.google` AI RSS）は本日も本文取得に成功（3日連続）
+  - Cursor Changelog RSS / `https://cursor.com/changelog/rss.xml`: `curl` exit 35（Connection reset。09-25 と同じ形）。`cursor.com/changelog` の WebFetch で本文取得に成功したため障害としては記録しない（fetch-flow.md「403 を記録する前の判定順序」）
+  - `feeds.feedburner.com/GoogleAppsUpdates`: 名前解決失敗（既知・最終確認 2026-10-21）→ 回避策: Workspace Updates の HTML
+  - GitHub releases / tags（copilot-cli / codex / orca）は `curl` 403（既知の挙動）。WebFetch で本文取得に成功した
 
 - → **2026-10-19: 週次復旧チェック（月曜）を実施。復旧 15ホスト・新規の取得障害 0件・分類の変化 1件**（最終確認 2026-10-19）
   - **ゲートウェイを通過（復旧・2026-10-19）**: `www.testingcatalog.com` / `simonwillison.net` / `obsidian.md` / `docs.x.ai` / `grok.com` / `docs.devin.ai` / `cli.devin.ai` / `qwen.ai` / `azure.microsoft.com` / `gemini.google` / `www.darioamodei.com` / `microsoft.ai` / `openrouter.ai` / `the-decoder.com` / `docs.github.com` → 復旧（2026-10-19）
