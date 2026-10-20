@@ -1248,7 +1248,7 @@
       { slug: 'studio', name: 'Copilot Studio / Power Platform', blurb: 'Studio、Power Platform' },
       { slug: 'm365-copilot', name: 'M365 Copilot', blurb: 'Word / Excel / Chat 等の製品更新' },
       { slug: 'm365-admin', name: 'M365 管理', blurb: '共有リンク、監査、GCC、Purview' },
-      { slug: 'cursor', name: 'Cursor / xAI', blurb: 'Cursor、Devin、Grok' },
+      { slug: 'cursor', name: 'Cursor / xAI', blurb: 'Cursor、Devin、Grok、その他のエージェント（Orca・TypeSafe など）' },
       { slug: 'mcp', name: 'MCP / エージェント標準', blurb: 'MCP、エージェント標準、A2A 相当' },
       { slug: 'open-weight', name: 'オープンウェイト', blurb: 'HF、ローカル LLM' },
       { slug: 'apple', name: 'Apple', blurb: 'Developer News、Apple Intelligence、OS' },
@@ -1434,7 +1434,7 @@
       ['apple', /Apple/],
       ['mcp', /\bMCP\b|エージェント標準|A2A|WebMCP/],
       ['open-weight', /オープンウェイト|ローカル LLM|Hugging Face|\bHF\b|Mistral|Qwen/],
-      ['cursor', /Cursor|Devin|Cognition|xAI|Grok|SpaceXAI/],
+      ['cursor', /Cursor|Devin|Cognition|xAI|Grok|SpaceXAI|その他エージェント/],
       ['market', /市場|規制|政策|GTM|企業構造|企業動向|資金調達|M&A|資本|国内|IPO|地政学|業界/],
     ];
     const CAT_ITEM_KW = {
@@ -1445,9 +1445,9 @@
       'm365-admin': ['管理センター', 'Intune', '監査', '共有リンク', 'Purview', 'GCC', 'Partner Center', 'サブプロセッサ', '管理者向け', 'Global Admin', 'AI Admin', 'Jailbreak', '配布'],
       openai: ['OpenAI', 'ChatGPT', 'Codex', 'GPT-'],
       google: ['Google', 'Gemini', 'DeepMind', 'Antigravity', 'Workspace'],
-      cursor: ['Cursor', 'Devin', 'Cognition', 'xAI', 'Grok', 'SpaceXAI'],
+      cursor: ['Cursor', 'Devin', 'Cognition', 'xAI', 'Grok', 'SpaceXAI', 'Orca', 'TypeSafe', 'OpenRouter', 'Perplexity', 'AgentsView'],
       mcp: ['MCP', 'A2A', 'エージェント標準', 'WebMCP'],
-      'open-weight': ['オープンウェイト', 'Hugging Face', 'ローカル LLM', 'Qwen', 'Mistral', 'Llama'],
+      'open-weight': ['オープンウェイト', 'Hugging Face', 'ローカル LLM', 'Qwen', 'Mistral', 'Llama', 'Ollama'],
       apple: ['Apple', 'Apple Intelligence', 'iOS', 'macOS', 'iPhone'],
       market: ['規制', 'GTM', '市場', 'M&A', '資金調達', 'IPO', 'Similarweb', 'IDC', '企業構造', '資本'],
     };
@@ -1487,20 +1487,54 @@
       const name = catOf(slug)?.name || '';
       return name && name !== text ? name : '';
     }
-    function catClassifyText(text) {
-      const scores = {};
-      const lower = text.toLowerCase();
-      for (const [slug, kws] of Object.entries(CAT_ITEM_KW)) {
-        let s = 0;
-        for (const kw of kws) {
-          if (lower.includes(kw.toLowerCase()) || text.includes(kw)) s++;
-        }
-        if (s) scores[slug] = s;
+    // 英字の語は単語の途中に当てない（ForCausalLM の Orca、curiosity の iOS、MiniMaxAI の xAI を拾わない）
+    let catItemRe = null;
+    function catKeywordRes() {
+      if (!catItemRe) {
+        catItemRe = Object.entries(CAT_ITEM_KW).map(([slug, kws]) => [slug, kws.map((kw) => (
+          new RegExp(`${/^[A-Za-z]/.test(kw) ? '(?<![A-Za-z])' : ''}${escapeRe(kw)}`, 'i')
+        ))]);
       }
-      const ranked = Object.entries(scores).sort((a, b) => b[1] - a[1]);
-      if (!ranked.length) return null;
-      if (ranked.length > 1 && ranked[0][1] === ranked[1][1]) return null;
-      return ranked[0][0];
+      return catItemRe;
+    }
+    // 項目が最も多く当たったカテゴリを返す。同点は2カテゴリまで両方を返す（2026-10-20 kit 決定）。
+    // 3カテゴリ以上の同点は空。ただし見出しのカテゴリ（headSlugs）が分かれば、それと重なるものに絞る。
+    function catClassifySlugs(text, headSlugs = null) {
+      const scores = [];
+      for (const [slug, res] of catKeywordRes()) {
+        const s = res.filter((re) => re.test(text)).length;
+        if (s) scores.push([slug, s]);
+      }
+      if (!scores.length) return [];
+      const top = Math.max(...scores.map(([, s]) => s));
+      const tied = scores.filter(([, s]) => s === top).map(([slug]) => slug);
+      if (tied.length <= 2) return tied;
+      const narrowed = headSlugs ? tied.filter((slug) => headSlugs.includes(slug)) : [];
+      return narrowed.length && narrowed.length <= 2 ? narrowed : [];
+    }
+    function catClassifyText(text) {
+      const slugs = catClassifySlugs(text);
+      return slugs.length === 1 ? slugs[0] : null;
+    }
+    function catHasKeyword(text) {
+      return catKeywordRes().some(([, res]) => res.some((re) => re.test(text)));
+    }
+    // 複数カテゴリにまたがる見出しが指すカテゴリの一覧。
+    // 「Microsoft（その他）」は正規化で（その他）が落ちて何も指さなくなるので、画面の表示名（CAT_DISPLAY_MIXED）と同じ2カテゴリを返す
+    const CAT_MIXED_HEAD_SLUGS = {
+      'Microsoft（その他）': ['m365-copilot', 'm365-admin'],
+      'Microsoft (その他)': ['m365-copilot', 'm365-admin'],
+    };
+    function catHeadingSlugs(h) {
+      const raw = String(h || '').replace(/\s+/g, ' ').trim();
+      if (CAT_MIXED_HEAD_SLUGS[raw]) return CAT_MIXED_HEAD_SLUGS[raw];
+      const n = catNormHeading(h);
+      if (CAT_ALIAS[n]) return [CAT_ALIAS[n]];
+      const hits = [];
+      for (const [slug, re] of CAT_HEAD_RE) {
+        if (re.test(n) && !hits.includes(slug)) hits.push(slug);
+      }
+      return hits;
     }
     function catSliceH2(md, title) {
       const m = md.match(new RegExp(`^##[^\\S\\n]*${escapeRe(title)}\\s*$`, 'm'));
@@ -1589,8 +1623,17 @@
           if (target === slug) {
             for (const item of catSplitItems(body)) pieces.push(item);
           } else if (target === '*') {
+            // 複合見出し: 項目の語で振り分ける。語が1つも無い項目は見出しのカテゴリへ戻す
+            const headSlugs = catHeadingSlugs(title);
             for (const item of catSplitItems(body)) {
-              if (catClassifyText(item) === slug) pieces.push(item);
+              const slugs = catHasKeyword(item) ? catClassifySlugs(item, headSlugs) : headSlugs;
+              if (slugs.includes(slug)) pieces.push(item);
+            }
+          } else if (target && /その他/.test(title)) {
+            // 「その他」を含む1カテゴリ専用の見出し: 別カテゴリに一意に当たる項目は、そちらにも出す
+            for (const item of catSplitItems(body)) {
+              const slugs = catClassifySlugs(item);
+              if (slugs.length === 1 && slugs[0] === slug) pieces.push(item);
             }
           }
           for (const p of pieces) {
@@ -1605,7 +1648,7 @@
       }
       for (const [n, block] of Object.entries(hlMap)) {
         if (usedHl.has(n)) continue;
-        if (catClassifyText(block) === slug) highlights.push(block);
+        if (catClassifySlugs(block).includes(slug)) highlights.push(block);
       }
       const hl = highlights.filter((b) => !isSilenceReport(b));
       const items = chunks.filter((c) => !isSilenceReport(c));

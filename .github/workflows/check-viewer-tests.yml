@@ -1,0 +1,23 @@
+# ビューアの単体テスト（カテゴリ振り分け・日付切替の競合など）。
+# 実データを読む検査は ../05_ai-news-daily が無いのでスキップされる。実データの確認は手元で行う。
+name: check-viewer-tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'tests/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: ビューアの単体テストを実行する
+        run: node --test tests/*.test.mjs
