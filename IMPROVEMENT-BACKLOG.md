@@ -42,6 +42,11 @@
 
 ## 既知の取得障害
 
+- → **2026-10-22: 新規の取得障害 0件・復旧 0件**（最終確認 2026-10-22）。⚠️ 木曜のため週次復旧チェックの対象日ではない（次回 10-26）。
+  - Cursor Changelog RSS は本日 `curl` 200（`application/rss+xml`）で取得できた
+  - `openai.com` / `help.openai.com`: オリジン403（既知・最終確認 2026-10-22）→ 回避策: WebSearch（ChatGPT Release Notes の 10/16 Slides を確認）
+  - GitHub releases（copilot-cli / codex / orca）は WebFetch で本文取得に成功した
+
 - → **2026-10-21: 新規の取得障害 0件・復旧 0件**（最終確認 2026-10-21）。⚠️ 水曜のため週次復旧チェックの対象日ではない（直近実施 10-19 ／ 次回 10-26）。
   - B-084 の8ソース（TestingCatalog RSS / Simon Willison Atom / Obsidian `changelog.xml` / `docs.x.ai` / `docs.devin.ai` / `gemini.google/release-notes/` / Workspace Updates HTML / `blog.google` AI RSS）は本日も本文取得に成功（3日連続）
   - Cursor Changelog RSS / `https://cursor.com/changelog/rss.xml`: `curl` exit 35（Connection reset。09-25 と同じ形）。`cursor.com/changelog` の WebFetch で本文取得に成功したため障害としては記録しない（fetch-flow.md「403 を記録する前の判定順序」）
