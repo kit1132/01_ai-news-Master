@@ -15,21 +15,6 @@
 
 ## 提案中
 
-- **B-084: 週次復旧チェック（2026-10-19）で本文取得を確認した8ソースの取得方法欄を一次（WebFetch / RSS）へ戻す**（起票 2026-10-19 / 最終確認 2026-10-21 / 回数 3）
-  - 対象: `.claude/rules/sites/daily-sources.md` の次の8項の取得方法欄・備考欄、および冒頭の更新履歴
-    - TestingCatalog（RSS `www.testingcatalog.com/rss/`）
-    - Simon Willison's Weblog（`simonwillison.net/tags/ai.atom`）
-    - Obsidian Changelog（`obsidian.md/changelog.xml`）
-    - xAI / Grok Release Notes（`docs.x.ai/developers/release-notes`。`x.ai/news`・`x.ai/build/changelog` はオリジン403のため候補から外す）
-    - Devin Release Notes（`docs.devin.ai/release-notes/overview`）
-    - Google Gemini App Release Notes（B-083 の差し替え先 `gemini.google/release-notes/`）
-    - Google Workspace Updates Blog（HTML。feedburner RSS は curl 000 のまま）
-    - Google The Keyword（RSS `blog.google/innovation-and-ai/technology/ai/rss/`）
-  - 変更内容: 取得方法欄を「WebSearch」から「RSS / WebFetch → 失敗時 WebSearch」へ戻し、備考に「2026-10-19 にゲートウェイ拒否が解消し本文取得を確認」と書く。xAI 項は B-081 の代替一次の記載と整合させる
-  - 根拠: 2026-10-19 実測。08-03 以降ゲートウェイ拒否だった17ホストのうち15ホストが `curl` で HTTP 応答を返し、上記8ソースで日付つきの本文を取得できた（例: `docs.x.ai` の October 14 Grok Voice 3.0 / 2.0 deprecation、`docs.devin.ai` の October 16、Workspace Updates の 10/15 Gmail Live）。⚠️ **WebSearch 運用では xAI の 10/14 の版更新・退役を5日間検出できていなかった**
-  - 制約: `fetch-flow.md`「復旧チェック」手順2は本文取得の成功で取得方法欄を戻すと定めるが、08-04 の8ホスト復旧では 08-06 まで定着を確認してから戻した（B-023）。同じ扱いにするなら 10-20・10-21 の本文取得を待ってから反映する。`deepmind.google/blog/` は 200 だが本文から日付を抽出できておらず、本提案の対象外とした
-  - 統合（2026-10-19 棚卸し）: B-081 をこの提案へ統合した（要旨はアーカイブ参照）
-
 - **B-078: ChatGPT の広告プロダクト（ChatGPT Ads / Sponsored Agents）を関心領域と検索語彙に明示し、`help.openai.com` の広告コレクションを副 URL として登録する**（起票 2026-09-21 / 最終確認 2026-09-23 / 回数 3）
   - 対象: `.claude/rules/interests/ai-tools.md`「特に追いたいもの」の **ChatGPT**（エンドユーザーレイヤー）項、および `.claude/rules/sites/daily-sources.md`「最優先」の **ChatGPT Release Notes** 項の URL 欄・検索キーワード欄
   - 変更内容: 2点。① `ai-tools.md` の ChatGPT 項の対象に「**広告プロダクト（ChatGPT Ads・Sponsored Agents）とプラン別の広告有無**」を加える。現行の列挙は「モデル更新・プラン変更・新機能（Canvas、Deep Research、Memory、Voice Mode等）・料金変更」で、**広告は「新機能」にも「料金変更」にも読めない**——無料/低価格プランでは金銭ではなく広告面で対価を払う形になるため、プラン選定の判断材料として料金と同じ軸に置く必要がある ② `daily-sources.md` の ChatGPT Release Notes 項に「**URL（副・広告プロダクト）**: `https://help.openai.com/en/collections/20001223`（ChatGPT Ads コレクション。`/articles/20001047-ads-in-chatgpt`・`/articles/20001524-sponsored-agents-in-chatgpt-ads` を含む）」を加え、検索キーワードに **`ChatGPT ads sponsored agents <年>`** と **`ChatGPT ads plan availability <年>`** の2本を追加する。⚠️ `help.openai.com` はオリジン403が継続しているので取得方法欄は WebSearch のままとし、備考に「**`site:help.openai.com` 付き WebSearch では本文相当が返る**」と書く
@@ -405,6 +390,7 @@
 
 ## アーカイブ（採用済み・見送り）
 
+- B-084: 週次復旧チェック（2026-10-19）で本文取得を確認した8ソースの取得方法欄を一次（WebFetch / RSS）へ戻す — **採用済み（2026-10-21・kit の承認によりセッション内で反映）**。10-19〜10-21 の3日続けて8ソースとも本文を取得できたのを確かめてから反映した。取得方法を変えたのは6項（Simon Willison は取得方法欄を新設、xAI・Devin・Gemini アプリ・Workspace Updates・The Keyword は一次へ）。TestingCatalog と Obsidian は欄がすでに一次だったので変えていない。xAI は URL を `docs.x.ai/developers/release-notes` 1本にし、オリジン403の `x.ai/news`・`x.ai/build/changelog` を外した。The Keyword の RSS URL は転送先 `blog.google/innovation-and-ai/technology/ai/rss/` に改めた
 - 2026-10-20 台帳の棚卸しの続き（kit 承認）で処理した（このアーカイブ移動と同じコミット）
 - B-038: 製品リポジトリ（GitHub）とパッケージレジストリ（npm / PyPI）を「エージェント製品の一次」として `daily-sources.md` に規定する — **見送り（2026-10-20・kit 判断）**。9/23 以降、新しい実例がない（約1か月）。npm の部分は B-035 で反映済み。再発したら起票し直す
 - B-053: 利用枠・料金の変更告知を拾うため、ベンダー公式 SNS アカウントを `daily-sources.md` の検索軸として明示する — **見送り（2026-10-20・kit 判断）**。実例は 8/31 の1件のみで、9/1 以降の再確認がない。x.com の取得にも保証がない

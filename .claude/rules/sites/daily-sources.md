@@ -35,6 +35,8 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 > **2026-08-26更新（B-034採用）**: Gemini API changelog（`https://ai.google.dev/gemini-api/docs/changelog`）を最優先に追加。同日実測 200。登録済み Google 系5ソースはゲートウェイ拒否のままなので、これが到達できる Google 一次になる。既存5ソースの置き換えではない。
 >
 > **2026-10-14更新（kit 指示）**: 高優先に **Orca**（Stably AI のエージェント開発環境）と **TypeSafe AI**（System One モデル Jev）を追加した。どちらも自サイトに RSS が無い。Orca は GitHub releases の Atom、TypeSafe は `sitemap.xml` の slug 集合差分で新着を取る。クラウド環境の許可ドメインに `www.onorca.dev` / `typesafe.ai` / `docs.typesafe.ai` を足すよう同日 kit に依頼した（`github.com` は既定の許可一覧に入っている）。
+>
+> **2026-10-21更新（B-084採用）**: 2026-10-19 の週次復旧チェックでゲートウェイ拒否が解消し、10-19〜10-21 の3日続けて本文を取得できた6項の取得方法を一次（RSS / WebFetch）へ戻した（Simon Willison・xAI・Devin・Gemini アプリ・Workspace Updates・The Keyword）。TestingCatalog と Obsidian は取得方法欄がすでに一次だったので変えていない。上の 2026-08-06 更新で「未復旧ホスト」とした `www.testingcatalog.com` / `simonwillison.net` / `obsidian.md` / `blog.google` / `workspaceupdates.googleblog.com` / `docs.devin.ai` は解消済み。`x.ai` はゲートウェイを通るようになったがオリジン403なので、xAI は `docs.x.ai` で読む。
 
 ---
 
@@ -239,30 +241,33 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 ### Google Workspace Updates Blog
 - URL: https://workspaceupdates.googleblog.com/
 - RSS URL（休止中）: https://feeds.feedburner.com/GoogleAppsUpdates
-- 取得方法: WebSearch → WebFetch
+- 取得方法: WebFetch（HTML）→ WebSearch
 - フィード本文: 全文あり（Blogger/FeedBurner経由のAtomフィード）
 - 注目点: Gemini for Workspaceの新機能、Docs/Sheets/Slides/Gmail/Meet統合、管理者向け変更
 - 頻度: 毎日確認
 - 備考: FeedBurner RSS/WebFetch ともに403が2026-04-03以降継続中（2026-04-14時点）。WebSearch をプライマリに変更。RSS復旧時は取得方法を `RSS → WebFetch → WebSearch` に戻すこと
+  2026-10-19 にゲートウェイ拒否が解消し、HTML の本文を取得できた（10-19〜10-21 の3日続けて確認）。取得方法を WebFetch 一次へ戻した。FeedBurner RSS は `curl` 000 のままなので休止中を維持する（B-084採用、2026-10-21）
 
 ### Google Gemini App Release Notes
 - URL: https://gemini.google/release-notes/
 - 検索キーワード（WebSearch用）: `Gemini app release notes update 2026`
-- 取得方法: WebSearch → WebFetch
+- 取得方法: WebFetch → WebSearch
 - 注目点: Geminiアプリの機能追加・変更、モデル切替、プラン別機能差分
 - 頻度: 毎日確認
 - 備考: WebFetch 403が2026-04-03以降継続中（2026-04-14時点）。WebSearch をプライマリに変更
   URL を `support.google.com/gemini/answer/13594961` から差し替えた（B-083採用、2026-10-19）。旧 URL はゲートウェイを通過する（2026-10-05 `curl` 200）が、WebFetch で返る本文は **Gemini Apps Privacy Hub** でリリースノートではない。**到達できることを取得成功と見なさない。** 新 URL は 2026-10-19 に日付つきのリリースノート本文を返した（最上位 2026.10.13 Gemini 4 Argon）
+  本文を取得できたので（10-19〜10-21 の3日続けて確認）、取得方法を WebFetch 一次へ戻した（B-084採用、2026-10-21）
 
 ### Google The Keyword（AI カテゴリ）
 - URL: https://blog.google/technology/ai/
-- RSS URL（休止中）: https://blog.google/technology/ai/rss
+- RSS URL: https://blog.google/innovation-and-ai/technology/ai/rss/ （旧 `blog.google/technology/ai/rss` はここへ転送される）
 - 検索キーワード（WebSearch用）: `Google AI announcement Gemini 2026`
-- 取得方法: WebSearch
+- 取得方法: RSS → WebSearch
 - フィード本文: 要検証（XML応答確認済み、本文の有無は初回実行時に確認すること）
 - 注目点: Geminiモデルリリース、Google I/O発表、プロダクト統合の公式アナウンス
 - 頻度: 毎日確認
 - 備考: RSS 403が2026-04-02以降継続中（2026-04-14時点）。WebSearch をプライマリに変更。リダイレクト先は `blog.google/innovation-and-ai/technology/ai/rss`。RSS復旧時は取得方法を `RSS → WebSearch` に戻すこと
+  2026-10-19 にゲートウェイ拒否が解消し、RSS の本文を取得できた（10-19〜10-21 の3日続けて確認）。RSS URL を転送先に改め、取得方法を RSS 一次へ戻した（B-084採用、2026-10-21）
 
 ## 高優先
 
@@ -328,14 +333,13 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 - 備考: 2026-07-08追加（B-011）。ニュース速報性は低いが、Codex Remote等の新機能の詳細解説が出る場所。大型発表時は必ず確認
 
 ### xAI / Grok Release Notes
-- URL（候補1）: https://x.ai/news
-- URL（候補2）: https://docs.x.ai/developers/release-notes
-- URL（候補3・一次ページ確認済み）: https://x.ai/build/changelog
+- URL: https://docs.x.ai/developers/release-notes （B-084採用、2026-10-21）
 - 検索キーワード（WebSearch用）: `xAI Grok release update 2026` / `Grok new features 2026`
-- 取得方法: WebFetch（疎通確認後に確定）→ 失敗時 WebSearch
+- 取得方法: WebFetch → 失敗時 WebSearch
 - 注目点: Grok新バージョン、Custom Skills等の機能追加、API変更、料金変更
 - 頻度: 毎日確認
 - 備考: **疎通未確認の宿題ソース**（2026-05-28〜06-03で複数回改善メモに記録）。次回ダイジェスト生成時にWebFetch疎通を試行し、結果に応じて取得方法欄を更新すること。`x.ai/build/changelog` は 2026-06-07 のメモで一次ページと確認済み（B-005採用）。WebFetch失敗時はWebSearch運用（Musk の X 投稿で予告 → 公式ドキュメントで詳細確認のパターンが多い）
+  疎通の宿題は解消した。`docs.x.ai` は 2026-10-19 にゲートウェイ拒否が解消し、日付つきの本文を取得できた（10-19〜10-21 の3日続けて確認）。WebSearch 運用では 10/14 の版更新・退役を5日間検出できていなかった。旧候補の `x.ai/news`・`x.ai/build/changelog` はオリジン403で、許可リストに足しても読めないので URL から外した（B-084採用、2026-10-21）
 
 ### Google DeepMind Blog / Google Research
 - URL: https://deepmind.google/discover/blog/
@@ -448,18 +452,21 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 - URL（フォールバック）: https://simonwillison.net/atom/everything/
 - RSS URL: https://simonwillison.net/tags/ai.atom
 - 検索キーワード（WebSearch用）: `Simon Willison Claude Code 2026`
+- 取得方法: RSS（Atom）→ WebSearch
 - 注目点: **新機能を実際に動かした検証結果とコード例**、公式リリースノートに載らない実装上の落とし穴。既存ダイジェストで繰り返し引用している実績あり
 - 頻度: 週1〜2回確認
 - 備考: 2026-07-26 追加（B-012採用）。curl 実測 200 / `application/xml` / 184,282 bytes。
   `Quoting ...` 形式（中の人の発言引用のみ）と非AIの個人投稿は落とす。
+  2026-10-19 にゲートウェイ拒否が解消し、Atom の本文を取得できた（10-19〜10-21 の3日続けて確認）。取得方法欄が無かったので足した（B-084採用、2026-10-21）
 
 ### Devin Release Notes
 - URL: https://docs.devin.ai/release-notes/overview
 - 検索キーワード（WebSearch用）: `Devin AI release notes update 2026`
-- 取得方法: WebSearch → WebFetch
+- 取得方法: WebFetch → WebSearch
 - 注目点: 新機能、モデル更新、料金変更
 - 頻度: 毎日確認
 - 備考: WebFetch 403が2026-04-02以降継続中（2026-04-14時点）。WebSearch をプライマリに変更
+  2026-10-19 にゲートウェイ拒否が解消し、本文を取得できた（10-19〜10-21 の3日続けて確認）。取得方法を WebFetch 一次へ戻した（B-084採用、2026-10-21）
 
 ### Apple Developer News / iOS 27 Release Notes
 - URL: https://developer.apple.com/news/
