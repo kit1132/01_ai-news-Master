@@ -11,8 +11,8 @@ import { test } from 'node:test';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const html = readFileSync(join(ROOT, 'index.html'), 'utf8');
 const script = html.slice(html.lastIndexOf('<script>') + '<script>'.length, html.lastIndexOf('</script>'));
-const { extractCategoryDay, catClassifySlugs, catHeadingSlugs } = Function(
-  `${script}\nreturn { extractCategoryDay, catClassifySlugs, catHeadingSlugs };`,
+const { extractCategoryDay, catClassifySlugs, catHeadingSlugs, catHlRefs } = Function(
+  `${script}\nreturn { extractCategoryDay, catClassifySlugs, catHeadingSlugs, catHlRefs };`,
 )();
 
 // 抽出結果から、項目とハイライトの見出し（太字か ### の題）を取り出す
@@ -195,4 +195,58 @@ test('Ollama はオープンウェイト（llama の部分一致に頼らない�
 });
 test('「Microsoft（その他）」見出しは M365 Copilot と M365 管理を指す', () => {
   assert.deepEqual(catHeadingSlugs('Microsoft（その他）').sort(), ['m365-admin', 'm365-copilot']);
+});
+
+// --- 当日ハイライト参照。前日・他ソースの番号を当日番号として読まない ---
+test('catHlRefs は規約と本文の当日言及を読む', () => {
+  assert.deepEqual(catHlRefs('（ハイライト1参照）'), ['1']);
+  assert.deepEqual(catHlRefs('（ハイライト参照・1）'), ['1']);
+  assert.deepEqual(catHlRefs('内容はハイライト1を参照'), ['1']);
+  assert.deepEqual(catHlRefs('内容はハイライト1参照'), ['1']);
+  assert.deepEqual(catHlRefs('ハイライト1と2を参照'), ['1', '2']);
+  assert.deepEqual(catHlRefs('ハイライト１参照'), ['1']);
+  assert.deepEqual(catHlRefs('ハイライト1のエージェント基盤とあわせ'), ['1']);
+  assert.deepEqual(catHlRefs('ハイライト2のとおり 9/13 へずれた'), ['2']);
+  assert.deepEqual(catHlRefs('ハイライト1が示した指摘と同じ面'), ['1']);
+});
+
+test('catHlRefs は前日・他ソースの番号を当日ハイライトにしない', () => {
+  assert.deepEqual(catHlRefs('モデルが上限を回避した事実（前日のハイライト1）は変わらず'), []);
+  assert.deepEqual(catHlRefs('昨日のハイライト2と同じ論点'), []);
+  assert.deepEqual(catHlRefs('Master がハイライト3にしたが、日次では掲載済み'), []);
+  assert.deepEqual(catHlRefs('09-04 のハイライト1'), []);
+  assert.deepEqual(catHlRefs('本サマリーは 10/14 にハイライト1で既報'), []);
+});
+
+const DAY1013_HL = `### 1. [予定] GPT-5.5 の ChatGPT / Codex からの退役まで残り1日 — 一次の移行先は GPT-6 Sol に変わっていた
+
+**要点**: GPT-5.5 は明日退役する。
+`;
+const DAY1013 = `# AI News Daily Summary — 2026-10-13
+
+## 今日のハイライト
+
+${DAY1013_HL}
+
+## カテゴリ別まとめ
+
+### OpenAI / Codex / ChatGPT
+
+- **GPT-5.5 の ChatGPT / Codex からの退役（残り1日）**（ハイライト参照・1）
+
+### Claude / Anthropic
+
+- [観測] **想定外操作レポートの 10/12 訂正** — モデルが上限を短縮サービスで回避した事実（前日のハイライト1）は変わらず。
+`;
+
+test('前日のハイライトN で、別カテゴリの当日ハイライトを埋め込まない', () => {
+  assert.ok(has(DAY1013, 'openai', 'GPT-5.5'), '正式参照の HL1 が OpenAI に無い');
+  assert.ok(!has(DAY1013, 'claude', 'GPT-5.5'), '前日のハイライト1 で OpenAI の HL1 が Claude に漏れた');
+  assert.ok(has(DAY1013, 'claude', '想定外操作レポート'), 'Claude の項目自体が消えた');
+});
+
+test('実データ 10-13: Claude に当日の GPT-5.5 ハイライトを出さない', { skip: !existsSync(DAILY) && '05_ai-news-daily が無い' }, () => {
+  const got = titles(extractCategoryDay(real('10-13'), 'claude'));
+  assert.ok(got.some((t) => t.includes('想定外操作レポート')), `10-13 の claude: ${JSON.stringify(got)}`);
+  assert.ok(!got.some((t) => t.includes('GPT-5.5')), `10-13 の claude に GPT-5.5 が混入: ${JSON.stringify(got)}`);
 });

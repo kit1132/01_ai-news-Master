@@ -1581,12 +1581,21 @@
     }
     function catHlRefs(text) {
       const out = [];
-      // 規約の「（ハイライトN参照）」と、生成側が使う「（ハイライト参照・N）」の両方を読む
-      const re = /ハイライト\s*(?:参照・)?([0-9０-９]+)/g;
+      // 当日ハイライトへの言及を読む（規約の参照行、本文の「ハイライトNの／が／参照」）。
+      // 「前日のハイライト1」「09-04 のハイライト1」「Master がハイライト3にした」
+      // 「10/14 にハイライト1で既報」は当日番号ではない。
+      const re = /ハイライト\s*(?:参照・\s*)?([0-9０-９]+(?:\s*[と・、,]\s*[0-9０-９]+)*)/g;
       let m;
       while ((m = re.exec(text))) {
-        const n = m[1].replace(/[０-９]/g, (ch) => String(ch.charCodeAt(0) - 0xFF10));
-        if (!out.includes(n)) out.push(n);
+        const before = text.slice(Math.max(0, m.index - 32), m.index);
+        if (/(?:前日|昨日)の\s*$/.test(before)) continue;
+        if (/\d{1,2}[-/.]\d{1,2}\s*(?:の|に)\s*$/.test(before)) continue;
+        if (/(?:Master|industry|Copilot|本サマリー)\s*が\s*$/.test(before)) continue;
+        if (/で既報/.test(text.slice(m.index, m.index + m[0].length + 6))) continue;
+        for (const raw of m[1].match(/[0-9０-９]+/g) || []) {
+          const n = raw.replace(/[０-９]/g, (ch) => String(ch.charCodeAt(0) - 0xFF10));
+          if (n && !out.includes(n)) out.push(n);
+        }
       }
       return out;
     }
