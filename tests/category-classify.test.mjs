@@ -11,8 +11,8 @@ import { test } from 'node:test';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const html = readFileSync(join(ROOT, 'index.html'), 'utf8');
 const script = html.slice(html.lastIndexOf('<script>') + '<script>'.length, html.lastIndexOf('</script>'));
-const { extractCategoryDay, catClassifySlugs, catHeadingSlugs } = Function(
-  `${script}\nreturn { extractCategoryDay, catClassifySlugs, catHeadingSlugs };`,
+const { extractCategoryDay, catClassifySlugs, catHeadingSlugs, catHeadingTarget } = Function(
+  `${script}\nreturn { extractCategoryDay, catClassifySlugs, catHeadingSlugs, catHeadingTarget };`,
 )();
 
 // 抽出結果から、項目とハイライトの見出し（太字か ### の題）を取り出す
@@ -181,6 +181,7 @@ const realCases = [
   ['10-16', 'cursor', 'Orca'],
   ['10-17', 'cursor', 'OpenRouter'],
   ['10-18', 'cursor', 'AgentsView'],
+  ['10-24', 'cursor', 'Kimi'],
 ];
 for (const [d, slug, word] of realCases) {
   test(`実データ ${d}: ${slug} に「${word}」が出る`, { skip: !existsSync(DAILY) && '05_ai-news-daily が無い' }, () => {
@@ -195,4 +196,31 @@ test('Ollama はオープンウェイト（llama の部分一致に頼らない�
 });
 test('「Microsoft（その他）」見出しは M365 Copilot と M365 管理を指す', () => {
   assert.deepEqual(catHeadingSlugs('Microsoft（その他）').sort(), ['m365-admin', 'm365-copilot']);
+});
+
+// --- 2026-10-24: 「その他モデル / 開発ツール」が見出しとして Cursor に入る ---
+// 本文の「Opus 5.5」比較や anthropics-claude URL で Claude ページへ出してはいけない。
+const OTHER_MODELS = `## カテゴリ別まとめ
+
+### その他モデル / 開発ツール
+
+- [料金+新機能] **Moonshot AI の Kimi K3.1 Pro** — Index は55で Opus 5.5 の58に次ぎ、オープンウェイトは 11/4 公開予定。https://example.com/anthropics-claude-opus-5-5/
+- [据え置き] **Cursor・xAI・Devin の定点** — changelog は 10/16 のままである。
+`;
+
+test('「その他モデル / 開発ツール」は Cursor の見出し', () => {
+  assert.equal(catHeadingTarget('その他モデル / 開発ツール'), 'cursor');
+  assert.deepEqual(catHeadingSlugs('その他モデル / 開発ツール'), ['cursor']);
+});
+
+test('その他モデル見出しの項目は、本文の他社比較で Claude に出ない', () => {
+  assert.ok(has(OTHER_MODELS, 'cursor', 'Kimi K3.1 Pro'), 'Kimi が Cursor に無い');
+  assert.ok(has(OTHER_MODELS, 'cursor', 'Cursor・xAI・Devin の定点'));
+  assert.ok(!has(OTHER_MODELS, 'claude', 'Kimi K3.1 Pro'), '比較の Opus URL で Claude へ漏れた');
+});
+
+test('実データ 10-24: Kimi は Cursor に出て Claude には出ない', { skip: !existsSync(DAILY) && '05_ai-news-daily が無い' }, () => {
+  const md = real('10-24');
+  assert.ok(has(md, 'cursor', 'Kimi'), 'Kimi が Cursor に無い');
+  assert.ok(!has(md, 'claude', 'Kimi'), 'Kimi が Claude へ漏れた');
 });
