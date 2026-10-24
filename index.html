@@ -1579,6 +1579,15 @@
       }
       return map;
     }
+    function catHlTitleLine(block) {
+      return String(block || '').split('\n')[0] || '';
+    }
+    // 参照の無いハイライトは、題に語があれば題だけで振る。
+    // 本文の「Claude Opus の続報」まで数えると、Studio 退役が Claude ページの先頭に載る。
+    function catHlClassifySlugs(block) {
+      const titleSlugs = catClassifySlugs(catHlTitleLine(block));
+      return titleSlugs.length ? titleSlugs : catClassifySlugs(block);
+    }
     function catHlRefs(text) {
       const out = [];
       // 規約の「（ハイライトN参照）」と、生成側が使う「（ハイライト参照・N）」の両方を読む
@@ -1648,7 +1657,7 @@
       }
       for (const [n, block] of Object.entries(hlMap)) {
         if (usedHl.has(n)) continue;
-        if (catClassifySlugs(block).includes(slug)) highlights.push(block);
+        if (catHlClassifySlugs(block).includes(slug)) highlights.push(block);
       }
       const hl = highlights.filter((b) => !isSilenceReport(b));
       const items = chunks.filter((c) => !isSilenceReport(c));
