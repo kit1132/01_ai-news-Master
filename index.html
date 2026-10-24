@@ -1410,6 +1410,7 @@
       'Devin': 'cursor', 'Devin / Cognition': 'cursor', 'Cognition / Devin': 'cursor',
       'xAI': 'cursor', 'xAI / Grok': 'cursor', 'SpaceXAI / Grok': 'cursor',
       'Cursor / xAI': 'cursor', 'Cursor / xAI / Devin': 'cursor',
+      'その他モデル / 開発ツール': 'cursor', 'その他モデル': 'cursor',
       'MCP / エージェント標準': 'mcp', 'MCP': 'mcp',
       'エージェント拡張の配布規格': 'mcp', '標準・エコシステム': 'mcp', 'エージェント基盤': 'mcp',
       'オープンウェイト / ローカル LLM': 'open-weight', 'OSS・ローカルLLM': 'open-weight', 'Mistral': 'open-weight',
@@ -1434,7 +1435,7 @@
       ['apple', /Apple/],
       ['mcp', /\bMCP\b|エージェント標準|A2A|WebMCP/],
       ['open-weight', /オープンウェイト|ローカル LLM|Hugging Face|\bHF\b|Mistral|Qwen/],
-      ['cursor', /Cursor|Devin|Cognition|xAI|Grok|SpaceXAI|その他エージェント/],
+      ['cursor', /Cursor|Devin|Cognition|xAI|Grok|SpaceXAI|その他エージェント|その他モデル/],
       ['market', /市場|規制|政策|GTM|企業構造|企業動向|資金調達|M&A|資本|国内|IPO|地政学|業界/],
     ];
     const CAT_ITEM_KW = {
@@ -1631,8 +1632,10 @@
             }
           } else if (target && /その他/.test(title)) {
             // 「その他」を含む1カテゴリ専用の見出し: 別カテゴリに一意に当たる項目は、そちらにも出す
+            // 見るのは見出し（太字）だけ。本文や比較URLの他社名で別ページへ漏らさない
             for (const item of catSplitItems(body)) {
-              const slugs = catClassifySlugs(item);
+              const head = (item.match(/\*\*([^*]+)\*\*/) || [])[1] || item.split('\n')[0];
+              const slugs = catClassifySlugs(head);
               if (slugs.length === 1 && slugs[0] === slug) pieces.push(item);
             }
           }
