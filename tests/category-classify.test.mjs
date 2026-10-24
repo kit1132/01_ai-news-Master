@@ -196,3 +196,34 @@ test('Ollama はオープンウェイト（llama の部分一致に頼らない�
 test('「Microsoft（その他）」見出しは M365 Copilot と M365 管理を指す', () => {
   assert.deepEqual(catHeadingSlugs('Microsoft（その他）').sort(), ['m365-admin', 'm365-copilot']);
 });
+
+// --- 複合見出し: 見出しと重ならない3カテゴリ同点は、見出しへ戻す ---
+const DAY1012_DECISION = `# AI News Daily Summary — 2026-10-12
+
+## カテゴリ別まとめ
+
+### Microsoft 365 Copilot / Copilot Studio / Power Platform
+
+- [新機能] **Microsoft-Decision-1** — Microsoft が、Alibaba の Qwen3.5-9B を追加学習した判定専用モデル Microsoft-Decision-1 を Microsoft Foundry に出したと報じられた（10/9）。
+  - 出典は OpenRouter の掲載で、Microsoft の一次では未確認
+  - OpenAI の Decisions API（10/8）と同じ用途を、OpenAI 系ではない基盤モデルで出した形になる。
+`;
+
+test('複合見出しで、見出し外の3カテゴリ同点は見出しへ戻す', () => {
+  assert.deepEqual(catClassifySlugs(
+    'Qwen と OpenAI と OpenRouter に触れた判定モデル',
+    ['studio', 'm365-copilot'],
+  ), []);
+  assert.ok(has(DAY1012_DECISION, 'studio', 'Microsoft-Decision-1'), 'Studio から消えた');
+  assert.ok(has(DAY1012_DECISION, 'm365-copilot', 'Microsoft-Decision-1'), 'M365 Copilot から消えた');
+  assert.ok(!has(DAY1012_DECISION, 'openai', 'Microsoft-Decision-1'), '同点の OpenAI へ漏れた');
+  assert.ok(!has(DAY1012_DECISION, 'cursor', 'Microsoft-Decision-1'), '同点の Cursor へ漏れた');
+  assert.ok(!has(DAY1012_DECISION, 'open-weight', 'Microsoft-Decision-1'), '同点のオープンウェイトへ漏れた');
+});
+
+test('実データ 10-12: Microsoft-Decision-1 が Studio / M365 Copilot に出る', { skip: !existsSync(DAILY) && '05_ai-news-daily が無い' }, () => {
+  const studio = titles(extractCategoryDay(real('10-12'), 'studio'));
+  const m365 = titles(extractCategoryDay(real('10-12'), 'm365-copilot'));
+  assert.ok(studio.some((t) => t.includes('Microsoft-Decision-1')), `10-12 の studio: ${JSON.stringify(studio)}`);
+  assert.ok(m365.some((t) => t.includes('Microsoft-Decision-1')), `10-12 の m365-copilot: ${JSON.stringify(m365)}`);
+});

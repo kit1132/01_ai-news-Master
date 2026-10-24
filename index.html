@@ -1623,10 +1623,12 @@
           if (target === slug) {
             for (const item of catSplitItems(body)) pieces.push(item);
           } else if (target === '*') {
-            // 複合見出し: 項目の語で振り分ける。語が1つも無い項目は見出しのカテゴリへ戻す
+            // 複合見出し: 項目の語で振り分ける。語が無い、または3カテゴリ以上の同点が
+            // 見出しと重ならないときは、見出しのカテゴリへ戻す（どこにも出さないよりマシ）。
             const headSlugs = catHeadingSlugs(title);
             for (const item of catSplitItems(body)) {
-              const slugs = catHasKeyword(item) ? catClassifySlugs(item, headSlugs) : headSlugs;
+              const classified = catHasKeyword(item) ? catClassifySlugs(item, headSlugs) : [];
+              const slugs = classified.length ? classified : headSlugs;
               if (slugs.includes(slug)) pieces.push(item);
             }
           } else if (target && /その他/.test(title)) {
