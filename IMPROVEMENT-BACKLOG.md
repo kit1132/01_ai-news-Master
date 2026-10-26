@@ -50,6 +50,11 @@
 
 ## 既知の取得障害
 
+- → **2026-10-27: 新規の取得障害 0件・復旧 0件**（最終確認 2026-10-27）。⚠️ 火曜のため週次復旧チェックの対象日ではない（次回 11-02）。
+  - Cursor Changelog RSS は本日も `curl` 200
+  - `openai.com` / `help.openai.com`: オリジン403（既知・最終確認 2026-10-27）→ 回避策: WebSearch（ChatGPT Release Notes の最上位は 10/20 Locked chats）
+  - GitHub releases（copilot-cli / codex / orca）は WebFetch で本文取得に成功した
+
 - → **2026-10-26: 週次復旧チェック（月曜）を実施。復旧 0件・新規の取得障害 0件・分類の変化 1件**（最終確認 2026-10-26）。WebFetch を先に当て、失敗したホストだけ `curl` で切り分けた。
   - `openai.com` / `help.openai.com` / `x.ai`: WebFetch 403、`curl` HTTP 403（オリジン403・既知・最終確認 2026-10-26）→ 回避策: WebSearch / `docs.x.ai/developers/release-notes`
   - **ゲートウェイ拒否が継続（`curl` exit 56・最終確認 2026-10-26）**: `www.geekwire.com` / `claude.dev` / `modelcontextprotocol.io`
