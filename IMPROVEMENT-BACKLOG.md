@@ -15,12 +15,13 @@
 
 ## 提案中
 
-- **B-086: Claude Platform release notes を `daily-sources.md` に登録し、RSS で日付ごとの項目数を前回と突き合わせる**（起票 2026-10-23 / 最終確認 2026-10-25 / 回数 3）
+- **B-086: Claude Platform release notes を `daily-sources.md` に登録し、RSS で日付ごとの項目数を前回と突き合わせる**（起票 2026-10-23 / 最終確認 2026-10-29 / 回数 4）
   - 対象: `.claude/rules/sites/daily-sources.md`「最優先」に新規項目を追加する（「Claude モデルドキュメント」の直前が並び順として妥当）
   - 変更内容: 「**Claude Platform Release Notes**」を新設する。URL は `https://platform.claude.com/docs/en/release-notes/overview`、RSS は `https://platform.claude.com/docs/en/release-notes/feed.xml`。取得方法は RSS（curl）→ WebFetch → WebSearch。備考に「1日付＝1 item で、既存の日付に後から項目が足される。最上位の比較ではなく、日付ごとの項目数（段落数）を `.last-check-state.md` に残して前回と突き合わせる」と書く（`fetch-flow.md`「日付降順ページの差分判定」の B-024 項の適用先として明記する）
   - 根拠: 2026-10-23 実測。RSS は 200 / `application/rss+xml` / 225,016 bytes / 156 item。10-22 のセッションは最上位 October 21 を読んで据え置きと判断したが、**10/20 の項に組織単位の web fetch 無効化と Managed Agents のドメイン制限（2項）、10/21 の項に user profiles の `enforcement_status`（1項）が後から足されていた**。どちらも管理者の設定に直結する変更で、本日ハイライトに上げた。このソースは毎日 `.last-check-state.md` で追っているのに `daily-sources.md` に項目が無く、取得手順と差分の取り方が決まっていない
   - 再確認（2026-10-24）: RSS 157 item。日付ごとの項目数を前回と突き合わせ、10/22 の項（Claude Models on Google Cloud (Anthropic managed) GA）の新設を検出した。10/20・10/21 の項数は前回から変化なし
   - 再確認（2026-10-25）: RSS 158 item（前回 157）。最上位は 10/22 のままだが、**10/20 の下に Claude Tag API（beta）の item が1件追加**されていた。最上位だけを見る運用では検出できない2例目
+  - 再確認（2026-10-29）: RSS 158 item のまま（10-27 と同数）。10/20 の下にあった Claude Tag API（beta）が、**新しい October 23 の item へ移っていた**。item 数が変わらなくても日付の付け替えは起きるので、日付ごとの項目数に加えて最上位の日付も並べて残す必要がある
   - 制約: 追記の時刻は RSS の `pubDate`（日付 00:00 GMT 固定）からは分からない。項目数の差で「増えた」ことだけを検出し、増えた日付の本文を読む
 
 - **B-078: ChatGPT の広告プロダクト（ChatGPT Ads / Sponsored Agents）を関心領域と検索語彙に明示し、`help.openai.com` の広告コレクションを副 URL として登録する**（起票 2026-09-21 / 最終確認 2026-09-23 / 回数 3）
