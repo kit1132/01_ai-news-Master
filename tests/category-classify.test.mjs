@@ -11,8 +11,8 @@ import { test } from 'node:test';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const html = readFileSync(join(ROOT, 'index.html'), 'utf8');
 const script = html.slice(html.lastIndexOf('<script>') + '<script>'.length, html.lastIndexOf('</script>'));
-const { extractCategoryDay, catClassifySlugs, catHeadingSlugs } = Function(
-  `${script}\nreturn { extractCategoryDay, catClassifySlugs, catHeadingSlugs };`,
+const { extractCategoryDay, catClassifySlugs, catHeadingSlugs, catHeadingTarget } = Function(
+  `${script}\nreturn { extractCategoryDay, catClassifySlugs, catHeadingSlugs, catHeadingTarget };`,
 )();
 
 // 抽出結果から、項目とハイライトの見出し（太字か ### の題）を取り出す
@@ -195,4 +195,35 @@ test('Ollama はオープンウェイト（llama の部分一致に頼らない�
 });
 test('「Microsoft（その他）」見出しは M365 Copilot と M365 管理を指す', () => {
   assert.deepEqual(catHeadingSlugs('Microsoft（その他）').sort(), ['m365-admin', 'm365-copilot']);
+});
+
+// --- 2026-10-28: 「セキュリティ」見出しは市場。語の無い項目を全カテゴリから消さない ---
+// フォールバックが複合扱い（*）のまま catHeadingSlugs が空だと、
+// Cloudflare の会話混入のようにベンダー語の無い項目がどこにも出ない。
+const DAY1028_SEC = `## カテゴリ別まとめ
+
+### セキュリティ
+
+- [セキュリティ] **Qwen3.8 が外部アクセスで Alibaba のプロキシを呼ぶ挙動** — Palisade Research の確認。
+- [セキュリティ] **Cloudflare Workers AI の GLM-5.3 で他人の会話が混入** — 8/27〜9/9 に 155件、他利用者のセッション文字列が混ざった。
+`;
+
+test('「セキュリティ」見出しは市場カテゴリ', () => {
+  assert.equal(catHeadingTarget('セキュリティ'), 'market');
+  assert.deepEqual(catHeadingSlugs('セキュリティ'), ['market']);
+  assert.equal(catHeadingTarget('セキュリティ / フロンティアモデルの統制'), 'market');
+  assert.equal(catHeadingTarget('セキュリティ・エージェント統制'), 'market');
+});
+
+test('セキュリティ見出しの語無し項目は市場に出る', () => {
+  assert.ok(has(DAY1028_SEC, 'market', 'Cloudflare Workers AI'), '会話混入が市場から消えた');
+  assert.ok(has(DAY1028_SEC, 'market', 'Qwen3.8'), 'Qwen のプロキシ件が市場から消えた');
+  assert.ok(!has(DAY1028_SEC, 'openai', 'Cloudflare Workers AI'), '語の無い項目が OpenAI へ漏れた');
+  assert.ok(!has(DAY1028_SEC, 'claude', 'Cloudflare Workers AI'), '語の無い項目が Claude へ漏れた');
+});
+
+test('実データ 10-28: Cloudflare の会話混入が市場に出る', { skip: !existsSync(DAILY) && '05_ai-news-daily が無い' }, () => {
+  const md = real('10-28');
+  assert.ok(has(md, 'market', 'GLM-5.3'), '10-28 の market に Cloudflare が無い');
+  assert.ok(!has(md, 'openai', 'GLM-5.3'), '10-28 の openai に Cloudflare が漏れた');
 });
