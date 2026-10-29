@@ -11,8 +11,8 @@ import { test } from 'node:test';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const html = readFileSync(join(ROOT, 'index.html'), 'utf8');
 const script = html.slice(html.lastIndexOf('<script>') + '<script>'.length, html.lastIndexOf('</script>'));
-const { extractCategoryDay, catClassifySlugs, catHeadingSlugs } = Function(
-  `${script}\nreturn { extractCategoryDay, catClassifySlugs, catHeadingSlugs };`,
+const { extractCategoryDay, catClassifySlugs, catHeadingSlugs, catClassifyInHeading } = Function(
+  `${script}\nreturn { extractCategoryDay, catClassifySlugs, catHeadingSlugs, catClassifyInHeading };`,
 )();
 
 // 抽出結果から、項目とハイライトの見出し（太字か ### の題）を取り出す
@@ -195,4 +195,47 @@ test('Ollama はオープンウェイト（llama の部分一致に頼らない�
 });
 test('「Microsoft（その他）」見出しは M365 Copilot と M365 管理を指す', () => {
   assert.deepEqual(catHeadingSlugs('Microsoft（その他）').sort(), ['m365-admin', 'm365-copilot']);
+});
+
+// --- 複合見出し: 見出し外の語が点数で勝っても、見出し側から消さない ---
+// 2026-10-27 の Cowork に Grok / xAI と管理センターが載ると、全体最多は
+// Cursor と M365 管理になり、M365 Copilot ページから項目が消えていた。
+const COWORK_GROK = '- [新機能+仕様] **Cowork の Grok 4.7 と GPT 6.1 Sol** — Microsoft が Copilot Cowork の What\'s New に October 2026 節を加え、利用者はモデルピッカーで Grok 4.7 と GPT 6.1 Sol（GPT 6 Sol の後継）を選べるようになった。Grok は xAI が独立プロセッサとして処理するため、選ぶと Microsoft の DPA の外で処理され、有効化には Global administrator が M365 管理センターの AI providers の設定を変える必要がある';
+const DAY1027_MIXED = `# AI News Daily Summary — 2026-10-27
+
+## カテゴリ別まとめ
+
+### GitHub Copilot / Microsoft 365 Copilot
+
+- **Targeted release の退役**（ハイライト1参照）
+${COWORK_GROK}
+- [新機能] **assisted permissions の GA と Copilot CLI** — GitHub が Copilot CLI で assisted permissions を GA にした。
+`;
+
+test('複合見出しは見出し内の語で振り分け、Grok / 管理センターでは Cursor へ出さない', () => {
+  assert.deepEqual(
+    catHeadingSlugs('GitHub Copilot / Microsoft 365 Copilot').sort(),
+    ['github-copilot', 'm365-copilot'],
+  );
+  assert.deepEqual(
+    catClassifySlugs(COWORK_GROK).sort(),
+    ['cursor', 'm365-admin'],
+    '全体最多は Cursor と M365 管理（回帰用）',
+  );
+  assert.deepEqual(
+    catClassifyInHeading(COWORK_GROK, ['github-copilot', 'm365-copilot']),
+    ['m365-copilot'],
+  );
+  assert.ok(has(DAY1027_MIXED, 'm365-copilot', 'Cowork の Grok 4.7'), 'Cowork が M365 Copilot から消えた');
+  assert.ok(has(DAY1027_MIXED, 'github-copilot', 'Copilot CLI'), 'Copilot CLI が GitHub Copilot から消えた');
+  assert.ok(!has(DAY1027_MIXED, 'cursor', 'Cowork の Grok 4.7'), 'Grok / xAI で Cursor へ漏れた');
+  assert.ok(!has(DAY1027_MIXED, 'm365-admin', 'Cowork の Grok 4.7'), '管理センターで M365 管理へ漏れた');
+  assert.ok(!has(DAY1027_MIXED, 'm365-copilot', 'Copilot CLI'), 'GitHub 項目が M365 Copilot へ漏れた');
+});
+
+test('実データ 10-27: Cowork の Grok が M365 Copilot に出て Cursor には出ない', { skip: !existsSync(DAILY) && '05_ai-news-daily が無い' }, () => {
+  const md = real('10-27');
+  assert.ok(has(md, 'm365-copilot', 'Cowork の Grok'), '10-27 の m365-copilot から Cowork が消えた');
+  assert.ok(!has(md, 'cursor', 'Cowork の Grok'), '10-27 の Cowork が Cursor へ漏れた');
+  assert.ok(!has(md, 'm365-admin', 'Cowork の Grok'), '10-27 の Cowork が M365 管理へ漏れた');
 });

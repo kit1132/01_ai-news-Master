@@ -1516,6 +1516,23 @@
       const slugs = catClassifySlugs(text);
       return slugs.length === 1 ? slugs[0] : null;
     }
+    // 複合見出しでは、見出しが指すカテゴリの語だけを数える。
+    // 全体の最多だと Grok / xAI / 管理センターが勝ち、Cowork の更新が
+    // M365 Copilot から消えて Cursor や M365 管理へ出る（2026-10-27）。
+    function catClassifyInHeading(text, headSlugs) {
+      if (!headSlugs.length) {
+        return catHasKeyword(text) ? catClassifySlugs(text) : [];
+      }
+      const scores = [];
+      for (const [s, res] of catKeywordRes()) {
+        if (!headSlugs.includes(s)) continue;
+        const n = res.filter((re) => re.test(text)).length;
+        if (n) scores.push([s, n]);
+      }
+      if (!scores.length) return headSlugs;
+      const top = Math.max(...scores.map(([, n]) => n));
+      return scores.filter(([, n]) => n === top).map(([s]) => s);
+    }
     function catHasKeyword(text) {
       return catKeywordRes().some(([, res]) => res.some((re) => re.test(text)));
     }
@@ -1623,10 +1640,11 @@
           if (target === slug) {
             for (const item of catSplitItems(body)) pieces.push(item);
           } else if (target === '*') {
-            // 複合見出し: 項目の語で振り分ける。語が1つも無い項目は見出しのカテゴリへ戻す
+            // 複合見出し: 見出しが指すカテゴリの中だけで語を数える。
+            // 語が1つも無い項目は、見出しのカテゴリへ戻す。
             const headSlugs = catHeadingSlugs(title);
             for (const item of catSplitItems(body)) {
-              const slugs = catHasKeyword(item) ? catClassifySlugs(item, headSlugs) : headSlugs;
+              const slugs = catClassifyInHeading(item, headSlugs);
               if (slugs.includes(slug)) pieces.push(item);
             }
           } else if (target && /その他/.test(title)) {
