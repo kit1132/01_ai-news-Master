@@ -196,3 +196,28 @@ test('Ollama はオープンウェイト（llama の部分一致に頼らない�
 test('「Microsoft（その他）」見出しは M365 Copilot と M365 管理を指す', () => {
   assert.deepEqual(catHeadingSlugs('Microsoft（その他）').sort(), ['m365-admin', 'm365-copilot']);
 });
+
+// 先頭行の本文が沈黙フレーズを含んでも、見出しがニュースならカテゴリに残す
+const DAY0922_CURSOR = `# AI News Daily Summary — 2026-09-22
+
+## カテゴリ別まとめ
+
+### Cursor / xAI / Devin
+
+- [新機能] **Cursor フォーラムの Announcements に 9/21 の2本が出た**（ハイライト2参照）。\`Grok 4.7 is now Live!\` で、9/2 以来19日ぶりの更新である。⚠️ 前日まで「19日間動きなし」と記録していたソースが本日動いた。
+`;
+const DAY0928_COPILOT = `# AI News Daily Summary — 2026-09-28
+
+## カテゴリ別まとめ
+
+### GitHub Copilot / GitHub
+
+- [予定] **Copilot の3変更が本日発効** — チャット3面統合と code review の既定 effort 変更が本日 9/28 に発効する。changelog は 9/25 の投稿が最上位のままで、9/26〜28 付の新規は無い。
+`;
+
+test('本文の「19日間動きなし」引用で Cursor の新機能が消えない', () => {
+  assert.ok(has(DAY0922_CURSOR, 'cursor', 'Cursor フォーラムの Announcements'), '9/22 の Cursor 新機能がカテゴリから消えた');
+});
+test('本文の「新規は無い」で Copilot の発効日項目が消えない', () => {
+  assert.ok(has(DAY0928_COPILOT, 'github-copilot', 'Copilot の3変更が本日発効'), '9/28 の Copilot 発効がカテゴリから消えた');
+});
