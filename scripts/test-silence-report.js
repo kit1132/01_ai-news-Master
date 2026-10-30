@@ -48,6 +48,16 @@ const cases = [
     want: false,
   },
   {
+    name: "本文が前日の「19日間動きなし」を引用しても新機能は残す（2026-09-22 Cursor）",
+    md: "- [新機能] **Cursor フォーラムの Announcements に 9/21 の2本が出た**（ハイライト2参照）。`Grok 4.7 is now Live!` と `Share your Thoughts on Grok 4.7` で、9/2 の Grok Bot Android 版以来19日ぶりの更新である。⚠️ 前日まで「19日間動きなし」と記録していたソースが本日動いた。動きなしの連続日数は翌日の不在を予告しない",
+    want: false,
+  },
+  {
+    name: "本文の「changelog に新規は無い」で発効日の項目を落とさない（2026-09-28 Copilot）",
+    md: "- [予定] **Copilot の3変更が本日発効** — GitHub が告知していた Copilot のチャット3面統合、code review の既定 effort の Balanced 化、チャットのデータ保持変更が本日 9/28 に発効する。github.blog changelog の Copilot ラベルは 9/25 の投稿が最上位のままで、9/26〜28 付の新規は無い。",
+    want: false,
+  },
+  {
     name: "空は落とさない",
     md: "",
     want: false,
