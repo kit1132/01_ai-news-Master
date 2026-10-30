@@ -51,6 +51,11 @@
 
 ## 既知の取得障害
 
+- → **2026-10-31: 新規の取得障害 0件・復旧 0件**（最終確認 2026-10-31）。⚠️ 土曜のため週次復旧チェックの対象日ではない（次回 11-02）。
+  - Cursor Changelog RSS は本日も `curl` 200
+  - `openai.com` / `help.openai.com`: オリジン403（既知・最終確認 2026-10-31）→ 回避策: WebSearch（ChatGPT Release Notes は 10/28 の Dots テキスト送信 beta まで二次で確認）
+  - GitHub releases（copilot-cli / codex / orca）は `curl` 403・WebFetch で本文取得に成功した
+
 - → **2026-10-30: 新規の取得障害 0件・復旧 0件**（最終確認 2026-10-30）。⚠️ 金曜のため週次復旧チェックの対象日ではない（次回 11-02）。
   - Cursor Changelog RSS は本日も `curl` 200
   - `openai.com` / `help.openai.com`: オリジン403（既知・最終確認 2026-10-30）→ 回避策: WebSearch（ChatGPT Release Notes の最上位は 10/27 iCloud Mail / Calendar）
