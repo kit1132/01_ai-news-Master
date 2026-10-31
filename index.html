@@ -1457,6 +1457,9 @@
       return h.replace(/（[^）]*）/g, '').replace(/\([^)]*\)/g, '').trim();
     }
     function catHeadingTarget(h) {
+      const raw = String(h || '').replace(/\s+/g, ' ').trim();
+      // 複合見出しの別名は正規化や語の部分一致より先に見る
+      if (CAT_MIXED_HEAD_SLUGS[raw]) return '*';
       const n = catNormHeading(h);
       if (CAT_ALIAS[n]) return CAT_ALIAS[n];
       if (/^(その他|継続ウォッチ|ウォッチ|Meta)$/.test(n)) return null;
@@ -1524,6 +1527,8 @@
     const CAT_MIXED_HEAD_SLUGS = {
       'Microsoft（その他）': ['m365-copilot', 'm365-admin'],
       'Microsoft (その他)': ['m365-copilot', 'm365-admin'],
+      // 製品更新と管理・ライセンスが同じ見出しに並ぶ（2026-10-31）
+      'Microsoft 365 Copilot / ライセンス': ['m365-copilot', 'm365-admin'],
     };
     function catHeadingSlugs(h) {
       const raw = String(h || '').replace(/\s+/g, ' ').trim();
@@ -1623,10 +1628,13 @@
           if (target === slug) {
             for (const item of catSplitItems(body)) pieces.push(item);
           } else if (target === '*') {
-            // 複合見出し: 項目の語で振り分ける。語が1つも無い項目は見出しのカテゴリへ戻す
+            // 複合見出し: 項目の語で振り分ける。語が1つも無い項目は見出しのカテゴリへ戻す。
+            // 語が見出しの外だけ（Copilot Chat → GitHub Copilot など）でも、
+            // 見出し側から消さない。
             const headSlugs = catHeadingSlugs(title);
             for (const item of catSplitItems(body)) {
-              const slugs = catHasKeyword(item) ? catClassifySlugs(item, headSlugs) : headSlugs;
+              let slugs = catHasKeyword(item) ? catClassifySlugs(item, headSlugs) : headSlugs;
+              if (headSlugs.length && !slugs.some((s) => headSlugs.includes(s))) slugs = headSlugs;
               if (slugs.includes(slug)) pieces.push(item);
             }
           } else if (target && /その他/.test(title)) {
