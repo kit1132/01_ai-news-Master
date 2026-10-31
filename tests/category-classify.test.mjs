@@ -196,3 +196,44 @@ test('Ollama はオープンウェイト（llama の部分一致に頼らない�
 test('「Microsoft（その他）」見出しは M365 Copilot と M365 管理を指す', () => {
   assert.deepEqual(catHeadingSlugs('Microsoft（その他）').sort(), ['m365-admin', 'm365-copilot']);
 });
+
+// 「Microsoft 365 Copilot / ライセンス」は製品と管理が同居する複合見出し。
+// 単一の m365-copilot だと、Purview 退役やタスクバー固定が M365 管理から消える（2026-10-31）。
+const DAY1031_LICENSE = `# AI News Daily Summary — 2026-10-31
+
+## カテゴリ別まとめ
+
+### Microsoft 365 Copilot / ライセンス
+
+- [新機能+予定] **Copilot Notebooks から Copilot Workspaces への移行** — 既存の Notebooks を Workspaces に移し、チームのメンバー・文脈・作業ファイルを1か所にまとめる。
+- [仕様] **10月の What's New の管理者向け項目** — Purview のデータライフサイクル管理から Copilot のメモリーに保持ポリシーを掛けられる。
+- [新機能] **Copilot Chat のメモリーの出典表示（MC1530959・Roadmap 574111）** — 回答に使われたカスタム指示・保存したメモリーを Sources の Personalization タブで確かめられる。Premium ライセンスが必要。
+- [予定] **Copilot アプリのタスクバー固定の設定（MC1530612）** — 管理者は、有償の M365 Copilot ライセンスを持つ利用者だけに Copilot アプリをタスクバーへ固定できる。保存すると M365 管理センターが Entra にライセンスベースのグループを作る。
+- [予定] **Purview の DSPM classic の退役延期（MC1481315 更新）** — DSPM classic と DSPM for AI classic の退役を、2027年1月下旬から3月中旬開始に延ばした。
+`;
+
+test('「Microsoft 365 Copilot / ライセンス」は M365 Copilot と M365 管理の複合見出し', () => {
+  assert.deepEqual(
+    catHeadingSlugs('Microsoft 365 Copilot / ライセンス').sort(),
+    ['m365-admin', 'm365-copilot'],
+  );
+});
+
+test('ライセンス見出しの管理項目が M365 管理から消えない', () => {
+  assert.ok(has(DAY1031_LICENSE, 'm365-admin', 'Purview の DSPM classic'), 'DSPM 退役が M365 管理から消えた');
+  assert.ok(has(DAY1031_LICENSE, 'm365-admin', '管理者向け項目'), 'Purview 保持ポリシーが M365 管理から消えた');
+  assert.ok(has(DAY1031_LICENSE, 'm365-admin', 'タスクバー固定'), 'タスクバー固定が M365 管理から消えた');
+});
+
+test('ライセンス見出しの製品項目は M365 Copilot に残り、Copilot Chat も消えない', () => {
+  assert.ok(has(DAY1031_LICENSE, 'm365-copilot', 'Copilot Workspaces'), 'Workspaces が M365 Copilot から消えた');
+  assert.ok(has(DAY1031_LICENSE, 'm365-copilot', 'Copilot Chat のメモリー'), 'Copilot Chat が GitHub Copilot 語で消えた');
+  assert.ok(!has(DAY1031_LICENSE, 'github-copilot', 'Copilot Chat のメモリー'), 'Copilot Chat が GitHub Copilot へ漏れた');
+});
+
+test('実データ 10-31: Purview DSPM が M365 管理に出る', { skip: !existsSync(DAILY) && '05_ai-news-daily が無い' }, () => {
+  const md = real('10-31');
+  assert.ok(has(md, 'm365-admin', 'Purview の DSPM'), '10-31 の m365-admin から DSPM が消えた');
+  assert.ok(has(md, 'm365-copilot', 'Copilot Workspaces'), '10-31 の m365-copilot から Workspaces が消えた');
+  assert.ok(has(md, 'm365-copilot', 'Copilot Chat のメモリー'), '10-31 の Copilot Chat が消えた');
+});
