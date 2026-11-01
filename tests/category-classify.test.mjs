@@ -11,8 +11,8 @@ import { test } from 'node:test';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const html = readFileSync(join(ROOT, 'index.html'), 'utf8');
 const script = html.slice(html.lastIndexOf('<script>') + '<script>'.length, html.lastIndexOf('</script>'));
-const { extractCategoryDay, catClassifySlugs, catHeadingSlugs } = Function(
-  `${script}\nreturn { extractCategoryDay, catClassifySlugs, catHeadingSlugs };`,
+const { extractCategoryDay, catClassifySlugs, catHeadingSlugs, catHeadingTarget } = Function(
+  `${script}\nreturn { extractCategoryDay, catClassifySlugs, catHeadingSlugs, catHeadingTarget };`,
 )();
 
 // 抽出結果から、項目とハイライトの見出し（太字か ### の題）を取り出す
@@ -195,4 +195,41 @@ test('Ollama はオープンウェイト（llama の部分一致に頼らない�
 });
 test('「Microsoft（その他）」見出しは M365 Copilot と M365 管理を指す', () => {
   assert.deepEqual(catHeadingSlugs('Microsoft（その他）').sort(), ['m365-admin', 'm365-copilot']);
+});
+
+// 「Microsoft 365 Copilot / Teams」は製品と管理が同居する複合見出し。
+// 単一の m365-copilot だと、Purview DLP が M365 管理から消える（2026-11-01）。
+// Google Workspace は Google 語が2つ当たるので、見出し外の最多だけでは管理にも残らない。
+const DAY1101_TEAMS = `# AI News Daily Summary — 2026-11-01
+
+## カテゴリ別まとめ
+
+### Microsoft 365 Copilot / Teams
+
+- **Teams 会議の Copilot ポリシーの分割**（ハイライト2参照）
+- [予定] **Teams の会議メモリーファイルが2027年1月に延期** — Intelligent Recap を有効にした会議で AI が要点をまとめたファイルを作る機能の展開を延ばした。
+- [予定] **Purview DLP の Microsoft 以外のアプリ対応が12月下旬に延期** — Microsoft が Defender for Cloud Apps のコネクタ経由で Google Workspace・Box・Dropbox などに DLP と自動ラベル付けを掛ける機能の GA を、10月下旬から12月下旬に延ばした。
+- [据え置き] **Roadmap・Release Notes・ブログ** — Cowork の Learn 6本・Purview What's New にも新しい記事はない。
+`;
+
+test('「Microsoft 365 Copilot / Teams」は M365 Copilot と M365 管理の複合見出し', () => {
+  assert.equal(catHeadingTarget('Microsoft 365 Copilot / Teams'), '*');
+  assert.deepEqual(
+    catHeadingSlugs('Microsoft 365 Copilot / Teams').sort(),
+    ['m365-admin', 'm365-copilot'],
+  );
+});
+
+test('Teams 見出しの管理項目が M365 管理から消えない', () => {
+  assert.ok(has(DAY1101_TEAMS, 'm365-admin', 'Purview DLP'), 'Purview DLP が M365 管理から消えた');
+  assert.ok(has(DAY1101_TEAMS, 'm365-admin', 'Teams 会議の Copilot ポリシー'), '会議ポリシーが M365 管理から消えた');
+  assert.ok(has(DAY1101_TEAMS, 'm365-copilot', 'Teams の会議メモリーファイル'), '会議メモリーが M365 Copilot から消えた');
+  assert.ok(!has(DAY1101_TEAMS, 'google', 'Purview DLP'), 'Google Workspace 語で Google へ漏れた');
+});
+
+test('実データ 11-01: Purview DLP が M365 管理に出る', { skip: !existsSync(DAILY) && '05_ai-news-daily が無い' }, () => {
+  const md = real('11-01');
+  assert.ok(has(md, 'm365-admin', 'Purview DLP'), '11-01 の m365-admin から Purview DLP が消えた');
+  assert.ok(has(md, 'm365-copilot', 'Teams 会議の Copilot ポリシー'), '11-01 の m365-copilot から会議ポリシーが消えた');
+  assert.ok(!has(md, 'google', 'Purview DLP'), '11-01 の Purview DLP が Google へ漏れた');
 });
