@@ -15,6 +15,12 @@
 
 ## 提案中
 
+- **B-087: Privacy Center 記事の更新日を HTML の `dateModified` で取り、本文の段落数とハッシュを `.last-check-state.md` に残す**（起票 2026-11-02 / 最終確認 2026-11-02 / 回数 1）
+  - 対象: `.claude/rules/sites/daily-sources.md`「最優先」の **Anthropic Privacy Center（データ保持 / ZDR）** 項の備考
+  - 変更内容: 備考の「記事の Last-Updated の日付を毎回控え、前回から動いたときだけ本文を読む」を次の2点に置き換える。① 更新日は WebFetch の表示（「Updated this week」「Updated over a week ago」などの相対表記）ではなく、`curl` で取った HTML の JSON-LD `"dateModified"`（ISO 日時）で記録する ② 確認のたびに `<article>` の段落数・本文字数・sha256（空白を1つに畳んだテキスト）を当日ブロックに1行で残し、`dateModified` が動いた日は前回値と突き合わせる。ハッシュが動いたら本文を段落単位で読み、前回記録の要旨と照合する
+  - 根拠: 2026-11-02 実測。15425996 の `dateModified` は **2026-10-30T17:08:34Z** で、10-28 の記録「Updated over a week ago」から更新されていた。しかし状態ファイルには相対表記しか無く、前回の本文も残していなかったため、**データ保持ポリシーのどこが変わったかを特定できなかった**（ダイジェストは観測扱い）。Wayback（`archive.org`）は `curl` exit 56 で照合にも使えない。同じ JSON-LD は `support.claude.com` 15425695 にもある（`2026-09-01T17:59:45Z`）
+  - 制約: 本日分の基準値（段落 29・6,813 字・`6daadf8d5f459157`）は 11-02 の状態ファイルに記録済み。ハッシュはページの装飾変更でも動くので、動いた日は本文を読んで判定する（ハッシュ一致＝無変更、の片方向だけを信頼する）
+
 - **B-086: Claude Platform release notes を `daily-sources.md` に登録し、RSS で日付ごとの項目数を前回と突き合わせる**（起票 2026-10-23 / 最終確認 2026-10-29 / 回数 4）
   - 対象: `.claude/rules/sites/daily-sources.md`「最優先」に新規項目を追加する（「Claude モデルドキュメント」の直前が並び順として妥当）
   - 変更内容: 「**Claude Platform Release Notes**」を新設する。URL は `https://platform.claude.com/docs/en/release-notes/overview`、RSS は `https://platform.claude.com/docs/en/release-notes/feed.xml`。取得方法は RSS（curl）→ WebFetch → WebSearch。備考に「1日付＝1 item で、既存の日付に後から項目が足される。最上位の比較ではなく、日付ごとの項目数（段落数）を `.last-check-state.md` に残して前回と突き合わせる」と書く（`fetch-flow.md`「日付降順ページの差分判定」の B-024 項の適用先として明記する）
@@ -50,6 +56,13 @@
   - 統合（2026-10-19 棚卸し）: B-054 をこの提案へ統合した（要旨はアーカイブ参照）
 
 ## 既知の取得障害
+
+- → **2026-11-02: 週次復旧チェック（月曜）を実施。復旧 0件・新規の取得障害 0件・分類の変化 0件**（最終確認 2026-11-02）。WebFetch を先に当て、失敗したホストだけ `curl` で切り分けた。
+  - `openai.com` / `help.openai.com` / `x.ai`: WebFetch 403、`curl` HTTP 403（オリジン403・既知・最終確認 2026-11-02）→ 回避策: WebSearch / `docs.x.ai/developers/release-notes`
+  - **ゲートウェイ拒否が継続（`curl` exit 56・最終確認 2026-11-02）**: `feeds.feedburner.com` / `modelcontextprotocol.io` / `claude.dev` / `www.geekwire.com`（WebFetch は ENOTFOUND）→ 回避策: Workspace Updates の HTML / `blog.modelcontextprotocol.io`
+  - `platform.openai.com/docs/changelog` は `curl` 301（ソース定義どおりの転送・障害ではない）
+  - Cursor Changelog RSS は本日も `curl` 200。GitHub releases（copilot-cli / codex / orca）は WebFetch で本文取得に成功した
+  - 参考（登録ソース外）: `archive.org` は `curl` exit 56
 
 - → **2026-11-01: 新規の取得障害 0件・復旧 0件**（最終確認 2026-11-01）。⚠️ 日曜のため週次復旧チェックの対象日ではない（次回 11-02）。
   - Cursor Changelog RSS は本日も `curl` 200
