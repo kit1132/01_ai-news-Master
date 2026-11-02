@@ -11,8 +11,8 @@ import { test } from 'node:test';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const html = readFileSync(join(ROOT, 'index.html'), 'utf8');
 const script = html.slice(html.lastIndexOf('<script>') + '<script>'.length, html.lastIndexOf('</script>'));
-const { extractCategoryDay, catClassifySlugs, catHeadingSlugs } = Function(
-  `${script}\nreturn { extractCategoryDay, catClassifySlugs, catHeadingSlugs };`,
+const { extractCategoryDay, catClassifySlugs, catHeadingSlugs, catHeadingTarget } = Function(
+  `${script}\nreturn { extractCategoryDay, catClassifySlugs, catHeadingSlugs, catHeadingTarget };`,
 )();
 
 // 抽出結果から、項目とハイライトの見出し（太字か ### の題）を取り出す
@@ -195,4 +195,44 @@ test('Ollama はオープンウェイト（llama の部分一致に頼らない�
 });
 test('「Microsoft（その他）」見出しは M365 Copilot と M365 管理を指す', () => {
   assert.deepEqual(catHeadingSlugs('Microsoft（その他）').sort(), ['m365-admin', 'm365-copilot']);
+});
+
+// 「Google / その他の開発ツール」は Google 専用ではなく Cursor の受け皿でもある。
+// Google だけが当たると、語の無い Vercel などが Cursor から消え、Orca は
+// 排他ダンプで Google ページへ漏れる（2026-11-01 / 11-02）。
+const DAY1102_OTHER_TOOLS = `# AI News Daily Summary — 2026-11-02
+
+## カテゴリ別まとめ
+
+### Google / その他の開発ツール
+
+- [予定] **Antigravity のボイスモード付きエージェント（未確認）** — Google が Antigravity に音声モードを持つ新しい AI エージェントを用意している。
+- [新機能] **Orca \`v1.4.246\`** — Stably AI が Orca を出した。
+- [新機能] **Vercel CI のベータ** — Vercel はコード変更の影響を受けるタスクだけを実行する CI を公開した。
+`;
+
+test('「Google / その他の開発ツール」は Google と Cursor の複合見出し', () => {
+  assert.equal(catHeadingTarget('Google / その他の開発ツール'), '*');
+  assert.deepEqual(catHeadingSlugs('Google / その他の開発ツール').sort(), ['cursor', 'google']);
+  assert.equal(catHeadingTarget('その他の開発ツール'), 'cursor');
+});
+
+test('Google / その他の開発ツール見出しで、他ツールが Cursor から消えない', () => {
+  assert.ok(has(DAY1102_OTHER_TOOLS, 'google', 'Antigravity'), 'Antigravity が Google に無い');
+  assert.ok(!has(DAY1102_OTHER_TOOLS, 'cursor', 'Antigravity'), 'Antigravity が Cursor へ漏れた');
+  assert.ok(has(DAY1102_OTHER_TOOLS, 'cursor', 'Orca'), 'Orca が Cursor に無い');
+  assert.ok(!has(DAY1102_OTHER_TOOLS, 'google', 'Orca'), 'Orca が Google へ漏れた');
+  assert.ok(has(DAY1102_OTHER_TOOLS, 'cursor', 'Vercel CI'), '語の無い Vercel が Cursor から消えた');
+});
+
+test('実データ 11-01: Vercel CI が Cursor に出る', { skip: !existsSync(DAILY) && '05_ai-news-daily が無い' }, () => {
+  const md = real('11-01');
+  assert.ok(has(md, 'cursor', 'Vercel CI'), '11-01 の Vercel CI が Cursor から消えた');
+  assert.ok(has(md, 'google', 'Antigravity'), '11-01 の Antigravity が Google に無い');
+});
+
+test('実データ 11-02: Antigravity は Google に出て Cursor には出ない', { skip: !existsSync(DAILY) && '05_ai-news-daily が無い' }, () => {
+  const md = real('11-02');
+  assert.ok(has(md, 'google', 'Antigravity'), '11-02 の Antigravity が Google に無い');
+  assert.ok(!has(md, 'cursor', 'Antigravity'), '11-02 の Antigravity が Cursor へ漏れた');
 });
