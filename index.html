@@ -1487,13 +1487,17 @@
       const name = catOf(slug)?.name || '';
       return name && name !== text ? name : '';
     }
-    // 英字の語は単語の途中に当てない（ForCausalLM の Orca、curiosity の iOS、MiniMaxAI の xAI を拾わない）
+    // 英字の語は単語の途中に当てない（ForCausalLM の Orca、curiosity の iOS、MiniMaxAI の xAI を拾わない）。
+    // Apple は逆引き名 com.apple.*（LaunchAgent の plist など）にも当てない。
+    // そこまで拾うと、macOS の除去手順を書いた他社のセキュリティ記事が Apple ページに載る。
     let catItemRe = null;
     function catKeywordRes() {
       if (!catItemRe) {
-        catItemRe = Object.entries(CAT_ITEM_KW).map(([slug, kws]) => [slug, kws.map((kw) => (
-          new RegExp(`${/^[A-Za-z]/.test(kw) ? '(?<![A-Za-z])' : ''}${escapeRe(kw)}`, 'i')
-        ))]);
+        catItemRe = Object.entries(CAT_ITEM_KW).map(([slug, kws]) => [slug, kws.map((kw) => {
+          const lead = /^[A-Za-z]/.test(kw) ? '(?<![A-Za-z])' : '';
+          const deny = kw === 'Apple' ? '(?<!com\\.)' : '';
+          return new RegExp(`${lead}${deny}${escapeRe(kw)}`, 'i');
+        })]);
       }
       return catItemRe;
     }
