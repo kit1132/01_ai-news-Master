@@ -15,6 +15,12 @@
 
 ## 提案中
 
+- **B-088: Gemini API Changelog の URL を `aistudio.google.com/docs/changelog` へ差し替え、転送先ホストの許可ドメイン追加を要請する**（起票 2026-11-04 / 最終確認 2026-11-04 / 回数 1）
+  - 対象: `.claude/rules/sites/daily-sources.md`「最優先」の **Gemini API Changelog** 項の URL 欄（本体・`.md.txt`・料金の3本）と備考
+  - 変更内容: ① URL を `https://aistudio.google.com/docs/changelog`、本文版を `https://aistudio.google.com/docs/changelog.md.txt` に差し替える（料金ページも同じ転送を受けるかは未測定なので、到達回復後に測る） ② 備考の「`ai.google.dev` が唯一到達できる Google 一次」を「2026-11-04 に `aistudio.google.com` へ 301 で移設。転送先はゲートウェイ拒否」に改める ③ 許可ドメインの要請リストに `aistudio.google.com` を加える
+  - 根拠: 2026-11-04 実測。`curl` で `ai.google.dev/gemini-api/docs/changelog` と `.md.txt` がともに **301** → `aistudio.google.com/docs/...`。転送先は `curl` exit 56（CONNECT tunnel failed, response 403）、WebFetch は ENOTFOUND でゲートウェイ拒否。11-03 までは `.md.txt` で本文を取れていた。二次（alphasignal）は「Gemini API の docs を AI Studio に組み込んだ（first preview）」と報じている
+  - 制約: `fetch-flow.md`「恒久リダイレクト」節に従い、URL の陳腐化（本提案）と転送先の到達性（既知の取得障害に別行で記録）を分けた。到達できるまで Gemini API の GA / 退役は WebSearch の二次依存になる。WebSearch の索引は 10/13 の Gemini 4 Argon GA までしか返さなかった
+
 - **B-087: Privacy Center 記事の更新日を HTML の `dateModified` で取り、本文の段落数とハッシュを `.last-check-state.md` に残す**（起票 2026-11-02 / 最終確認 2026-11-03 / 回数 2）
   - 対象: `.claude/rules/sites/daily-sources.md`「最優先」の **Anthropic Privacy Center（データ保持 / ZDR）** 項の備考
   - 変更内容: 備考の「記事の Last-Updated の日付を毎回控え、前回から動いたときだけ本文を読む」を次の2点に置き換える。① 更新日は WebFetch の表示（「Updated this week」「Updated over a week ago」などの相対表記）ではなく、`curl` で取った HTML の JSON-LD `"dateModified"`（ISO 日時）で記録する ② 確認のたびに `<article>` の段落数・本文字数・sha256（空白を1つに畳んだテキスト）を当日ブロックに1行で残し、`dateModified` が動いた日は前回値と突き合わせる。ハッシュが動いたら本文を段落単位で読み、前回記録の要旨と照合する
@@ -57,6 +63,11 @@
   - 統合（2026-10-19 棚卸し）: B-054 をこの提案へ統合した（要旨はアーカイブ参照）
 
 ## 既知の取得障害
+
+- → **2026-11-04: 新規の取得障害 1件・復旧 0件**（最終確認 2026-11-04）。⚠️ 水曜のため週次復旧チェックの対象日ではない（次回 11-09）。
+  - `aistudio.google.com`（Gemini API Changelog の 301 転送先）: ゲートウェイ拒否（`curl` exit 56 / WebFetch ENOTFOUND・初出 2026-11-04 / 最終確認 2026-11-04）→ 回避策: WebSearch（11-04 時点で 10/30 より新しい項目は見つからない）。URL の陳腐化は B-088 に分けて起票した
+  - `openai.com` / `help.openai.com`: オリジン403（既知・最終確認 2026-11-04）→ 回避策: WebSearch
+  - Cursor Changelog RSS は本日も `curl` 200。GitHub releases（copilot-cli / codex / orca）は WebFetch で本文取得に成功した
 
 - → **2026-11-02: 週次復旧チェック（月曜）を実施。復旧 0件・新規の取得障害 0件・分類の変化 0件**（最終確認 2026-11-02）。WebFetch を先に当て、失敗したホストだけ `curl` で切り分けた。
   - `openai.com` / `help.openai.com` / `x.ai`: WebFetch 403、`curl` HTTP 403（オリジン403・既知・最終確認 2026-11-02）→ 回避策: WebSearch / `docs.x.ai/developers/release-notes`
