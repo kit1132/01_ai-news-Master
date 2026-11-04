@@ -15,7 +15,7 @@
 
 ## 提案中
 
-- **B-088: Gemini API Changelog の URL を `aistudio.google.com/docs/changelog` へ差し替え、転送先ホストの許可ドメイン追加を要請する**（起票 2026-11-04 / 最終確認 2026-11-04 / 回数 1）
+- **B-088: Gemini API Changelog の URL を `aistudio.google.com/docs/changelog` へ差し替え、転送先ホストの許可ドメイン追加を要請する**（起票 2026-11-04 / 最終確認 2026-11-05 / 回数 2）
   - 対象: `.claude/rules/sites/daily-sources.md`「最優先」の **Gemini API Changelog** 項の URL 欄（本体・`.md.txt`・料金の3本）と備考
   - 変更内容: ① URL を `https://aistudio.google.com/docs/changelog`、本文版を `https://aistudio.google.com/docs/changelog.md.txt` に差し替える（料金ページも同じ転送を受けるかは未測定なので、到達回復後に測る） ② 備考の「`ai.google.dev` が唯一到達できる Google 一次」を「2026-11-04 に `aistudio.google.com` へ 301 で移設。転送先はゲートウェイ拒否」に改める ③ 許可ドメインの要請リストに `aistudio.google.com` を加える
   - 根拠: 2026-11-04 実測。`curl` で `ai.google.dev/gemini-api/docs/changelog` と `.md.txt` がともに **301** → `aistudio.google.com/docs/...`。転送先は `curl` exit 56（CONNECT tunnel failed, response 403）、WebFetch は ENOTFOUND でゲートウェイ拒否。11-03 までは `.md.txt` で本文を取れていた。二次（alphasignal）は「Gemini API の docs を AI Studio に組み込んだ（first preview）」と報じている
@@ -63,6 +63,11 @@
   - 統合（2026-10-19 棚卸し）: B-054 をこの提案へ統合した（要旨はアーカイブ参照）
 
 ## 既知の取得障害
+
+- → **2026-11-05: 新規の取得障害 0件・復旧 0件**（最終確認 2026-11-05）。⚠️ 木曜のため週次復旧チェックの対象日ではない（次回 11-09）。
+  - `aistudio.google.com`: ゲートウェイ拒否継続（`curl` exit 56・最終確認 2026-11-05）→ 回避策: WebSearch（10/30 より新しい項目は見つからない）
+  - `openai.com` / `help.openai.com`: オリジン403（既知・最終確認 2026-11-05）→ 回避策: WebSearch
+  - `workspaceupdates.googleblog.com` は1回目の `curl` が 503、再試行で 200（B-029 の5xx手順どおり。障害として記録しない）。GitHub releases の `.atom` は `curl` 403 だが WebFetch で本文取得に成功した（B-021 どおり記録しない）
 
 - → **2026-11-04: 新規の取得障害 1件・復旧 0件**（最終確認 2026-11-04）。⚠️ 水曜のため週次復旧チェックの対象日ではない（次回 11-09）。
   - `aistudio.google.com`（Gemini API Changelog の 301 転送先）: ゲートウェイ拒否（`curl` exit 56 / WebFetch ENOTFOUND・初出 2026-11-04 / 最終確認 2026-11-04）→ 回避策: WebSearch（11-04 時点で 10/30 より新しい項目は見つからない）。URL の陳腐化は B-088 に分けて起票した
