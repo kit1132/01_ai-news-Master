@@ -196,3 +196,58 @@ test('Ollama はオープンウェイト（llama の部分一致に頼らない�
 test('「Microsoft（その他）」見出しは M365 Copilot と M365 管理を指す', () => {
   assert.deepEqual(catHeadingSlugs('Microsoft（その他）').sort(), ['m365-admin', 'm365-copilot']);
 });
+
+// --- 2026-11-04: M365 の「Copilot Chat」を GitHub Copilot と読まない ---
+// 参照の無いハイライトは本文の語で振る。Copilot Chat を GitHub 語にすると、
+// Word / Excel エージェント撤去や無償 Chat の上限が GitHub Copilot ページの先頭に載る。
+const DAY1104_HL2 = `### 2. [廃止] 単体の Word / Excel / PowerPoint エージェントが撤去される — エージェントを選んで呼ぶ操作が無くなり、Copilot Chat で頼む形だけになる
+
+**要点**: M365 Copilot ライセンスの利用者は、11月中旬から順に、左レールとエージェント一覧で Word / Excel / PowerPoint エージェントを見つけられなくなり、ピン留めも @メンションもできなくなる。
+`;
+const DAY1104_HL3 = `### 3. [料金] ライセンスのない Copilot Chat 利用者に 11/9 から上限がかかる機能が増える — 無償の Chat で使える量が Microsoft の側で変わり、管理者は上限を見ることも変えることもできない
+
+**要点**: 対象は商用テナントで M365 Copilot ライセンスを持たない利用者で、上限は時間帯でも変わる。
+`;
+const DAY1104 = `# AI News Daily Summary — 2026-11-04
+
+## 今日のハイライト
+
+${DAY1104_HL2}
+
+${DAY1104_HL3}
+
+## カテゴリ別まとめ
+
+### GitHub Copilot
+
+- [新機能] **JetBrains Air の Copilot 対応** — GitHub が JetBrains Air のエージェント選択に Copilot を加えた。
+
+### Microsoft 365 Copilot
+
+- **Word / Excel / PowerPoint エージェントの撤去**（ハイライト2参照）
+- **Copilot Chat 利用者の上限拡大**（ハイライト3参照）
+`;
+
+test('M365 の Copilot Chat は GitHub Copilot に当てない', () => {
+  assert.ok(!catClassifySlugs(DAY1104_HL2).includes('github-copilot'));
+  assert.ok(!catClassifySlugs(DAY1104_HL3).includes('github-copilot'));
+  assert.ok(catClassifySlugs(DAY1104_HL2).includes('m365-copilot'));
+  assert.ok(catClassifySlugs(DAY1104_HL3).includes('m365-copilot'));
+  assert.ok(catClassifySlugs('GitHub Copilot Chat のモデルを切り替える').includes('github-copilot'));
+});
+
+test('M365 の Copilot Chat ハイライトは GitHub Copilot ページに出ない', () => {
+  assert.ok(has(DAY1104, 'm365-copilot', 'Word / Excel / PowerPoint エージェントが撤去'));
+  assert.ok(has(DAY1104, 'm365-copilot', 'ライセンスのない Copilot Chat'));
+  assert.ok(!has(DAY1104, 'github-copilot', 'Word / Excel / PowerPoint エージェントが撤去'), 'Office エージェント撤去が GitHub Copilot へ漏れた');
+  assert.ok(!has(DAY1104, 'github-copilot', 'ライセンスのない Copilot Chat'), '無償 Chat の上限が GitHub Copilot へ漏れた');
+  assert.ok(has(DAY1104, 'github-copilot', 'JetBrains Air'));
+});
+
+test('実データ 11-04: M365 の Copilot Chat ハイライトが GitHub Copilot に出ない', { skip: !existsSync(DAILY) && '05_ai-news-daily が無い' }, () => {
+  const md = real('11-04');
+  assert.ok(has(md, 'm365-copilot', 'Word / Excel / PowerPoint エージェントが撤去'));
+  assert.ok(has(md, 'm365-copilot', 'ライセンスのない Copilot Chat'));
+  assert.ok(!has(md, 'github-copilot', 'Word / Excel / PowerPoint エージェントが撤去'), '11-04 の GitHub Copilot に Office エージェント撤去が漏れた');
+  assert.ok(!has(md, 'github-copilot', 'ライセンスのない Copilot Chat'), '11-04 の GitHub Copilot に無償 Chat の上限が漏れた');
+});
