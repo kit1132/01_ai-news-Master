@@ -15,11 +15,12 @@
 
 ## 提案中
 
-- **B-088: Gemini API Changelog の URL を `aistudio.google.com/docs/changelog` へ差し替え、転送先ホストの許可ドメイン追加を要請する**（起票 2026-11-04 / 最終確認 2026-11-06 / 回数 3）
+- **B-088: Gemini API Changelog の URL を `aistudio.google.com/docs/changelog` へ差し替え、転送先ホストの許可ドメイン追加を要請する**（起票 2026-11-04 / 最終確認 2026-11-07 / 回数 4）
   - 対象: `.claude/rules/sites/daily-sources.md`「最優先」の **Gemini API Changelog** 項の URL 欄（本体・`.md.txt`・料金の3本）と備考
   - 変更内容: ① URL を `https://aistudio.google.com/docs/changelog`、本文版を `https://aistudio.google.com/docs/changelog.md.txt` に差し替える（料金ページも同じ転送を受けるかは未測定なので、到達回復後に測る） ② 備考の「`ai.google.dev` が唯一到達できる Google 一次」を「2026-11-04 に `aistudio.google.com` へ 301 で移設。転送先はゲートウェイ拒否」に改める ③ 許可ドメインの要請リストに `aistudio.google.com` を加える
   - 根拠: 2026-11-04 実測。`curl` で `ai.google.dev/gemini-api/docs/changelog` と `.md.txt` がともに **301** → `aistudio.google.com/docs/...`。転送先は `curl` exit 56（CONNECT tunnel failed, response 403）、WebFetch は ENOTFOUND でゲートウェイ拒否。11-03 までは `.md.txt` で本文を取れていた。二次（alphasignal）は「Gemini API の docs を AI Studio に組み込んだ（first preview）」と報じている
   - 再確認（2026-11-06）: `ai.google.dev/gemini-api/docs/changelog.md.txt` を `curl -L` で取ると転送先で exit 56。WebSearch の索引も 10/30 より新しい項目を返さず、3日続けて Gemini API の更新を一次で確認できていない
+  - 再確認（2026-11-07）: `ai.google.dev/gemini-api/docs/changelog` と `/deprecations` がともに 301 → `aistudio.google.com/docs/...`（転送先は exit 56）。二次ブログが「Gemini Live / TTS の preview 5モデルが 11/17 に停止」と報じたが、一次の deprecations にも到達できず確定できなかった。4日続けて一次未確認
   - 制約: `fetch-flow.md`「恒久リダイレクト」節に従い、URL の陳腐化（本提案）と転送先の到達性（既知の取得障害に別行で記録）を分けた。到達できるまで Gemini API の GA / 退役は WebSearch の二次依存になる。WebSearch の索引は 10/13 の Gemini 4 Argon GA までしか返さなかった
 
 - **B-087: Privacy Center 記事の更新日を HTML の `dateModified` で取り、本文の段落数とハッシュを `.last-check-state.md` に残す**（起票 2026-11-02 / 最終確認 2026-11-03 / 回数 2）
@@ -64,6 +65,11 @@
   - 統合（2026-10-19 棚卸し）: B-054 をこの提案へ統合した（要旨はアーカイブ参照）
 
 ## 既知の取得障害
+
+- → **2026-11-07: 新規の取得障害 0件・復旧 0件**（最終確認 2026-11-07）。⚠️ 土曜のため週次復旧チェックの対象日ではない（次回 11-09）。
+  - `aistudio.google.com`: ゲートウェイ拒否継続（`curl` exit 56・最終確認 2026-11-07）→ 回避策: WebSearch（10/30 より新しい項目は見つからない）
+  - `openai.com` / `help.openai.com`: オリジン403（既知・最終確認 2026-11-07）→ 回避策: WebSearch
+  - GitHub releases の `.atom`（copilot-cli / codex / orca）は `curl` 403 だが WebFetch で本文取得に成功した（B-021 どおり記録しない）。`www.developersdigest.tech`（二次ブログ）は ENOTFOUND だが登録ソースではないので記録しない
 
 - → **2026-11-06: 新規の取得障害 0件・復旧 0件**（最終確認 2026-11-06）。⚠️ 金曜のため週次復旧チェックの対象日ではない（次回 11-09）。
   - `aistudio.google.com`: ゲートウェイ拒否継続（`curl` exit 56・最終確認 2026-11-06）→ 回避策: WebSearch（10/30 より新しい項目は見つからない）
