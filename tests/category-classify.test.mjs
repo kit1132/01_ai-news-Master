@@ -11,8 +11,8 @@ import { test } from 'node:test';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const html = readFileSync(join(ROOT, 'index.html'), 'utf8');
 const script = html.slice(html.lastIndexOf('<script>') + '<script>'.length, html.lastIndexOf('</script>'));
-const { extractCategoryDay, catClassifySlugs, catHeadingSlugs } = Function(
-  `${script}\nreturn { extractCategoryDay, catClassifySlugs, catHeadingSlugs };`,
+const { extractCategoryDay, catClassifySlugs, catHeadingSlugs, catClassifyHighlight } = Function(
+  `${script}\nreturn { extractCategoryDay, catClassifySlugs, catHeadingSlugs, catClassifyHighlight };`,
 )();
 
 // 抽出結果から、項目とハイライトの見出し（太字か ### の題）を取り出す
@@ -181,6 +181,7 @@ const realCases = [
   ['10-16', 'cursor', 'Orca'],
   ['10-17', 'cursor', 'OpenRouter'],
   ['10-18', 'cursor', 'AgentsView'],
+  ['11-05', 'm365-admin', 'Copilot Business'],
 ];
 for (const [d, slug, word] of realCases) {
   test(`実データ ${d}: ${slug} に「${word}」が出る`, { skip: !existsSync(DAILY) && '05_ai-news-daily が無い' }, () => {
@@ -195,4 +196,45 @@ test('Ollama はオープンウェイト（llama の部分一致に頼らない�
 });
 test('「Microsoft（その他）」見出しは M365 Copilot と M365 管理を指す', () => {
   assert.deepEqual(catHeadingSlugs('Microsoft（その他）').sort(), ['m365-admin', 'm365-copilot']);
+});
+
+// --- 参照の無いハイライトが、箇条書きの 3 カテゴリ超同点で全ページから消える ---
+const HL2_UBB = `### 2. [料金+予定] Copilot Business の従量課金の既定オンが、12/1 から2027年1〜3月へ再び延期された — 12/1 に課金設定が自動で入る前提が消えた
+
+**要点**: CSP で新規購入する Copilot Business の従量課金（UBB）が既定で有効になる時期は、12/1 から Microsoft の FY27 Q3（2027年1〜3月）に移った。11/2 予定だった Partner Center のサンドボックスも延び、新しい日付は未定である。
+
+**詳細**: Partner Center 11月アナウンスの「Availability update」。
+
+- 対象になる体験: Copilot Cowork、Work IQ API、GitHub Copilot ハーネス
+- 対象市場: 新しい時期は全市場に適用される
+`;
+const DAY1105_UBB = `# AI News Daily Summary — 2026-11-05
+
+## 今日のハイライト
+
+${HL2_UBB}
+
+## カテゴリ別まとめ
+
+### Anthropic / Claude
+
+- **Claude Code 2.1.318**（ハイライト3参照）
+`;
+
+test('参照の無いハイライトは、本文が 3 カテゴリ超の同点でも要点のカテゴリへ出す', () => {
+  assert.deepEqual(catClassifySlugs(HL2_UBB), []);
+  assert.deepEqual(catClassifyHighlight(HL2_UBB), ['m365-admin']);
+  assert.ok(has(DAY1105_UBB, 'm365-admin', 'Copilot Business の従量課金'));
+  assert.ok(!has(DAY1105_UBB, 'github-copilot', 'Copilot Business の従量課金'), 'GitHub Copilot ハーネスの箇条書きだけで出した');
+  assert.ok(!has(DAY1105_UBB, 'market', 'Copilot Business の従量課金'), '対象市場の「市場」だけで出した');
+});
+
+test('本文が一意に当たるハイライトは、要点フォールバックを使わない', () => {
+  const block = `### 1. [新機能] 利用枠の内訳 — API で BYOK を分けて読める
+
+**要点**: 管理者が自前キーの利用量を追える。
+
+- https://github.blog/changelog/2026-11-03-byok-and-enterprise-custom-models-in-the-copilot-usage-api
+`;
+  assert.deepEqual(catClassifyHighlight(block), ['github-copilot']);
 });
