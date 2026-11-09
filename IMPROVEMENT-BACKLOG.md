@@ -15,7 +15,7 @@
 
 ## 提案中
 
-- **B-088: Gemini API Changelog の URL を `aistudio.google.com/docs/changelog` へ差し替え、転送先ホストの許可ドメイン追加を要請する**（起票 2026-11-04 / 最終確認 2026-11-09 / 回数 6）
+- **B-088: Gemini API Changelog の URL を `aistudio.google.com/docs/changelog` へ差し替え、転送先ホストの許可ドメイン追加を要請する**（起票 2026-11-04 / 最終確認 2026-11-10 / 回数 7）
   - 対象: `.claude/rules/sites/daily-sources.md`「最優先」の **Gemini API Changelog** 項の URL 欄（本体・`.md.txt`・料金の3本）と備考
   - 変更内容: ① URL を `https://aistudio.google.com/docs/changelog`、本文版を `https://aistudio.google.com/docs/changelog.md.txt` に差し替える（料金ページも同じ転送を受けるかは未測定なので、到達回復後に測る） ② 備考の「`ai.google.dev` が唯一到達できる Google 一次」を「2026-11-04 に `aistudio.google.com` へ 301 で移設。転送先はゲートウェイ拒否」に改める ③ 許可ドメインの要請リストに `aistudio.google.com` を加える
   - 根拠: 2026-11-04 実測。`curl` で `ai.google.dev/gemini-api/docs/changelog` と `.md.txt` がともに **301** → `aistudio.google.com/docs/...`。転送先は `curl` exit 56（CONNECT tunnel failed, response 403）、WebFetch は ENOTFOUND でゲートウェイ拒否。11-03 までは `.md.txt` で本文を取れていた。二次（alphasignal）は「Gemini API の docs を AI Studio に組み込んだ（first preview）」と報じている
@@ -24,14 +24,14 @@
   - 再確認（2026-11-08）: `ai.google.dev/gemini-api/docs/deprecations.md` も 301 → `aistudio.google.com/docs/deprecations`（転送先は exit 56）。WebSearch は 11/17 停止の Live / TTS preview をサードパーティの追跡ページでしか返さず、5日続けて一次未確認
   - 制約: `fetch-flow.md`「恒久リダイレクト」節に従い、URL の陳腐化（本提案）と転送先の到達性（既知の取得障害に別行で記録）を分けた。到達できるまで Gemini API の GA / 退役は WebSearch の二次依存になる。WebSearch の索引は 10/13 の Gemini 4 Argon GA までしか返さなかった
 
-- **B-087: Privacy Center 記事の更新日を HTML の `dateModified` で取り、本文の段落数とハッシュを `.last-check-state.md` に残す**（起票 2026-11-02 / 最終確認 2026-11-03 / 回数 2）
+- **B-087: Privacy Center 記事の更新日を HTML の `dateModified` で取り、本文の段落数とハッシュを `.last-check-state.md` に残す**（起票 2026-11-02 / 最終確認 2026-11-10 / 回数 3）
   - 対象: `.claude/rules/sites/daily-sources.md`「最優先」の **Anthropic Privacy Center（データ保持 / ZDR）** 項の備考
   - 変更内容: 備考の「記事の Last-Updated の日付を毎回控え、前回から動いたときだけ本文を読む」を次の2点に置き換える。① 更新日は WebFetch の表示（「Updated this week」「Updated over a week ago」などの相対表記）ではなく、`curl` で取った HTML の JSON-LD `"dateModified"`（ISO 日時）で記録する ② 確認のたびに `<article>` の段落数・本文字数・sha256（空白を1つに畳んだテキスト）を当日ブロックに1行で残し、`dateModified` が動いた日は前回値と突き合わせる。ハッシュが動いたら本文を段落単位で読み、前回記録の要旨と照合する
   - 根拠: 2026-11-02 実測。15425996 の `dateModified` は **2026-10-30T17:08:34Z** で、10-28 の記録「Updated over a week ago」から更新されていた。しかし状態ファイルには相対表記しか無く、前回の本文も残していなかったため、**データ保持ポリシーのどこが変わったかを特定できなかった**（ダイジェストは観測扱い）。Wayback（`archive.org`）は `curl` exit 56 で照合にも使えない。同じ JSON-LD は `support.claude.com` 15425695 にもある（`2026-09-01T17:59:45Z`）
   - 制約: 本日分の基準値（段落 29・6,813 字・`6daadf8d5f459157`）は 11-02 の状態ファイルに記録済み。ハッシュはページの装飾変更でも動くので、動いた日は本文を読んで判定する（ハッシュ一致＝無変更、の片方向だけを信頼する）
   - 再確認（2026-11-03）: `dateModified` は 2026-10-30T17:08:34Z のまま。ハッシュの取り方を固定する必要がある。`<article>` 内のタグを**空文字**で除いてから空白を1つに畳むと 6,813 字・`6daadf8d5f459157` で 11-02 と一致した。タグを**空白**に置き換えると 6,838 字・`dc7c5cafcc478555` となり、本文が変わっていなくても差分に見える。変更内容②に「タグは空文字で除去する」を明記する
 
-- **B-086: Claude Platform release notes を `daily-sources.md` に登録し、RSS で日付ごとの項目数を前回と突き合わせる**（起票 2026-10-23 / 最終確認 2026-10-29 / 回数 4）
+- **B-086: Claude Platform release notes を `daily-sources.md` に登録し、RSS で日付ごとの項目数を前回と突き合わせる**（起票 2026-10-23 / 最終確認 2026-11-10 / 回数 5）
   - 対象: `.claude/rules/sites/daily-sources.md`「最優先」に新規項目を追加する（「Claude モデルドキュメント」の直前が並び順として妥当）
   - 変更内容: 「**Claude Platform Release Notes**」を新設する。URL は `https://platform.claude.com/docs/en/release-notes/overview`、RSS は `https://platform.claude.com/docs/en/release-notes/feed.xml`。取得方法は RSS（curl）→ WebFetch → WebSearch。備考に「1日付＝1 item で、既存の日付に後から項目が足される。最上位の比較ではなく、日付ごとの項目数（段落数）を `.last-check-state.md` に残して前回と突き合わせる」と書く（`fetch-flow.md`「日付降順ページの差分判定」の B-024 項の適用先として明記する）
   - 根拠: 2026-10-23 実測。RSS は 200 / `application/rss+xml` / 225,016 bytes / 156 item。10-22 のセッションは最上位 October 21 を読んで据え置きと判断したが、**10/20 の項に組織単位の web fetch 無効化と Managed Agents のドメイン制限（2項）、10/21 の項に user profiles の `enforcement_status`（1項）が後から足されていた**。どちらも管理者の設定に直結する変更で、本日ハイライトに上げた。このソースは毎日 `.last-check-state.md` で追っているのに `daily-sources.md` に項目が無く、取得手順と差分の取り方が決まっていない
@@ -66,6 +66,12 @@
   - 統合（2026-10-19 棚卸し）: B-054 をこの提案へ統合した（要旨はアーカイブ参照）
 
 ## 既知の取得障害
+
+- → **2026-11-10: 新規の取得障害 0件・復旧 0件**（最終確認 2026-11-10）。火曜のため週次復旧チェックの対象日ではない。
+  - `aistudio.google.com`: ゲートウェイ拒否継続（`ai.google.dev/.../changelog.md.txt` が `curl` 000・最終確認 2026-11-10）→ 回避策: WebSearch
+  - `openai.com` / `help.openai.com`: オリジン403（既知・最終確認 2026-11-10）→ 回避策: WebSearch
+  - `github.com/*/releases.atom`（copilot-cli / codex / orca）: `curl` HTTP 403 だが WebFetch で releases の本文取得に成功（障害として扱わない。B-021）
+  - 実例（B-086 / B-087）: Claude Fable 5.2（11/9）は Platform release notes の RSS（`feed.xml` 165→167 item）と Privacy Center の `dateModified` 変化（2026-10-30 → 2026-11-09T19:00:01Z）で検出できた。`/news` 一覧には載らず、発表は `www.anthropic.com/claude-fable-and-mythos-5-2`（最上位パス）にあった
 
 - → **2026-11-09: 週次復旧チェック（月曜）を実施。復旧 0件・新規の取得障害 0件・分類の変化 0件**（最終確認 2026-11-09）。WebFetch を先に当て、失敗したホストだけ `curl` で切り分けた。
   - `openai.com` / `help.openai.com` / `x.ai`: WebFetch 403（openai.com）、`curl` HTTP 403（オリジン403・既知・最終確認 2026-11-09）→ 回避策: WebSearch / `docs.x.ai/developers/release-notes`
