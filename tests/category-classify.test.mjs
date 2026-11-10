@@ -181,6 +181,7 @@ const realCases = [
   ['10-16', 'cursor', 'Orca'],
   ['10-17', 'cursor', 'OpenRouter'],
   ['10-18', 'cursor', 'AgentsView'],
+  ['11-10', 'studio', 'Qiita'],
 ];
 for (const [d, slug, word] of realCases) {
   test(`実データ ${d}: ${slug} に「${word}」が出る`, { skip: !existsSync(DAILY) && '05_ai-news-daily が無い' }, () => {
@@ -196,3 +197,27 @@ test('Ollama はオープンウェイト（llama の部分一致に頼らない�
 test('「Microsoft（その他）」見出しは M365 Copilot と M365 管理を指す', () => {
   assert.deepEqual(catHeadingSlugs('Microsoft（その他）').sort(), ['m365-admin', 'm365-copilot']);
 });
+
+// --- 2026-11-09 以降: 「日本語コミュニティ」が見出しごと全カテゴリから消える ---
+const DAY1110_COMMUNITY = `## カテゴリ別まとめ
+
+### Copilot Studio / Power Platform
+
+- [新機能] **Power Pages の認証統制（preview）** — 管理者は PPAC でプロトコルをサイトごとに許可・禁止できるようになった。
+
+### 日本語コミュニティ
+
+- [動向] **Qiita の Copilot Studio / Power Automate 記事** — Qiita に、Copilot Studio のエージェントが止まらないときの再試行・終了条件の設計と、Power Automate のフロー設計で費用が膨らむ3つのパターンの記事が 11/9 に出た（Copilot）
+- [動向] **Zenn の Claude Code 運用メモ** — Anthropic の Claude Code で settings.json をチーム共有する手順。
+- [観測] **カンファレンスメモ（語なし）** — 登壇資料のリンクのみ。
+`;
+
+test('日本語コミュニティ見出しの項目は語のカテゴリへ出し、語が無ければ Studio へ戻す', () => {
+  assert.deepEqual(catHeadingSlugs('日本語コミュニティ'), ['studio']);
+  assert.ok(has(DAY1110_COMMUNITY, 'studio', 'Qiita の Copilot Studio / Power Automate 記事'), 'Qiita の Studio 記事が Studio に無い');
+  assert.ok(has(DAY1110_COMMUNITY, 'claude', 'Zenn の Claude Code 運用メモ'), 'Claude のコミュニティ記事が Claude に無い');
+  assert.ok(has(DAY1110_COMMUNITY, 'studio', 'カンファレンスメモ'), '語の無いコミュニティ項目が Studio に無い');
+  assert.ok(!has(DAY1110_COMMUNITY, 'claude', 'Qiita の Copilot Studio'), 'Studio 記事が Claude へ漏れた');
+  assert.ok(!has(DAY1110_COMMUNITY, 'openai', 'Qiita の Copilot Studio'), 'Studio 記事が OpenAI へ漏れた');
+});
+
