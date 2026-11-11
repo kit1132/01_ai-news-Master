@@ -181,6 +181,7 @@ const realCases = [
   ['10-16', 'cursor', 'Orca'],
   ['10-17', 'cursor', 'OpenRouter'],
   ['10-18', 'cursor', 'AgentsView'],
+  ['11-11', 'm365-admin', 'Purview Data Governance'],
 ];
 for (const [d, slug, word] of realCases) {
   test(`実データ ${d}: ${slug} に「${word}」が出る`, { skip: !existsSync(DAILY) && '05_ai-news-daily が無い' }, () => {
@@ -196,3 +197,29 @@ test('Ollama はオープンウェイト（llama の部分一致に頼らない�
 test('「Microsoft（その他）」見出しは M365 Copilot と M365 管理を指す', () => {
   assert.deepEqual(catHeadingSlugs('Microsoft（その他）').sort(), ['m365-admin', 'm365-copilot']);
 });
+
+// --- 2026-11-11: 「ライセンス・ガバナンス」が見出しごと M365 管理から消える ---
+// 既存別名は「ガバナンス・ライセンス」（語順が逆）。中黒を逆にした見出しは
+// CAT_HEAD_RE にも当たらず target=null になり、項目が12ページすべてから落ちる。
+const DAY1111_GOV = `## カテゴリ別まとめ
+
+### Microsoft 365 Copilot
+
+- [新機能] **App Blocks** — Copilot Chat の会話の中で対話型アプリを使える。
+
+### ライセンス・ガバナンス
+
+- [廃止] **Purview Data Governance の退役** — Microsoft が Partner Center 11月ページで、Purview Data Governance が 11/12 に退役に入ると告知した。
+- [廃止] **Purview DSPM のパートナー連携** — Microsoft 以外のデータソース向けの Varonis・BigID と DSPM の連携を 12/7 に退役させる。
+`;
+
+test('ライセンス・ガバナンス見出しは M365 管理を指し、項目が管理ページから消えない', () => {
+  assert.deepEqual(catHeadingSlugs('ライセンス・ガバナンス'), ['m365-admin']);
+  assert.deepEqual(catHeadingSlugs('ライセンス / ガバナンス'), ['m365-admin']);
+  assert.deepEqual(catHeadingSlugs('ガバナンス・ライセンス'), ['m365-admin']);
+  assert.ok(has(DAY1111_GOV, 'm365-admin', 'Purview Data Governance の退役'), 'Data Governance が M365 管理に無い');
+  assert.ok(has(DAY1111_GOV, 'm365-admin', 'Purview DSPM のパートナー連携'), 'DSPM が M365 管理に無い');
+  assert.ok(!has(DAY1111_GOV, 'm365-copilot', 'Purview Data Governance'), '管理項目が Copilot へ漏れた');
+  assert.ok(!has(DAY1111_GOV, 'studio', 'Purview Data Governance'), '管理項目が Studio へ漏れた');
+});
+
