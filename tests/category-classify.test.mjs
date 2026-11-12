@@ -11,8 +11,8 @@ import { test } from 'node:test';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const html = readFileSync(join(ROOT, 'index.html'), 'utf8');
 const script = html.slice(html.lastIndexOf('<script>') + '<script>'.length, html.lastIndexOf('</script>'));
-const { extractCategoryDay, catClassifySlugs, catHeadingSlugs } = Function(
-  `${script}\nreturn { extractCategoryDay, catClassifySlugs, catHeadingSlugs };`,
+const { extractCategoryDay, catClassifySlugs, catHeadingSlugs, catHeadingTarget } = Function(
+  `${script}\nreturn { extractCategoryDay, catClassifySlugs, catHeadingSlugs, catHeadingTarget };`,
 )();
 
 // 抽出結果から、項目とハイライトの見出し（太字か ### の題）を取り出す
@@ -195,4 +195,35 @@ test('Ollama はオープンウェイト（llama の部分一致に頼らない�
 });
 test('「Microsoft（その他）」見出しは M365 Copilot と M365 管理を指す', () => {
   assert.deepEqual(catHeadingSlugs('Microsoft（その他）').sort(), ['m365-admin', 'm365-copilot']);
+});
+
+// --- 2026-11-12: AWS / クラウド が見出し未登録で全日消える ---
+const DAY1112_AWS = `# AI News Daily Summary — 2026-11-12
+
+## カテゴリ別まとめ
+
+### AWS / クラウド
+
+- [新機能] **AWS Nitro Sandboxes** — AWS が、EKS の Pod や ECS のタスクを1つずつ専用の軽量 VM で動かす Nitro Sandboxes を追加料金なしで出した。
+- [動向] **Amazon の社内チケット分類を 4B の判定モデルへ** — Amazon は社内チケット分類を Claude Sonnet 4.6 から 4B の判定モデルに替えた。
+
+### 業界・市場
+
+- [動向] **Ramp AI Index の10月分** — AI 支出は前月比+1.65%。
+`;
+
+test('AWS / クラウド 見出しは市場・企業へ戻し、語の無い項目を落とさない', () => {
+  assert.equal(catHeadingTarget('AWS / クラウド'), '*');
+  assert.deepEqual(catHeadingSlugs('AWS / クラウド'), ['market']);
+  assert.ok(has(DAY1112_AWS, 'market', 'AWS Nitro Sandboxes'), 'Nitro が市場・企業から消えている');
+  assert.ok(has(DAY1112_AWS, 'claude', 'Amazon の社内チケット分類'), 'Claude 置換の記事が Claude から消えている');
+  assert.ok(!has(DAY1112_AWS, 'claude', 'AWS Nitro Sandboxes'), '語の無い AWS 項目が Claude へ漏れた');
+  assert.ok(!has(DAY1112_AWS, 'cursor', 'AWS Nitro Sandboxes'), '語の無い AWS 項目が Cursor へ漏れた');
+});
+
+test('実データ 11-12: 市場・企業に Nitro Sandboxes が出る', {
+  skip: !existsSync(DAILY) && '05_ai-news-daily が無い',
+}, () => {
+  const got = titles(extractCategoryDay(real('11-12'), 'market'));
+  assert.ok(got.some((t) => t.includes('Nitro Sandboxes')), `11-12 の market: ${JSON.stringify(got)}`);
 });
