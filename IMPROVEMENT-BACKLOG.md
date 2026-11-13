@@ -15,7 +15,7 @@
 
 ## 提案中
 
-- **B-088: Gemini API Changelog の URL を `aistudio.google.com/docs/changelog` へ差し替え、転送先ホストの許可ドメイン追加を要請する**（起票 2026-11-04 / 最終確認 2026-11-13 / 回数 10）
+- **B-088: Gemini API Changelog の URL を `aistudio.google.com/docs/changelog` へ差し替え、転送先ホストの許可ドメイン追加を要請する**（起票 2026-11-04 / 最終確認 2026-11-14 / 回数 11）
   - 対象: `.claude/rules/sites/daily-sources.md`「最優先」の **Gemini API Changelog** 項の URL 欄（本体・`.md.txt`・料金の3本）と備考
   - 変更内容: ① URL を `https://aistudio.google.com/docs/changelog`、本文版を `https://aistudio.google.com/docs/changelog.md.txt` に差し替える（料金ページも同じ転送を受けるかは未測定なので、到達回復後に測る） ② 備考の「`ai.google.dev` が唯一到達できる Google 一次」を「2026-11-04 に `aistudio.google.com` へ 301 で移設。転送先はゲートウェイ拒否」に改める ③ 許可ドメインの要請リストに `aistudio.google.com` を加える
   - 根拠: 2026-11-04 実測。`curl` で `ai.google.dev/gemini-api/docs/changelog` と `.md.txt` がともに **301** → `aistudio.google.com/docs/...`。転送先は `curl` exit 56（CONNECT tunnel failed, response 403）、WebFetch は ENOTFOUND でゲートウェイ拒否。11-03 までは `.md.txt` で本文を取れていた。二次（alphasignal）は「Gemini API の docs を AI Studio に組み込んだ（first preview）」と報じている
@@ -23,6 +23,7 @@
   - 再確認（2026-11-07）: `ai.google.dev/gemini-api/docs/changelog` と `/deprecations` がともに 301 → `aistudio.google.com/docs/...`（転送先は exit 56）。二次ブログが「Gemini Live / TTS の preview 5モデルが 11/17 に停止」と報じたが、一次の deprecations にも到達できず確定できなかった。4日続けて一次未確認
   - 再確認（2026-11-08）: `ai.google.dev/gemini-api/docs/deprecations.md` も 301 → `aistudio.google.com/docs/deprecations`（転送先は exit 56）。WebSearch は 11/17 停止の Live / TTS preview をサードパーティの追跡ページでしか返さず、5日続けて一次未確認
   - 制約: `fetch-flow.md`「恒久リダイレクト」節に従い、URL の陳腐化（本提案）と転送先の到達性（既知の取得障害に別行で記録）を分けた。到達できるまで Gemini API の GA / 退役は WebSearch の二次依存になる。WebSearch の索引は 10/13 の Gemini 4 Argon GA までしか返さなかった
+  - 再確認（2026-11-14）: `ai.google.dev/gemini-api/docs/changelog.md.txt` は `curl` 000 のまま。Gemini 4 Hydrogen（11/12）の API 提供と単価は `blog.google` の発表記事でしか確かめられず、changelog 側の掲載は確認できない
 
 - **B-087: Privacy Center 記事の更新日を HTML の `dateModified` で取り、本文の段落数とハッシュを `.last-check-state.md` に残す**（起票 2026-11-02 / 最終確認 2026-11-10 / 回数 3）
   - 対象: `.claude/rules/sites/daily-sources.md`「最優先」の **Anthropic Privacy Center（データ保持 / ZDR）** 項の備考
@@ -52,11 +53,12 @@
   - 根拠: 2026-08-06 公開の **Kitesurf**（V8 isolate 上で動くエージェント専用ブラウザランタイム）を、本日（08-24）まで **18日間検出できなかった**。Kitesurf は Chrome DevTools Protocol を話すため **既存の Puppeteer / Playwright / MCP 統合を書き換えずに `browser=kitesurf` の指定だけで切り替えられる**点が本質で、`interests/ai-tools.md` の「AIエージェント全般（自律型エージェントの新プロダクト）」と「組織に導入できるかどうかの観点（料金）」に正面から該当する。⚠️ さらに時期の問題がある——Anthropic が 8/19 に computer use を GA、browser use を投入し、`web_search` / `web_fetch` にドメイン制限を入れた直後であり、**エージェントにブラウザを持たせる際の実行基盤の選択肢が動いている最中に、その選択肢の1つを3週間近く載せていなかった**。⚠️ **登録ソースに無かったから検索の網に掛からなかった**だけで、B-042（Windows Command Line）・B-037（Meta）・B-036（DeepSeek）と同型の欠落にあたる。ただし本件は3者と違い**到達性の問題も重なっている**（下記）
   - 制約: `blog.cloudflare.com` と `developers.cloudflare.com` は 2026-08-24 の実測でいずれも WebFetch が `EGRESS_BLOCKED`（新規ホストのため「既知の取得障害」に1行記録した）。**登録しても仕様・料金は WebSearch の二次一致でしか取れない**状態が続く。実際に本日の記載（CPU / メモリが Chromium 比 3〜7分の1、所要時間は約1.7倍、beta 無料・アカウント単位の上限、動画再生 / WebGL / TLS フィンガープリントを要するボット検査 / 永続認証セッションが非対応）は**すべて二次一致で採っており一次未確認**である。⚠️ 本ブログは AI 以外（ネットワーク / セキュリティ / DDoS レポート）が過半を占めるので、**AI エージェント基盤に限定して取り上げる**規定を備考に明記しないと、B-042 の制約欄と同じく無関係な項目の混入を招く
 
-- **B-037: Meta（`research.meta.ai` / `dev.meta.ai` / `ai.meta.com`）を `daily-sources.md` に登録する**（起票 2026-08-17 / 最終確認 2026-08-29 / 回数 11）
+- **B-037: Meta（`research.meta.ai` / `dev.meta.ai` / `ai.meta.com`）を `daily-sources.md` に登録する**（起票 2026-08-17 / 最終確認 2026-11-14 / 回数 12）
   - 対象: `.claude/rules/sites/daily-sources.md`「高優先」に新規項目を追加する（Cursor Forum Announcements の直後、B-036 が提案する DeepSeek 項の隣が並び順として妥当）。あわせて許可ドメイン追加の要請リスト（`.last-check-state.md`「週次復旧チェック」の要 kit 対応欄）に3ホストを加える
   - 変更内容: 「**Meta AI / Muse**」を新設する。URL は `https://research.meta.ai/blog/`（一次・発表）、`https://dev.meta.ai/docs/muse-code`（一次・製品ドキュメント）、`https://huggingface.co/api/models?author=meta-models&sort=createdAt&direction=-1`（重み公開の一次・**現状ここだけ到達可**）。取得方法は **HF org 一覧 API（毎日）＋ WebSearch**、注目点は「ターミナル / IDE 型コーディングエージェントの提供開始と提供形態・**Meta Model API の料金ティアとデータ利用条件**・Muse Spark 系の新版とベンチマーク」、頻度は毎日。検索キーワードは `Meta Muse Code release <月> 2026` / `Meta Muse Spark model release <月> 2026` の2本。備考に「一次3ホストはゲートウェイ拒否が 2026-08-17 以降継続しており、**仕様・価格は WebSearch の二次一致でしか取れない**」と明記する
   - 根拠: 2026-08-05 に Meta Superintelligence Labs が **Muse Code**（ターミナル型コーディングエージェント・ベータ）と **Muse Spark 1.2** を公開したが、**08-06 から 08-16 までの11セッションのあいだ、ダイジェストに1行も載らなかった**。08-09 分に「モデルリリース追跡サイトの最新は 8/5 の Meta Muse Spark 1.2」という1行があるだけで、**エージェント製品としての Muse Code には一度も触れていない**。本製品は Claude Code / Codex と同じターミナル常駐型で、`curl | bash` の1行インストール・macOS / Linux 対応・サブエージェントごとの git worktree 分離・replay-exact な event log を持ち、**kit が日常的に使っているツールの直接の代替候補**にあたる。⚠️ さらに料金構造が既存の前提を崩す——Meta Model API は同一モデルに2つの ID を割り当て、標準ティア（入力 $1.25 / 出力 $4.25）に対し、**プロンプトと生成物を学習に使わせる Contributor ティアは入力 $0.10 / 出力 $0.20**（入力で約12倍・出力で約21倍の差）である。価格は退役日と同じく試算を引き直させる軸であり、B-036 が指摘した「登録ソースが changelog / release notes に寄っていて料金ページを見る項目が無い」という欠落と同型である。⚠️ **検出できなかった原因はソース定義側にある**——`daily-sources.md` に Meta の項目は1つも無く、`meta-models` は B-032 の HF org 一覧に含まれていたため `Muse-Glimmer-30B`（8/10 告知）だけは拾えていた。**HF に出ないもの（CLI 製品・API 料金）は監視経路が存在しなかった**。なお 2026-04-12 のダイジェスト改善メモに「Meta AI blog（`ai.meta.com/blog`）を高優先に追加検討」と書かれているが、台帳が整備される前の記載で ID が振られておらず、**4ヶ月間どこにも引き継がれていない**
   - 制約: 一次3ホストは 2026-08-17 の実測で全て `curl` exit 56（ゲートウェイ拒否）であり、**登録しても仕様・価格は二次依存のまま**である（B-013 の許可リスト追加が要る）。重み公開だけは `huggingface.co` の `meta-models` org で一次判定できる。⚠️ 本提案は B-036（DeepSeek）と同型の欠落であり、**採用時は1社ずつ足すのではなく「オープンウェイト / 準クローズド系ベンダー節」としてまとめる**ほうが、次に同じ形（Moonshot / Z.ai / MiniMax）が出たときの追加が1行で済む
+  - 再確認（2026-11-14）: TestingCatalog が 11/13 に Meta の Muse エージェントの Chrome 拡張と、RocksDB の PR に出た `muse-spark-1.4-internal` を報じた。登録ソースが無いので二次1本でしか拾えず、一次（Meta の発表）で確定できていない
 
 - **B-036: DeepSeek を `daily-sources.md` に登録し、オープンウェイト系ベンダーの「料金ページ」を監視対象に加える**（起票 2026-08-16 / 最終確認 2026-08-29 / 回数 12）
   - 対象: `.claude/rules/sites/daily-sources.md`「高優先」に新規項目を追加する（Cursor Forum Announcements の直後が並び順として妥当）。あわせて `.claude/rules/sites/fetch-flow.md`「一次不通時の判定補助」に料金変更の検知手順を1項目加える
@@ -66,6 +68,11 @@
   - 統合（2026-10-19 棚卸し）: B-054 をこの提案へ統合した（要旨はアーカイブ参照）
 
 ## 既知の取得障害
+
+- → **2026-11-14: 新規の取得障害 0件・復旧 0件**（最終確認 2026-11-14）。土曜のため週次復旧チェックの対象日ではない。
+  - `aistudio.google.com`: ゲートウェイ拒否継続（`ai.google.dev/gemini-api/docs/changelog.md.txt` が `curl` 000・最終確認 2026-11-14）→ 回避策: WebSearch（10/27 より新しい項目は見つからない）
+  - `openai.com`: オリジン403（既知・最終確認 2026-11-14）→ 回避策: WebSearch
+  - `github.com/*/releases.atom`（copilot-cli / codex / orca）: `curl` HTTP 403 だが WebFetch で releases の本文取得に成功（障害として扱わない。B-021）
 
 - → **2026-11-13: 新規の取得障害 0件・復旧 0件**（最終確認 2026-11-13）。金曜のため週次復旧チェックの対象日ではない。
   - `aistudio.google.com`: ゲートウェイ拒否継続（`ai.google.dev/gemini-api/docs/changelog.md.txt` が `curl` 000・最終確認 2026-11-13）→ 回避策: WebSearch（10/27 より新しい項目は見つからない）
