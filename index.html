@@ -1423,6 +1423,13 @@
       '業界・インフラ投資': 'market', '規制 / 政策': 'market',
       '業界・政策': 'market',
     };
+    // 正規化や CAT_HEAD_RE では空になる複合見出し。値は catHeadingSlugs と共有する。
+    const CAT_MIXED_HEAD_SLUGS = {
+      'Microsoft（その他）': ['m365-copilot', 'm365-admin'],
+      'Microsoft (その他)': ['m365-copilot', 'm365-admin'],
+      'AWS / クラウド': ['market'],
+      'AWS': ['market'],
+    };
     const CAT_HEAD_RE = [
       ['studio', /Copilot Studio|Power Platform|Power Apps/],
       ['github-copilot', /GitHub Copilot|Copilot CLI/],
@@ -1457,6 +1464,8 @@
       return h.replace(/（[^）]*）/g, '').replace(/\([^)]*\)/g, '').trim();
     }
     function catHeadingTarget(h) {
+      const raw = String(h || '').replace(/\s+/g, ' ').trim();
+      if (CAT_MIXED_HEAD_SLUGS[raw]) return '*';
       const n = catNormHeading(h);
       if (CAT_ALIAS[n]) return CAT_ALIAS[n];
       if (/^(その他|継続ウォッチ|ウォッチ|Meta)$/.test(n)) return null;
@@ -1521,10 +1530,6 @@
     }
     // 複数カテゴリにまたがる見出しが指すカテゴリの一覧。
     // 「Microsoft（その他）」は正規化で（その他）が落ちて何も指さなくなるので、画面の表示名（CAT_DISPLAY_MIXED）と同じ2カテゴリを返す
-    const CAT_MIXED_HEAD_SLUGS = {
-      'Microsoft（その他）': ['m365-copilot', 'm365-admin'],
-      'Microsoft (その他)': ['m365-copilot', 'm365-admin'],
-    };
     function catHeadingSlugs(h) {
       const raw = String(h || '').replace(/\s+/g, ' ').trim();
       if (CAT_MIXED_HEAD_SLUGS[raw]) return CAT_MIXED_HEAD_SLUGS[raw];
