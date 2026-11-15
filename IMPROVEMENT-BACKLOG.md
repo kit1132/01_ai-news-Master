@@ -15,7 +15,13 @@
 
 ## 提案中
 
-- **B-088: Gemini API Changelog の URL を `aistudio.google.com/docs/changelog` へ差し替え、転送先ホストの許可ドメイン追加を要請する**（起票 2026-11-04 / 最終確認 2026-11-15 / 回数 12）
+- **B-089: Orca の要約 URL を `orca.dev/changelog` へ改め、許可ドメインの要請を `www.onorca.dev` から `orca.dev` に差し替える**（起票 2026-11-16 / 最終確認 2026-11-16 / 回数 1）
+  - 対象: `.claude/rules/sites/daily-sources.md`「高優先」の **Orca（Stably AI・エージェント開発環境）** 項の URL（見出しつきの要約）欄・取得方法欄・備考
+  - 変更内容: ① 「URL（見出しつきの要約）」を `https://orca.dev/changelog` に改め、旧 `www.onorca.dev/changelog` は「307 で転送」と備考に残す ② 備考の「`www.onorca.dev` は許可ドメインの追加を 10-14 に依頼した」を「2026-11-16 に `orca.dev` へ移った（転送 URL に `__orca_moved=1`）。許可ドメインに `orca.dev` が要る」に改める ③ 取得方法欄の3段目を `WebFetch（orca.dev/changelog）` に改める
+  - 根拠: 2026-11-16 実測。`curl` で `www.onorca.dev/changelog` が **307** → `https://orca.dev/changelog?__orca_moved=1&`。転送先は `curl` exit 56（CONNECT tunnel failed, response 403）、WebFetch は ENOTFOUND でゲートウェイ拒否。`v1.4.259`（11/14）の見出しは GitHub の個別リリースページから取れたので、本日の記載に欠落は無い
+  - 制約: 307 は一時的な転送なので `fetch-flow.md`「恒久リダイレクト」節の対象外である。ただしクエリ `__orca_moved=1` はドメイン移転を示すので、恒久化（301 / 308）を待たずに URL を改める価値がある。次の月曜（11-23）に転送コードを測り直し、301 / 308 に変わっていたら同節の扱いへ移す。到達性は「既知の取得障害」に別行で記録した
+
+- **B-088: Gemini API Changelog の URL を `aistudio.google.com/docs/changelog` へ差し替え、転送先ホストの許可ドメイン追加を要請する**（起票 2026-11-04 / 最終確認 2026-11-16 / 回数 13）
   - 対象: `.claude/rules/sites/daily-sources.md`「最優先」の **Gemini API Changelog** 項の URL 欄（本体・`.md.txt`・料金の3本）と備考
   - 変更内容: ① URL を `https://aistudio.google.com/docs/changelog`、本文版を `https://aistudio.google.com/docs/changelog.md.txt` に差し替える（料金ページも同じ転送を受けるかは未測定なので、到達回復後に測る） ② 備考の「`ai.google.dev` が唯一到達できる Google 一次」を「2026-11-04 に `aistudio.google.com` へ 301 で移設。転送先はゲートウェイ拒否」に改める ③ 許可ドメインの要請リストに `aistudio.google.com` を加える
   - 根拠: 2026-11-04 実測。`curl` で `ai.google.dev/gemini-api/docs/changelog` と `.md.txt` がともに **301** → `aistudio.google.com/docs/...`。転送先は `curl` exit 56（CONNECT tunnel failed, response 403）、WebFetch は ENOTFOUND でゲートウェイ拒否。11-03 までは `.md.txt` で本文を取れていた。二次（alphasignal）は「Gemini API の docs を AI Studio に組み込んだ（first preview）」と報じている
@@ -26,6 +32,7 @@
   - 再確認（2026-11-14）: `ai.google.dev/gemini-api/docs/changelog.md.txt` は `curl` 000 のまま。Gemini 4 Hydrogen（11/12）の API 提供と単価は `blog.google` の発表記事でしか確かめられず、changelog 側の掲載は確認できない
   - 再確認（2026-11-15）: `changelog.md.txt` は `curl` 000 のまま。GitHub が 11/13 に Gemini 4 Hydrogen を Copilot で GA にし、Gemini 4 Argon / 3.8 Flash を 12/14 に Copilot から外すと告げたが、Gemini API 側の位置づけ（GA か preview か・退役予定）は一次で確かめられない
 
+  - 再確認（2026-11-16）: 週次復旧チェックで `aistudio.google.com/docs/changelog` を WebFetch すると ENOTFOUND、`curl` は exit 56。`ai.google.dev/gemini-api/docs/changelog` は引き続き 301 → `aistudio.google.com`。11/17 停止予定の Live / TTS preview は deprecations 表の検索キャッシュでしか確かめられない
 - **B-087: Privacy Center 記事の更新日を HTML の `dateModified` で取り、本文の段落数とハッシュを `.last-check-state.md` に残す**（起票 2026-11-02 / 最終確認 2026-11-10 / 回数 3）
   - 対象: `.claude/rules/sites/daily-sources.md`「最優先」の **Anthropic Privacy Center（データ保持 / ZDR）** 項の備考
   - 変更内容: 備考の「記事の Last-Updated の日付を毎回控え、前回から動いたときだけ本文を読む」を次の2点に置き換える。① 更新日は WebFetch の表示（「Updated this week」「Updated over a week ago」などの相対表記）ではなく、`curl` で取った HTML の JSON-LD `"dateModified"`（ISO 日時）で記録する ② 確認のたびに `<article>` の段落数・本文字数・sha256（空白を1つに畳んだテキスト）を当日ブロックに1行で残し、`dateModified` が動いた日は前回値と突き合わせる。ハッシュが動いたら本文を段落単位で読み、前回記録の要旨と照合する
@@ -69,6 +76,12 @@
   - 統合（2026-10-19 棚卸し）: B-054 をこの提案へ統合した（要旨はアーカイブ参照）
 
 ## 既知の取得障害
+
+- → **2026-11-16: 週次復旧チェック（月曜）を実施。復旧 0件・新規の取得障害 1件・分類の変化 0件**（最終確認 2026-11-16）。WebFetch を先に当て、失敗したホストだけ `curl` で切り分けた。
+  - `orca.dev`（`www.onorca.dev/changelog` の 307 転送先）: ゲートウェイ拒否（`curl` exit 56 / WebFetch ENOTFOUND・初出 2026-11-16 / 最終確認 2026-11-16）→ 回避策: GitHub の個別リリースページ（`github.com/stablyai/orca/releases/tag/<版>`）。URL の扱いは B-089 に分けた
+  - `openai.com` / `help.openai.com` / `x.ai`: WebFetch 403（openai.com）、`curl` HTTP 403（オリジン403・既知・最終確認 2026-11-16）→ 回避策: WebSearch / `docs.x.ai/developers/release-notes`
+  - **ゲートウェイ拒否が継続（`curl` exit 56 / 000・最終確認 2026-11-16）**: `aistudio.google.com`（WebFetch ENOTFOUND）/ `feeds.feedburner.com` / `modelcontextprotocol.io`（WebFetch ENOTFOUND）/ `claude.dev` / `www.geekwire.com` → 回避策: WebSearch / Workspace Updates の HTML / `blog.modelcontextprotocol.io`
+  - GitHub releases（copilot-cli / codex / orca）は WebFetch で本文取得に成功した。Windows Command Line ブログは RSS `feed/` が `curl` 200
 
 - → **2026-11-15: 新規の取得障害 0件・復旧 0件**（最終確認 2026-11-15）。日曜のため週次復旧チェックの対象日ではない。
   - `aistudio.google.com`: ゲートウェイ拒否継続（`ai.google.dev/gemini-api/docs/changelog.md.txt` が `curl` 000・最終確認 2026-11-15）→ 回避策: WebSearch（10/27 より新しい項目は見つからない）
