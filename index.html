@@ -3315,9 +3315,14 @@
         if (/〜$/.test(s)) out.quals.push('以降');
         return finishSchedLabel(out, y);
       }
-      m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+      // 日次の注目予定は **2027-03-01 以降** のように ISO 日付へ「以降」を付ける。
+      // 終端だけの YYYY-MM-DD だと day が空になり、3/8・3/30 の週トグルから外れて
+      // 閉じた「時期」へ埋まる。M/D の `(.*)$` と同じく接尾辞を quals に残す。
+      m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(.*)$/);
       if (m) {
         out.day = schedMD(m[2], m[3]); out.year = Number(m[1]);
+        const rest = m[4].trim().replace(/^〜$/, '以降');
+        if (rest) out.quals.push(rest);
         return finishSchedLabel(out, y);
       }
       m = s.match(/^(\d{4})-(\d{1,2})\s*〜$/);
