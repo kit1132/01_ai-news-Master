@@ -1629,11 +1629,16 @@
               const slugs = catHasKeyword(item) ? catClassifySlugs(item, headSlugs) : headSlugs;
               if (slugs.includes(slug)) pieces.push(item);
             }
-          } else if (target && /その他/.test(title)) {
-            // 「その他」を含む1カテゴリ専用の見出し: 別カテゴリに一意に当たる項目は、そちらにも出す
+          } else if (target && /その他|開発ツール/.test(title)) {
+            // 「その他」「開発ツール」を含む1カテゴリ専用の見出し: 別カテゴリに
+            // 当たる項目はそちらにも出す。一意ならそのまま。見出しカテゴリとの
+            // 2点同点（Studio×GitHub Copilot のハーネス改名など）も出す。
+            // そうしないと「Cursor / 開発ツール / エージェント」の MCP 仕様が
+            // MCP ページから消え、GitHub 見出しの Studio 項目が Studio から消える。
             for (const item of catSplitItems(body)) {
               const slugs = catClassifySlugs(item);
               if (slugs.length === 1 && slugs[0] === slug) pieces.push(item);
+              else if (slugs.length === 2 && slugs.includes(slug) && slugs.includes(target)) pieces.push(item);
             }
           }
           for (const p of pieces) {

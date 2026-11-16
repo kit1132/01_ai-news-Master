@@ -196,3 +196,56 @@ test('Ollama はオープンウェイト（llama の部分一致に頼らない�
 test('「Microsoft（その他）」見出しは M365 Copilot と M365 管理を指す', () => {
   assert.deepEqual(catHeadingSlugs('Microsoft（その他）').sort(), ['m365-admin', 'm365-copilot']);
 });
+
+// --- 2026-11-13: 「開発ツール」付きの専用見出しからも、語の当たる項目を本来のページへ出す ---
+// 「その他」と同じ二重出し。複合にすると SlopCodeBench が GPT- だけで OpenAI へ移り、
+// Cursor の受け皿から消える。
+const DAY1113_DEVTOOLS = `# AI News Daily Summary — 2026-11-13
+
+## カテゴリ別まとめ
+
+### GitHub Copilot / Microsoft 開発ツール
+
+- [予定] **Copilot CLI の pre-release で旧リモート操作を削除** — GitHub が Copilot CLI の pre-release で旧来のリモート操作を削除した。
+- [観測] **Copilot Studio の「GitHub Copilot harness」が新名に揃った** — Copilot Studio の Learn から「GitHub Copilot harness」の表記が消えた。
+
+### Cursor / 開発ツール / エージェント
+
+- [予定] **MCP 仕様のリリースを年2回に** — MCP の Core Maintainers が仕様のリリースを年2回にすると決めた。
+- [版更新] **Orca v1.4.257 と Devin の 11/11 版** — Stably AI が Orca を出した。
+- [動向] **SlopCodeBench で Strict 合格率が1割台** — コーディングエージェントの合格率。最高は GPT-6 Astra の16.33%。
+`;
+
+test('GitHub Copilot / Microsoft 開発ツール の Studio 項目は Studio から消えない', () => {
+  assert.ok(has(DAY1113_DEVTOOLS, 'studio', 'GitHub Copilot harness'), 'ハーネス改名が Studio から消えている');
+  assert.ok(has(DAY1113_DEVTOOLS, 'github-copilot', 'GitHub Copilot harness'), 'ハーネス改名が GitHub Copilot からも消えている');
+  assert.ok(has(DAY1113_DEVTOOLS, 'github-copilot', 'Copilot CLI'), 'Copilot CLI が GitHub Copilot から消えている');
+  assert.ok(!has(DAY1113_DEVTOOLS, 'studio', 'Copilot CLI'), 'Copilot CLI が Studio へ漏れた');
+});
+
+test('Cursor / 開発ツール / エージェント の MCP 項目は MCP から消えない', () => {
+  assert.ok(has(DAY1113_DEVTOOLS, 'mcp', 'MCP 仕様のリリースを年2回に'), 'MCP 仕様が MCP ページから消えている');
+  assert.ok(has(DAY1113_DEVTOOLS, 'cursor', 'MCP 仕様のリリースを年2回に'), 'MCP 仕様が Cursor の受け皿からも消えている');
+  assert.ok(has(DAY1113_DEVTOOLS, 'cursor', 'Orca'), 'Orca が Cursor から消えている');
+  assert.ok(!has(DAY1113_DEVTOOLS, 'mcp', 'Orca'), 'Orca が MCP へ漏れた');
+  assert.ok(has(DAY1113_DEVTOOLS, 'cursor', 'SlopCodeBench'), 'SlopCodeBench が Cursor から消えている');
+});
+
+test('実データ 11-13: MCP 仕様が MCP に出る', { skip: !existsSync(DAILY) && '05_ai-news-daily が無い' }, () => {
+  const md = real('11-13');
+  assert.ok(has(md, 'mcp', 'MCP 仕様のリリースを年2回に'), '11-13 の MCP 仕様が MCP から消えた');
+  assert.ok(has(md, 'studio', 'GitHub Copilot harness'), '11-13 のハーネス改名が Studio から消えた');
+  assert.ok(has(md, 'github-copilot', 'Copilot CLI'), '11-13 の Copilot CLI が GitHub Copilot から消えた');
+  assert.ok(has(md, 'cursor', 'Orca'), '11-13 の Orca が Cursor から消えた');
+  assert.ok(has(md, 'cursor', 'SlopCodeBench'), '11-13 の SlopCodeBench が Cursor から消えた');
+  assert.ok(!has(md, 'mcp', 'Orca'), '11-13 の Orca が MCP へ漏れた');
+  assert.ok(!has(md, 'studio', 'Copilot CLI'), '11-13 の Copilot CLI が Studio へ漏れた');
+});
+
+test('実データ 11-12: MCP File Uploads が MCP に出る', { skip: !existsSync(DAILY) && '05_ai-news-daily が無い' }, () => {
+  const md = real('11-12');
+  assert.ok(has(md, 'mcp', 'File Uploads'), '11-12 の File Uploads が MCP から消えた');
+  assert.ok(has(md, 'cursor', 'File Uploads'), '11-12 の File Uploads が Cursor の受け皿からも消えた');
+});
+
+
