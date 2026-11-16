@@ -196,3 +196,36 @@ test('Ollama はオープンウェイト（llama の部分一致に頼らない�
 test('「Microsoft（その他）」見出しは M365 Copilot と M365 管理を指す', () => {
   assert.deepEqual(catHeadingSlugs('Microsoft（その他）').sort(), ['m365-admin', 'm365-copilot']);
 });
+
+// --- 2026-11-03: com.apple.* の逆引き名を Apple と読まない ---
+// セキュリティ見出しの改ざん版 Claude Code 拡張は、除去手順に
+// LaunchAgent `com.apple.sysmond.plist`（macOS）と書く。
+// Apple が com.apple に当たると Claude と同点になり、Apple ページの先頭に載る。
+const DAY1103_SEC = `## 今日のハイライト
+
+### 1. [破壊的変更+予定] GitHub が pull_request_target を延期 — 本文
+
+## カテゴリ別まとめ
+
+### セキュリティ
+
+- [セキュリティ] **改ざん版 Claude Code 拡張は 2.1.312・2.1.313** — Cursor の告知によると、Cursor のマーケットプレイスで配布された改ざん版は Claude Code 拡張だった。Anthropic は公式経路は無事だと説明した。
+  - 除去: LaunchAgent \`com.apple.sysmond.plist\`（macOS）または SysMon タスクを消す
+`;
+
+test('com.apple の逆引き名は Apple に当てない', () => {
+  assert.ok(!catClassifySlugs('LaunchAgent com.apple.sysmond.plist').includes('apple'));
+  assert.deepEqual(catClassifySlugs('Apple Intelligence の更新'), ['apple']);
+  assert.ok(catClassifySlugs('https://www.apple.com/news').includes('apple'));
+});
+
+test('セキュリティ見出しの Claude Code 拡張は Apple に出ない', () => {
+  assert.ok(has(DAY1103_SEC, 'claude', '改ざん版 Claude Code 拡張'), 'Claude から消えた');
+  assert.ok(!has(DAY1103_SEC, 'apple', '改ざん版 Claude Code 拡張'), 'com.apple で Apple へ漏れた');
+});
+
+test('実データ 11-03: 改ざん版 Claude Code 拡張が Apple に出ない', { skip: !existsSync(DAILY) && '05_ai-news-daily が無い' }, () => {
+  const md = real('11-03');
+  assert.ok(has(md, 'claude', '改ざん版 Claude Code 拡張'), '11-03 の claude に拡張の件が無い');
+  assert.ok(!has(md, 'apple', '改ざん版 Claude Code 拡張'), '11-03 の apple に拡張の件が漏れた');
+});
