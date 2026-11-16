@@ -1516,6 +1516,22 @@
       const slugs = catClassifySlugs(text);
       return slugs.length === 1 ? slugs[0] : null;
     }
+    // 参照の無いハイライトは本文全体で分類する。箇条書きが複数カテゴリに
+    // 同点だと 3 件以上で空になり、どのカテゴリページからも消える。
+    // そのときだけ見出し＋直後の段落（要点）でやり直す。
+    function catHighlightLead(block) {
+      const text = String(block || '');
+      const nl = text.indexOf('\n');
+      const title = nl === -1 ? text : text.slice(0, nl);
+      const rest = nl === -1 ? '' : text.slice(nl + 1);
+      const para = rest.trimStart().split(/\n\s*\n/)[0] || '';
+      return `${title}\n${para}`.trim();
+    }
+    function catClassifyHighlight(block) {
+      const slugs = catClassifySlugs(block);
+      if (slugs.length) return slugs;
+      return catClassifySlugs(catHighlightLead(block));
+    }
     function catHasKeyword(text) {
       return catKeywordRes().some(([, res]) => res.some((re) => re.test(text)));
     }
@@ -1648,7 +1664,7 @@
       }
       for (const [n, block] of Object.entries(hlMap)) {
         if (usedHl.has(n)) continue;
-        if (catClassifySlugs(block).includes(slug)) highlights.push(block);
+        if (catClassifyHighlight(block).includes(slug)) highlights.push(block);
       }
       const hl = highlights.filter((b) => !isSilenceReport(b));
       const items = chunks.filter((c) => !isSilenceReport(c));
