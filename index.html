@@ -3340,11 +3340,29 @@
         out.day = schedMD(m[1], m[2]); out.quals.push(`–${schedMD(m[3], m[4])}`);
         return finishSchedLabel(out, y);
       }
+      // industry の今後の期限は **2027年1月14日** のように年を付ける。
+      // 日を quals に残すと kind が month になり、日付列が空で月トグルへ埋まる。
       m = s.match(/^(\d{4})年\s*(\d{1,2})月(.*)$/);
       if (m) {
         out.year = Number(m[1]);
+        const month = m[2];
         const rest = m[3].trim();
-        out.quals.push(rest ? `${Number(m[2])}月${rest}` : `${Number(m[2])}月`);
+        let dm = rest.match(/^(\d{1,2})\s*[〜~–—−-]\s*(\d{1,2})日(.*)$/);
+        if (dm) {
+          out.day = schedMD(month, dm[1]);
+          out.quals.push(`–${schedMD(month, dm[2])}`);
+          const extra = dm[3].trim().replace(/^〜$/, '以降');
+          if (extra) out.quals.push(extra);
+          return finishSchedLabel(out, y);
+        }
+        dm = rest.match(/^(\d{1,2})日(.*)$/);
+        if (dm) {
+          out.day = schedMD(month, dm[1]);
+          const extra = dm[2].trim().replace(/^〜$/, '以降');
+          if (extra) out.quals.push(extra);
+          return finishSchedLabel(out, y);
+        }
+        out.quals.push(rest ? `${Number(month)}月${rest}` : `${Number(month)}月`);
         return finishSchedLabel(out, y);
       }
       m = s.match(/^(\d{1,2})\/(\d{1,2})\s*[–—−\-〜~]\s*(\d{1,2})$/);
