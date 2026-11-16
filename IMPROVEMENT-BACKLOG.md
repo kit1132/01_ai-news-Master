@@ -15,13 +15,20 @@
 
 ## 提案中
 
-- **B-089: Orca の要約 URL を `orca.dev/changelog` へ改め、許可ドメインの要請を `www.onorca.dev` から `orca.dev` に差し替える**（起票 2026-11-16 / 最終確認 2026-11-16 / 回数 1）
+- **B-090: 注目スケジュールを毎日 OpenAI deprecations の「Upcoming deprecations」表から引き直し、前日の節を写すだけにしない**（起票 2026-11-17 / 最終確認 2026-11-17 / 回数 1）
+  - 対象: `.claude/rules/preferences/output-style.md`「フォーマット」節（注目スケジュールの扱いの規定を新設）と `.claude/rules/sites/daily-sources.md`「OpenAI モデル退役一覧（Deprecations）」項の備考
+  - 変更内容: ① 注目スケジュールは前日の節を起点にせず、登録済みの退役一覧（OpenAI deprecations の Upcoming 表・Claude のモデル退役一覧・Copilot の廃止告知）から当日向こう60日の停止日を全件引き直す、と明記する ② OpenAI deprecations 項の備考に「Upcoming 表は `Shutdown date | Affected model | … | Notice date` の列で、`curl` 1回とタグ除去で全行取れる」と取得方法を書く
+  - 根拠: 2026-11-17 実測。Upcoming 表には **12/1（`gpt-image-1-mini`・`gpt-image-1.5`・`chatgpt-image-latest`）と 12/11（`gpt-5` 系・`o3` / `o3-pro` など6系統）** の停止がある。過去のダイジェストは 12/1 を載せていたが、11-16 版の注目スケジュールにはどちらも無く、2週間前を切った不可逆な期限が落ちていた。最上位告知の比較（B-082）では新しい告知が無い限り表を読まないため、この欠落は検出されない
+  - 制約: 表の行数は30前後で、毎日全件を写すと節が長くなる。向こう60日に絞り、それより先は既存どおり新規告知の日にだけ足す
+
+- **B-089: Orca の要約 URL を `orca.dev/changelog` へ改め、許可ドメインの要請を `www.onorca.dev` から `orca.dev` に差し替える**（起票 2026-11-16 / 最終確認 2026-11-17 / 回数 2）
   - 対象: `.claude/rules/sites/daily-sources.md`「高優先」の **Orca（Stably AI・エージェント開発環境）** 項の URL（見出しつきの要約）欄・取得方法欄・備考
   - 変更内容: ① 「URL（見出しつきの要約）」を `https://orca.dev/changelog` に改め、旧 `www.onorca.dev/changelog` は「307 で転送」と備考に残す ② 備考の「`www.onorca.dev` は許可ドメインの追加を 10-14 に依頼した」を「2026-11-16 に `orca.dev` へ移った（転送 URL に `__orca_moved=1`）。許可ドメインに `orca.dev` が要る」に改める ③ 取得方法欄の3段目を `WebFetch（orca.dev/changelog）` に改める
   - 根拠: 2026-11-16 実測。`curl` で `www.onorca.dev/changelog` が **307** → `https://orca.dev/changelog?__orca_moved=1&`。転送先は `curl` exit 56（CONNECT tunnel failed, response 403）、WebFetch は ENOTFOUND でゲートウェイ拒否。`v1.4.259`（11/14）の見出しは GitHub の個別リリースページから取れたので、本日の記載に欠落は無い
   - 制約: 307 は一時的な転送なので `fetch-flow.md`「恒久リダイレクト」節の対象外である。ただしクエリ `__orca_moved=1` はドメイン移転を示すので、恒久化（301 / 308）を待たずに URL を改める価値がある。次の月曜（11-23）に転送コードを測り直し、301 / 308 に変わっていたら同節の扱いへ移す。到達性は「既知の取得障害」に別行で記録した
+  - 再確認（2026-11-17）: `www.onorca.dev/changelog` は `curl` で引き続き 307 → `https://orca.dev/changelog?__orca_moved=1&`。`v1.4.261`（11/16）の見出しは GitHub の個別リリースページ（WebFetch）で取った
 
-- **B-088: Gemini API Changelog の URL を `aistudio.google.com/docs/changelog` へ差し替え、転送先ホストの許可ドメイン追加を要請する**（起票 2026-11-04 / 最終確認 2026-11-16 / 回数 13）
+- **B-088: Gemini API Changelog の URL を `aistudio.google.com/docs/changelog` へ差し替え、転送先ホストの許可ドメイン追加を要請する**（起票 2026-11-04 / 最終確認 2026-11-17 / 回数 14）
   - 対象: `.claude/rules/sites/daily-sources.md`「最優先」の **Gemini API Changelog** 項の URL 欄（本体・`.md.txt`・料金の3本）と備考
   - 変更内容: ① URL を `https://aistudio.google.com/docs/changelog`、本文版を `https://aistudio.google.com/docs/changelog.md.txt` に差し替える（料金ページも同じ転送を受けるかは未測定なので、到達回復後に測る） ② 備考の「`ai.google.dev` が唯一到達できる Google 一次」を「2026-11-04 に `aistudio.google.com` へ 301 で移設。転送先はゲートウェイ拒否」に改める ③ 許可ドメインの要請リストに `aistudio.google.com` を加える
   - 根拠: 2026-11-04 実測。`curl` で `ai.google.dev/gemini-api/docs/changelog` と `.md.txt` がともに **301** → `aistudio.google.com/docs/...`。転送先は `curl` exit 56（CONNECT tunnel failed, response 403）、WebFetch は ENOTFOUND でゲートウェイ拒否。11-03 までは `.md.txt` で本文を取れていた。二次（alphasignal）は「Gemini API の docs を AI Studio に組み込んだ（first preview）」と報じている
@@ -33,6 +40,7 @@
   - 再確認（2026-11-15）: `changelog.md.txt` は `curl` 000 のまま。GitHub が 11/13 に Gemini 4 Hydrogen を Copilot で GA にし、Gemini 4 Argon / 3.8 Flash を 12/14 に Copilot から外すと告げたが、Gemini API 側の位置づけ（GA か preview か・退役予定）は一次で確かめられない
 
   - 再確認（2026-11-16）: 週次復旧チェックで `aistudio.google.com/docs/changelog` を WebFetch すると ENOTFOUND、`curl` は exit 56。`ai.google.dev/gemini-api/docs/changelog` は引き続き 301 → `aistudio.google.com`。11/17 停止予定の Live / TTS preview は deprecations 表の検索キャッシュでしか確かめられない
+  - 再確認（2026-11-17）: `changelog.md.txt` は `curl` 000 のまま。WebSearch も 10/27 より新しい項目を返さず、本日停止予定の Live / TTS preview が実際に止まったかは一次で確かめられない
 - **B-087: Privacy Center 記事の更新日を HTML の `dateModified` で取り、本文の段落数とハッシュを `.last-check-state.md` に残す**（起票 2026-11-02 / 最終確認 2026-11-10 / 回数 3）
   - 対象: `.claude/rules/sites/daily-sources.md`「最優先」の **Anthropic Privacy Center（データ保持 / ZDR）** 項の備考
   - 変更内容: 備考の「記事の Last-Updated の日付を毎回控え、前回から動いたときだけ本文を読む」を次の2点に置き換える。① 更新日は WebFetch の表示（「Updated this week」「Updated over a week ago」などの相対表記）ではなく、`curl` で取った HTML の JSON-LD `"dateModified"`（ISO 日時）で記録する ② 確認のたびに `<article>` の段落数・本文字数・sha256（空白を1つに畳んだテキスト）を当日ブロックに1行で残し、`dateModified` が動いた日は前回値と突き合わせる。ハッシュが動いたら本文を段落単位で読み、前回記録の要旨と照合する
@@ -76,6 +84,11 @@
   - 統合（2026-10-19 棚卸し）: B-054 をこの提案へ統合した（要旨はアーカイブ参照）
 
 ## 既知の取得障害
+
+- → **2026-11-17: 新規の取得障害 0件・復旧 0件**（最終確認 2026-11-17）。火曜のため週次復旧チェックの対象日ではない。
+  - `aistudio.google.com`: ゲートウェイ拒否継続（`ai.google.dev/gemini-api/docs/changelog.md.txt` が `curl` 000・最終確認 2026-11-17）→ 回避策: WebSearch（10/27 より新しい項目は見つからない）
+  - `orca.dev`: ゲートウェイ拒否継続（`www.onorca.dev/changelog` が 307 で転送・最終確認 2026-11-17）→ 回避策: GitHub の個別リリースページ
+  - `github.com/*/releases.atom`（copilot-cli / codex / orca）: `curl` HTTP 403 だが WebFetch で releases の本文取得に成功（障害として扱わない。B-021）
 
 - → **2026-11-16: 週次復旧チェック（月曜）を実施。復旧 0件・新規の取得障害 1件・分類の変化 0件**（最終確認 2026-11-16）。WebFetch を先に当て、失敗したホストだけ `curl` で切り分けた。
   - `orca.dev`（`www.onorca.dev/changelog` の 307 転送先）: ゲートウェイ拒否（`curl` exit 56 / WebFetch ENOTFOUND・初出 2026-11-16 / 最終確認 2026-11-16）→ 回避策: GitHub の個別リリースページ（`github.com/stablyai/orca/releases/tag/<版>`）。URL の扱いは B-089 に分けた
