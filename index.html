@@ -1466,7 +1466,7 @@
       }
       if (hits.length === 1) return hits[0];
       if (hits.length > 1) return '*';
-      if (/開発ツール|コーディングエージェント|Microsoft（その他）|Microsoft \(その他\)|セキュリティ/.test(h)) return '*';
+      if (/開発ツール|コーディングエージェント|Microsoft（その他）|Microsoft \(その他\)|セキュリティ|日本語コミュニティ/.test(h)) return '*';
       if (/Microsoft\s*\/\s*GitHub/.test(n) || /Microsoft\s*\/\s*Copilot$/.test(n)) return '*';
       return null;
     }
@@ -1524,6 +1524,8 @@
     const CAT_MIXED_HEAD_SLUGS = {
       'Microsoft（その他）': ['m365-copilot', 'm365-admin'],
       'Microsoft (その他)': ['m365-copilot', 'm365-admin'],
+      // 語の無い日本語コミュニティ項目は Studio へ。Copilot Studio / Claude など語がある項目はそちらへ出す
+      '日本語コミュニティ': ['studio'],
     };
     function catHeadingSlugs(h) {
       const raw = String(h || '').replace(/\s+/g, ' ').trim();
