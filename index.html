@@ -1457,6 +1457,8 @@
       return h.replace(/（[^）]*）/g, '').replace(/\([^)]*\)/g, '').trim();
     }
     function catHeadingTarget(h) {
+      const raw = String(h || '').replace(/\s+/g, ' ').trim();
+      if (CAT_MIXED_HEAD_SLUGS[raw]) return '*';
       const n = catNormHeading(h);
       if (CAT_ALIAS[n]) return CAT_ALIAS[n];
       if (/^(その他|継続ウォッチ|ウォッチ|Meta)$/.test(n)) return null;
@@ -1524,6 +1526,9 @@
     const CAT_MIXED_HEAD_SLUGS = {
       'Microsoft（その他）': ['m365-copilot', 'm365-admin'],
       'Microsoft (その他)': ['m365-copilot', 'm365-admin'],
+      // Studio 見出しに管理・ライセンスが同居する。一意の studio だと Purview / Partner Center が管理ページから消える
+      'Copilot Studio / Power Platform / ガバナンス': ['studio', 'm365-admin'],
+      'Copilot Studio / Power Platform / ライセンス': ['studio', 'm365-admin'],
     };
     function catHeadingSlugs(h) {
       const raw = String(h || '').replace(/\s+/g, ' ').trim();
