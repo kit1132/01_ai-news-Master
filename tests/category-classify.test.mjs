@@ -196,3 +196,63 @@ test('Ollama はオープンウェイト（llama の部分一致に頼らない�
 test('「Microsoft（その他）」見出しは M365 Copilot と M365 管理を指す', () => {
   assert.deepEqual(catHeadingSlugs('Microsoft（その他）').sort(), ['m365-admin', 'm365-copilot']);
 });
+
+// --- 2026-11-18: Studio 見出しにガバナンスが付くと、管理項目が M365 管理から消える ---
+// Copilot Studio / Power Platform が一意に studio へ当たるため、Purview DLP が
+// Studio ページにしか出ず、管理者が見る M365 管理からは落ちる。
+const DAY1118_GOV = `## カテゴリ別まとめ
+
+### Microsoft 365 Copilot
+
+- [新機能] **Home と Office in Copilot の GA** — Chat と Cowork を1つの入力欄にまとめた。
+
+### Copilot Studio / Power Platform / ガバナンス
+
+- [新機能] **Copilot Studio の Fable 5.2 GA** — Microsoft が Copilot Studio のモデル表に Claude Fable 5.2 を GA として載せた。
+- [予定] **Purview の Copilot 向け DLP の強化** — ラベルのないファイルでも機微情報を含めば Copilot の参照を止める DLP。
+- [据え置き] **Copilot Studio と Power Platform のその他の一次** — Copilot Studio What's New は前日のまま。
+`;
+
+test('Studio / ガバナンス見出しは Studio と M365 管理の複合', () => {
+  assert.deepEqual(
+    catHeadingSlugs('Copilot Studio / Power Platform / ガバナンス').sort(),
+    ['m365-admin', 'studio'],
+  );
+  assert.deepEqual(
+    catHeadingSlugs('Copilot Studio / Power Platform / ライセンス').sort(),
+    ['m365-admin', 'studio'],
+  );
+});
+
+test('ガバナンス見出しの Purview は M365 管理から消えず、Studio 項目は Studio に残る', () => {
+  assert.ok(has(DAY1118_GOV, 'm365-admin', 'Purview の Copilot 向け DLP'), 'Purview DLP が M365 管理から消えた');
+  assert.ok(has(DAY1118_GOV, 'studio', 'Copilot Studio の Fable 5.2 GA'), 'Fable 5.2 が Studio から消えた');
+  assert.ok(!has(DAY1118_GOV, 'm365-admin', 'Copilot Studio の Fable 5.2 GA'), 'Studio の GA が管理へ漏れた');
+  assert.ok(!has(DAY1118_GOV, 'm365-copilot', 'Purview の Copilot 向け DLP'), 'Purview DLP が Copilot へ漏れた');
+});
+
+const DAY1114_LICENSE = `## カテゴリ別まとめ
+
+### Copilot Studio / Power Platform / ライセンス
+
+- [据え置き] **Copilot Studio と Power Platform の Learn** — Copilot Studio What's New は動いていない。
+- [据え置き] **Partner Center 11月ページ** — Purview Data Governance の退役の節は残っている。
+`;
+
+test('ライセンス見出しの Partner Center / Purview は M365 管理から消えない', () => {
+  assert.ok(has(DAY1114_LICENSE, 'm365-admin', 'Partner Center 11月ページ'), 'Partner Center が M365 管理から消えた');
+  assert.ok(has(DAY1114_LICENSE, 'studio', 'Copilot Studio と Power Platform の Learn'), 'Studio の Learn が Studio から消えた');
+  assert.ok(!has(DAY1114_LICENSE, 'studio', 'Partner Center 11月ページ'), 'Partner Center が Studio へ残った');
+});
+
+test('実データ 11-18: Purview DLP が M365 管理に出る', { skip: !existsSync(DAILY) && '05_ai-news-daily が無い' }, () => {
+  const md = real('11-18');
+  assert.ok(has(md, 'm365-admin', 'Purview の Copilot 向け DLP'), '11-18 の m365-admin から Purview DLP が消えた');
+  assert.ok(has(md, 'studio', 'Copilot Studio の Fable 5.2 GA'), '11-18 の studio から Fable 5.2 が消えた');
+});
+
+test('実データ 11-14: Partner Center が M365 管理に出る', { skip: !existsSync(DAILY) && '05_ai-news-daily が無い' }, () => {
+  const md = real('11-14');
+  assert.ok(has(md, 'm365-admin', 'Partner Center 11月ページ'), '11-14 の m365-admin から Partner Center が消えた');
+});
+
