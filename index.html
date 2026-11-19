@@ -1468,6 +1468,9 @@
       if (hits.length > 1) return '*';
       if (/開発ツール|コーディングエージェント|Microsoft（その他）|Microsoft \(その他\)|セキュリティ/.test(h)) return '*';
       if (/Microsoft\s*\/\s*GitHub/.test(n) || /Microsoft\s*\/\s*Copilot$/.test(n)) return '*';
+      // 「Microsoft（MAI モデル・実行基盤）」は括弧を落とすと Microsoft だけになり、
+      // CAT_HEAD_RE に当たらず全カテゴリから消える。その他以外の Microsoft 括弧見出しは M365 Copilot へ。
+      if (n === 'Microsoft') return 'm365-copilot';
       return null;
     }
     // 今日のまとめの ### は生成時の見出しのままなので、画面上だけカテゴリの表示名に寄せる。
@@ -1530,6 +1533,7 @@
       if (CAT_MIXED_HEAD_SLUGS[raw]) return CAT_MIXED_HEAD_SLUGS[raw];
       const n = catNormHeading(h);
       if (CAT_ALIAS[n]) return [CAT_ALIAS[n]];
+      if (n === 'Microsoft') return ['m365-copilot'];
       const hits = [];
       for (const [slug, re] of CAT_HEAD_RE) {
         if (re.test(n) && !hits.includes(slug)) hits.push(slug);

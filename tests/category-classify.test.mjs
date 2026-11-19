@@ -11,8 +11,8 @@ import { test } from 'node:test';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const html = readFileSync(join(ROOT, 'index.html'), 'utf8');
 const script = html.slice(html.lastIndexOf('<script>') + '<script>'.length, html.lastIndexOf('</script>'));
-const { extractCategoryDay, catClassifySlugs, catHeadingSlugs } = Function(
-  `${script}\nreturn { extractCategoryDay, catClassifySlugs, catHeadingSlugs };`,
+const { extractCategoryDay, catClassifySlugs, catHeadingSlugs, catHeadingTarget } = Function(
+  `${script}\nreturn { extractCategoryDay, catClassifySlugs, catHeadingSlugs, catHeadingTarget };`,
 )();
 
 // 抽出結果から、項目とハイライトの見出し（太字か ### の題）を取り出す
@@ -195,4 +195,42 @@ test('Ollama はオープンウェイト（llama の部分一致に頼らない�
 });
 test('「Microsoft（その他）」見出しは M365 Copilot と M365 管理を指す', () => {
   assert.deepEqual(catHeadingSlugs('Microsoft（その他）').sort(), ['m365-admin', 'm365-copilot']);
+});
+
+// --- 2026-11-19: Microsoft（MAI…）見出しは括弧を落とすと何も指さず、項目が全カテゴリから消える ---
+const DAY1119_MAI = `## カテゴリ別まとめ
+
+### Microsoft 365 Copilot
+
+- [新機能] **Cowork の Ignite 追加分** — Brand Kit と Planner プラグインを GA にした。
+
+### Microsoft（MAI モデル・実行基盤）
+
+- [新機能] **Copilot Managed Runtime の正式提供** — AI で作ったアプリを自社の M365 テナント内で動かす。Entra ID の認証・アクセス制御・監査ログが使え、Copilot Studio・GitHub Copilot・VS Code で作ったアプリを載せられる。
+- [新機能] **MAI モデル7種** — Microsoft が MAI モデルを7種まとめて出し、一部製品の外部モデルを置き換える。OpenRouter と GPT-6.1 Sol の比較が載っている。
+`;
+
+test('Microsoft（MAI モデル・実行基盤）は M365 Copilot を指す（括弧を落としても捨てない）', () => {
+  assert.equal(catHeadingTarget('Microsoft（MAI モデル・実行基盤）'), 'm365-copilot');
+  assert.deepEqual(catHeadingSlugs('Microsoft（MAI モデル・実行基盤）'), ['m365-copilot']);
+  assert.equal(catHeadingTarget('Microsoft (runtime)'), 'm365-copilot');
+});
+
+test('Microsoft（その他）の複合扱いは維持する', () => {
+  assert.equal(catHeadingTarget('Microsoft（その他）'), '*');
+  assert.deepEqual(catHeadingSlugs('Microsoft（その他）').sort(), ['m365-admin', 'm365-copilot']);
+});
+
+test('MAI 見出しの Managed Runtime と MAI モデルは M365 Copilot から消えない', () => {
+  assert.ok(has(DAY1119_MAI, 'm365-copilot', 'Copilot Managed Runtime の正式提供'), 'Managed Runtime が M365 Copilot から消えた');
+  assert.ok(has(DAY1119_MAI, 'm365-copilot', 'MAI モデル7種'), 'MAI モデルが M365 Copilot から消えた');
+  assert.ok(has(DAY1119_MAI, 'm365-copilot', 'Cowork の Ignite 追加分'));
+  assert.ok(!has(DAY1119_MAI, 'openai', 'MAI モデル7種'), 'MAI モデルが OpenAI へ漏れた');
+  assert.ok(!has(DAY1119_MAI, 'cursor', 'MAI モデル7種'), 'MAI モデルが Cursor へ漏れた');
+});
+
+test('実データ 11-19: Managed Runtime と MAI モデルが M365 Copilot に出る', { skip: !existsSync(DAILY) && '05_ai-news-daily が無い' }, () => {
+  const md = real('11-19');
+  assert.ok(has(md, 'm365-copilot', 'Copilot Managed Runtime の正式提供'), '11-19 の m365-copilot から Managed Runtime が消えた');
+  assert.ok(has(md, 'm365-copilot', 'MAI モデル7種'), '11-19 の m365-copilot から MAI モデルが消えた');
 });
