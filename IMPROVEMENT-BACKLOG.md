@@ -15,7 +15,7 @@
 
 ## 提案中
 
-- **B-090: 注目スケジュールを毎日 OpenAI deprecations の「Upcoming deprecations」表から引き直し、前日の節を写すだけにしない**（起票 2026-11-17 / 最終確認 2026-11-20 / 回数 4）
+- **B-090: 注目スケジュールを毎日 OpenAI deprecations の「Upcoming deprecations」表から引き直し、前日の節を写すだけにしない**（起票 2026-11-17 / 最終確認 2026-11-21 / 回数 4）
   - 対象: `.claude/rules/preferences/output-style.md`「フォーマット」節（注目スケジュールの扱いの規定を新設）と `.claude/rules/sites/daily-sources.md`「OpenAI モデル退役一覧（Deprecations）」項の備考
   - 変更内容: ① 注目スケジュールは前日の節を起点にせず、登録済みの退役一覧（OpenAI deprecations の Upcoming 表・Claude のモデル退役一覧・Copilot の廃止告知）から当日向こう60日の停止日を全件引き直す、と明記する ② OpenAI deprecations 項の備考に「Upcoming 表は `Shutdown date | Affected model | … | Notice date` の列で、`curl` 1回とタグ除去で全行取れる」と取得方法を書く
   - 根拠: 2026-11-17 実測。Upcoming 表には **12/1（`gpt-image-1-mini`・`gpt-image-1.5`・`chatgpt-image-latest`）と 12/11（`gpt-5` 系・`o3` / `o3-pro` など6系統）** の停止がある。過去のダイジェストは 12/1 を載せていたが、11-16 版の注目スケジュールにはどちらも無く、2週間前を切った不可逆な期限が落ちていた。最上位告知の比較（B-082）では新しい告知が無い限り表を読まないため、この欠落は検出されない
@@ -30,7 +30,7 @@
   - 制約: 307 は一時的な転送なので `fetch-flow.md`「恒久リダイレクト」節の対象外である。ただしクエリ `__orca_moved=1` はドメイン移転を示すので、恒久化（301 / 308）を待たずに URL を改める価値がある。次の月曜（11-23）に転送コードを測り直し、301 / 308 に変わっていたら同節の扱いへ移す。到達性は「既知の取得障害」に別行で記録した
   - 再確認（2026-11-17）: `www.onorca.dev/changelog` は `curl` で引き続き 307 → `https://orca.dev/changelog?__orca_moved=1&`。`v1.4.261`（11/16）の見出しは GitHub の個別リリースページ（WebFetch）で取った
 
-- **B-088: Gemini API Changelog の URL を `aistudio.google.com/docs/changelog` へ差し替え、転送先ホストの許可ドメイン追加を要請する**（起票 2026-11-04 / 最終確認 2026-11-20 / 回数 17）
+- **B-088: Gemini API Changelog の URL を `aistudio.google.com/docs/changelog` へ差し替え、転送先ホストの許可ドメイン追加を要請する**（起票 2026-11-04 / 最終確認 2026-11-21 / 回数 18）
   - 対象: `.claude/rules/sites/daily-sources.md`「最優先」の **Gemini API Changelog** 項の URL 欄（本体・`.md.txt`・料金の3本）と備考
   - 変更内容: ① URL を `https://aistudio.google.com/docs/changelog`、本文版を `https://aistudio.google.com/docs/changelog.md.txt` に差し替える（料金ページも同じ転送を受けるかは未測定なので、到達回復後に測る） ② 備考の「`ai.google.dev` が唯一到達できる Google 一次」を「2026-11-04 に `aistudio.google.com` へ 301 で移設。転送先はゲートウェイ拒否」に改める ③ 許可ドメインの要請リストに `aistudio.google.com` を加える
   - 根拠: 2026-11-04 実測。`curl` で `ai.google.dev/gemini-api/docs/changelog` と `.md.txt` がともに **301** → `aistudio.google.com/docs/...`。転送先は `curl` exit 56（CONNECT tunnel failed, response 403）、WebFetch は ENOTFOUND でゲートウェイ拒否。11-03 までは `.md.txt` で本文を取れていた。二次（alphasignal）は「Gemini API の docs を AI Studio に組み込んだ（first preview）」と報じている
@@ -86,6 +86,10 @@
   - 統合（2026-10-19 棚卸し）: B-054 をこの提案へ統合した（要旨はアーカイブ参照）
 
 ## 既知の取得障害
+
+- → **2026-11-21: 新規の取得障害 0件・復旧 0件**（最終確認 2026-11-21）。土曜のため週次復旧チェックの対象日ではない。
+  - `aistudio.google.com`: ゲートウェイ拒否継続（`ai.google.dev/gemini-api/docs/changelog.md.txt` は 301 → `aistudio.google.com`、転送先が `curl` exit 56・最終確認 2026-11-21）→ 回避策: WebSearch（10/27 より新しい項目は見つからない）
+  - `github.com/stablyai/orca/releases.atom`: `curl` 403。releases の本文は WebFetch で取得できたので障害として扱わない（B-021）
 
 - → **2026-11-20: 新規の取得障害 0件・復旧 0件**（最終確認 2026-11-20）。金曜のため週次復旧チェックの対象日ではない。
   - `aistudio.google.com`: ゲートウェイ拒否継続（`ai.google.dev/gemini-api/docs/changelog.md.txt` が `curl` exit 56・最終確認 2026-11-20）→ 回避策: WebSearch（10/27 より新しい項目は見つからない）。Gemini 4 Neon（11/18）と Tool Retrieval（11/19）は `blog.google` の発表記事で確かめた
