@@ -15,13 +15,21 @@
 
 ## 提案中
 
-- **B-091: OpenAI Usage Policies の発効日を `daily-sources.md` の OpenAI Blog / News 項で追い、公表日と発効日の両方を注目スケジュールに載せる**（起票 2026-11-22 / 最終確認 2026-11-22 / 回数 1）
+- **B-092: OpenAI Alignment / Misalignment Reports の URL を 308 の転送先 `https://openai.com/safety-alignment/misalignment-reports/` に改める**（起票 2026-11-23 / 最終確認 2026-11-23 / 回数 1）
+  - 対象: `.claude/rules/sites/daily-sources.md`「最優先」の **OpenAI Alignment / Misalignment Reports** 項の URL 欄と備考
+  - 変更内容: ① URL（一覧）を `https://openai.com/safety-alignment/misalignment-reports/` に改め、旧 `alignment.openai.com/misalignment-reports/` は「308 で転送」と備考に残す ② 備考の「`openai.com` はオリジン403だが `alignment.openai.com` は到達できる」を「2026-11-23 に一覧が `openai.com` 配下へ移った。`openai.com` が読めない日は一覧も読めない」に改める ③ 個別レポートの href は `/safety-alignment/misalignment-reports/<slug>/` 形式になったと書く
+  - 根拠: 2026-11-23 実測。WebFetch が `alignment.openai.com/misalignment-reports/` で **308 Permanent Redirect** → `https://openai.com/safety-alignment/misalignment-reports/` を返した。転送先は WebFetch で本文を取得でき、表は23行（報告20・通知3、ページ表示は29件）、First posted の最新は 11/18。`curl -L` は転送を黙って辿るので、200 だけを見ると移設に気づかない
+  - 制約: `fetch-flow.md`「恒久リダイレクト」節の扱いで、取得障害ではない。転送先の `openai.com` は 2026-11-23 に復旧したばかりで、オリジン403へ戻ったら一覧も読めなくなる。そのときは WebSearch に倒す
+  - 関連（別件・同日実測）: `deepmind.google/discover/blog/` は **301** → `deepmind.google/blog/`、`support.google.com/a/table/7702199`（Workspace Admin Release Calendar）は **301** → `knowledge.workspace.google.com/admin`。どちらも WebSearch 運用のソースだが、URL 欄は陳腐化している。本提案を採るときに併せて書き換えてよい
+
+- **B-091: OpenAI Usage Policies の発効日を `daily-sources.md` の OpenAI Blog / News 項で追い、公表日と発効日の両方を注目スケジュールに載せる**（起票 2026-11-22 / 最終確認 2026-11-23 / 回数 2）
   - 対象: `.claude/rules/sites/daily-sources.md`「最優先」の **OpenAI Blog / News** 項の URL 欄・検索キーワード欄・注目点
   - 変更内容: ① URL（副・ポリシー）に `https://openai.com/policies/usage-policies/` を足す（オリジン403のため取得は WebSearch。ページの「Effective: <日付>」の値を毎週1回控える） ② 検索キーワードに `OpenAI usage policies update effective 2026` を足す ③ 注目点に「Usage Policies の改定（公表日・発効日・対象サービス。特にゲートウェイ・ルーター・再販の条件）」を足し、公表を検出した日に発効日を注目スケジュールへ入れる
   - 根拠: 2026-11-22 実測。OpenAI が 10/21 に公表した改定 Usage Policies（第三者にモデルへの直接アクセスを提供するモデルルーター / AI ゲートウェイに事前審査と承認を求める）は 11/20 に発効したが、10/21〜11/21 の32版のダイジェストに一度も載らなかった。現行の検索語4本は新モデル・Preparedness・提供制限の語彙で、ポリシー改定を拾わない。Anthropic 側の Usage Policy 改定（11/12 発効）は注目スケジュールに載っており、非対称になっていた
   - 制約: `openai.com` はオリジン403で、条文は一次で読めない。発効日はポリシーページの検索スニペットと二次報道で確かめる。ポリシー改定は年数回なので、毎日の検索ではなく週1回の確認で足りる
+  - 再確認（2026-11-23）: `openai.com` が WebFetch で読めるようになり、ポリシーページの一次で「Effective date: November 20, 2026」と、「第三者が OpenAI モデルに直接アクセスできるようにするモデルアクセス仲介プラットフォーム」に事前の審査と承認を求める条文を確かめた。①の取得方法は WebSearch ではなく WebFetch にできる
 
-- **B-090: 注目スケジュールを毎日 OpenAI deprecations の「Upcoming deprecations」表から引き直し、前日の節を写すだけにしない**（起票 2026-11-17 / 最終確認 2026-11-22 / 回数 5）
+- **B-090: 注目スケジュールを毎日 OpenAI deprecations の「Upcoming deprecations」表から引き直し、前日の節を写すだけにしない**（起票 2026-11-17 / 最終確認 2026-11-23 / 回数 6）
   - 対象: `.claude/rules/preferences/output-style.md`「フォーマット」節（注目スケジュールの扱いの規定を新設）と `.claude/rules/sites/daily-sources.md`「OpenAI モデル退役一覧（Deprecations）」項の備考
   - 変更内容: ① 注目スケジュールは前日の節を起点にせず、登録済みの退役一覧（OpenAI deprecations の Upcoming 表・Claude のモデル退役一覧・Copilot の廃止告知）から当日向こう60日の停止日を全件引き直す、と明記する ② OpenAI deprecations 項の備考に「Upcoming 表は `Shutdown date | Affected model | … | Notice date` の列で、`curl` 1回とタグ除去で全行取れる」と取得方法を書く
   - 根拠: 2026-11-17 実測。Upcoming 表には **12/1（`gpt-image-1-mini`・`gpt-image-1.5`・`chatgpt-image-latest`）と 12/11（`gpt-5` 系・`o3` / `o3-pro` など6系統）** の停止がある。過去のダイジェストは 12/1 を載せていたが、11-16 版の注目スケジュールにはどちらも無く、2週間前を切った不可逆な期限が落ちていた。最上位告知の比較（B-082）では新しい告知が無い限り表を読まないため、この欠落は検出されない
@@ -29,14 +37,15 @@
   - 再確認（2026-11-19）: 同じページの **「Feature and endpoint deprecations」表**（モデル表の下）に、11/30 停止の `/v1/prompts`・Evals（ダッシュボード / API / グレーダー）・Agent Builder（告知 6/3）がある。09-23 版までは注目スケジュールに載っていたが、それ以降の版から落ちていた。①の引き直し対象にはモデル表だけでなくこの表も含める
   - 再確認（2026-11-20）: 同じ Feature and endpoint 表に **告知 11/18・停止 2027-01-11** の行（EU データレジデンシーで `service_tier: fast` / `priority` を使う GPT-5.2・GPT-5.4・GPT-5.4 mini）が加わった。Deprecation history の最上位見出しは `2026-11-10: GPT Image 2` のままで、見出しの比較だけでは検出できなかった。表の Notice date 列も毎日見る必要がある
 
-- **B-089: Orca の要約 URL を `orca.dev/changelog` へ改め、許可ドメインの要請を `www.onorca.dev` から `orca.dev` に差し替える**（起票 2026-11-16 / 最終確認 2026-11-17 / 回数 2）
+- **B-089: Orca の要約 URL を `orca.dev/changelog` へ改め、許可ドメインの要請を `www.onorca.dev` から `orca.dev` に差し替える**（起票 2026-11-16 / 最終確認 2026-11-23 / 回数 3）
   - 対象: `.claude/rules/sites/daily-sources.md`「高優先」の **Orca（Stably AI・エージェント開発環境）** 項の URL（見出しつきの要約）欄・取得方法欄・備考
   - 変更内容: ① 「URL（見出しつきの要約）」を `https://orca.dev/changelog` に改め、旧 `www.onorca.dev/changelog` は「307 で転送」と備考に残す ② 備考の「`www.onorca.dev` は許可ドメインの追加を 10-14 に依頼した」を「2026-11-16 に `orca.dev` へ移った（転送 URL に `__orca_moved=1`）。許可ドメインに `orca.dev` が要る」に改める ③ 取得方法欄の3段目を `WebFetch（orca.dev/changelog）` に改める
   - 根拠: 2026-11-16 実測。`curl` で `www.onorca.dev/changelog` が **307** → `https://orca.dev/changelog?__orca_moved=1&`。転送先は `curl` exit 56（CONNECT tunnel failed, response 403）、WebFetch は ENOTFOUND でゲートウェイ拒否。`v1.4.259`（11/14）の見出しは GitHub の個別リリースページから取れたので、本日の記載に欠落は無い
   - 制約: 307 は一時的な転送なので `fetch-flow.md`「恒久リダイレクト」節の対象外である。ただしクエリ `__orca_moved=1` はドメイン移転を示すので、恒久化（301 / 308）を待たずに URL を改める価値がある。次の月曜（11-23）に転送コードを測り直し、301 / 308 に変わっていたら同節の扱いへ移す。到達性は「既知の取得障害」に別行で記録した
   - 再確認（2026-11-17）: `www.onorca.dev/changelog` は `curl` で引き続き 307 → `https://orca.dev/changelog?__orca_moved=1&`。`v1.4.261`（11/16）の見出しは GitHub の個別リリースページ（WebFetch）で取った
+  - 再確認（2026-11-23・月曜の測り直し）: `www.onorca.dev/changelog` は `curl` で引き続き **307**（→ `https://orca.dev/changelog?__orca_moved=1&`）。301 / 308 には変わっていない。転送先 `orca.dev` は `curl` 000 でゲートウェイ拒否のまま
 
-- **B-088: Gemini API Changelog の URL を `aistudio.google.com/docs/changelog` へ差し替え、転送先ホストの許可ドメイン追加を要請する**（起票 2026-11-04 / 最終確認 2026-11-22 / 回数 19）
+- **B-088: Gemini API Changelog の URL を `aistudio.google.com/docs/changelog` へ差し替え、転送先ホストの許可ドメイン追加を要請する**（起票 2026-11-04 / 最終確認 2026-11-23 / 回数 20）
   - 対象: `.claude/rules/sites/daily-sources.md`「最優先」の **Gemini API Changelog** 項の URL 欄（本体・`.md.txt`・料金の3本）と備考
   - 変更内容: ① URL を `https://aistudio.google.com/docs/changelog`、本文版を `https://aistudio.google.com/docs/changelog.md.txt` に差し替える（料金ページも同じ転送を受けるかは未測定なので、到達回復後に測る） ② 備考の「`ai.google.dev` が唯一到達できる Google 一次」を「2026-11-04 に `aistudio.google.com` へ 301 で移設。転送先はゲートウェイ拒否」に改める ③ 許可ドメインの要請リストに `aistudio.google.com` を加える
   - 根拠: 2026-11-04 実測。`curl` で `ai.google.dev/gemini-api/docs/changelog` と `.md.txt` がともに **301** → `aistudio.google.com/docs/...`。転送先は `curl` exit 56（CONNECT tunnel failed, response 403）、WebFetch は ENOTFOUND でゲートウェイ拒否。11-03 までは `.md.txt` で本文を取れていた。二次（alphasignal）は「Gemini API の docs を AI Studio に組み込んだ（first preview）」と報じている
@@ -93,9 +102,16 @@
 
 ## 既知の取得障害
 
+- → **2026-11-23: 週次復旧チェック（月曜）を実施。復旧 2件・新規の取得障害 0件・分類の変化 0件**（最終確認 2026-11-23）。WebFetch を先に当て、失敗したホストだけ `curl` で切り分けた。
+  - `openai.com` / `help.openai.com`: **WebFetch で本文取得に成功**（`openai.com/news/` の一覧・`/index/perplexity-and-intelligence/`・`/policies/usage-policies/`・`/safety-alignment/misalignment-reports/`、ChatGPT release notes の 11/20 までの項目）→ 復旧（2026-11-23）。`curl` は `help.openai.com` 200、`openai.com/news` 308（末尾スラッシュへの転送）。取得方法欄を戻すのは数日続けて本文を取れてから（B-023 / B-084 と同じ扱い）
+  - `x.ai`: オリジン403継続（`curl` HTTP 403・最終確認 2026-11-23）→ 回避策: `docs.x.ai/developers/release-notes`
+  - **ゲートウェイ拒否が継続（`curl` 000・最終確認 2026-11-23）**: `aistudio.google.com`（WebFetch ENOTFOUND。`ai.google.dev/gemini-api/docs/changelog.md.txt` は 301 → `aistudio.google.com/docs/changelog.md.txt`）/ `orca.dev`（`www.onorca.dev/changelog` は 307 のまま）/ `feeds.feedburner.com` / `modelcontextprotocol.io` / `claude.dev` / `www.geekwire.com` → 回避策: 従来どおり
+  - `github.com/stablyai/orca/releases.atom`: `curl` 403。releases の本文は WebFetch で取得できたので障害として扱わない（B-021）
+  - 恒久リダイレクト（障害ではない・B-092）: `alignment.openai.com/misalignment-reports/` 308 → `openai.com/safety-alignment/misalignment-reports/`、`deepmind.google/discover/blog/` 301 → `deepmind.google/blog/`、`support.google.com/a/table/7702199` 301 → `knowledge.workspace.google.com/admin`
+
 - → **2026-11-22: 新規の取得障害 0件・復旧 0件**（最終確認 2026-11-22）。日曜のため週次復旧チェックの対象日ではない（次回 11-23）。
   - `aistudio.google.com`: ゲートウェイ拒否継続（`ai.google.dev/gemini-api/docs/changelog.md.txt` は 301 → `aistudio.google.com`、転送先が `curl` exit 56・最終確認 2026-11-22）→ 回避策: WebSearch（10/27 より新しい項目は見つからない）
-  - `openai.com`: オリジン403（既知・最終確認 2026-11-22）→ 回避策: WebSearch（Usage Policies の発効日をスニペットで確認）
+  - `openai.com`: オリジン403（既知・最終確認 2026-11-22）→ 回避策: WebSearch（Usage Policies の発効日をスニペットで確認） → 復旧（2026-11-23）
   - `github.com/stablyai/orca/releases.atom`: `curl` 403。releases の本文は WebFetch で取得できたので障害として扱わない（B-021）
 
 - → **2026-11-21: 新規の取得障害 0件・復旧 0件**（最終確認 2026-11-21）。土曜のため週次復旧チェックの対象日ではない。
