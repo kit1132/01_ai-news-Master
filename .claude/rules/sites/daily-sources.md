@@ -444,7 +444,7 @@ RSS URLの記載がないソースはRSS未提供。「休止中」と記載のR
 - 頻度: 毎日確認
 - 備考: 2026-07-26 追加（B-012採用）。curl 実測 200 / `text/xml` / 83,831 bytes / entry 100件。前面は openresty + Fastly（Cloudflare ではない）。直近7日18件 / 直近30日71件＝**1日 2.4件**。`description` は平均138字なので詳細が必要な項目のみ記事URLを WebFetch する。
   ★**除外フィルタ必須**: タイトルに `tests` / `develops` / `preparing` / `set to` / `previews` / `to get` / `working on` を含む記事は**未発表・社内限定・リリース日なし**。実測で直近7日18件のうち10件（56%）がこれに該当した。「今日から使えるもの」として扱わず、載せるなら「近日」枠に明示する。
-  ★画像・動画・音声生成（FLUX / MAI-Image / Seedream 等）は `interests/ai-tools.md` の除外基準に該当するので落とす。
+  ★主要4社（OpenAI / Google / Anthropic / Microsoft）以外の画像生成（FLUX / Seedream 等）と、動画・音声・音楽の生成は `interests/ai-tools.md` の除外基準に該当するので落とす。主要4社の画像生成（MAI-Image 等）は対象（2026-11-06 変更）。
   `ICYMI:` プレフィックスは既報の再掲なので重複判定に使える（公式発表の2〜3日遅れで出ることがある）。
 
 ### Simon Willison's Weblog
