@@ -15,6 +15,18 @@
 
 ## 提案中
 
+- **B-094: changelog の件数は、`[VSCode]` や `Remote Control:` などの接頭辞・領域ラベル付きの行も含めて数え、ドキュメントページに件数があればそれに合わせ、食い違うときは件数を書かない**（起票 2026-11-23 / 最終確認 2026-11-23 / 回数 1）
+  - 対象: `.claude/rules/preferences/output-style.md`「フォーマット」節（件数の数え方を新設）
+  - 変更内容: changelog / release notes の「N件」は、行頭が `Fixed` / `Added` などで始まる行だけでなく、`[VSCode]` のような括弧付き接頭辞や `Remote Control:` のような領域ラベルのあとに続く行も含めて数える。公式ドキュメントの changelog ページが件数（例: "233 bug fixes"）を示していればそれに合わせる。CHANGELOG を数え直した数とドキュメントの件数が食い違うときは、件数を書かない
+  - 根拠: 01 の 2026-11-18 版ハイライト3と 05 の同日カテゴリ、および W47 ハイライト4は、Claude Code 2.1.326 を「Added 10・Fixed 217・Changed 57・Removed 2 件」（05・W47 は Fixed 217・Changed 57）と書いた。これは行頭が "Added" / "Fixed" / "Changed" / "Removed" で始まる行だけを数えた値で、`[VSCode] Fixed ...` や `Remote Control: Fixed ...` を除いている。公式 CHANGELOG（https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md の 2.1.326 節、367項目）を接頭辞・領域ラベル込みで数えると Added 11・Fixed 233・Changed 62・Removed 2（Improved 59）。ドキュメント（https://code.claude.com/docs/en/changelog）は "233 bug fixes" と "59 improvements" と書いており、Fixed と Improved は一致する
+  - 制約: 件数の内訳を書くときは、ドキュメントが示していない区分（Changed など）も同じ数え方で揃える。検証は、次の大型 Claude Code リリースで、書いた件数がドキュメントの件数と一致すること
+
+- **B-093: ハイライトを選ぶ前に、直近7日の 05 日次と一次 URL・主な識別子で突合し、既報なら新事実だけをカテゴリに「◯/◯ 既報」と書いて置く**（起票 2026-11-23 / 最終確認 2026-11-23 / 回数 1）
+  - 対象: `05_ai-news-daily/.claude/commands/daily-summary.md`「ハイライトの選定基準」と、01〜03 の `.claude/rules/preferences/output-style.md`「ハイライトの選定基準」
+  - 変更内容: 「既報の再掲」の直後に手順を足す。① ハイライト候補を決める前に、直近7日の 05 日次（`daily/YYYY/ai-news-daily-YYYY-MM-DD.md`）を一次 URL と主な識別子（MC 番号・モデル ID・版番号など）で見比べる ② 同じ一次 URL か識別子が既出なら、ハイライトにせず、新しく分かった点だけをカテゴリ別まとめに書き、「◯/◯ 既報」と添える ③ 出来事が古いこと自体は、除外の理由にしない
+  - 根拠: 05 の 2026-11-22 版ハイライト3「GPT-6.2 への移行では `temperature`・`top_p` を外す必要がある」は、同じ一次（https://developers.openai.com/api/docs/guides/latest-model）から外すパラメーターの一覧を既に載せた 11/18 版ハイライト2の蒸し返しだった。11/22 は「外すパラメーターの一覧は今日はじめて確認した」と書いたが、11/18 に Chat Completions / Responses の除外リストと `none` / `minimal` → `low` が既にある。新しいのは Astra の簡潔さや `instructions` を developer メッセージへ移すプロンプト指針だけだった。現行ルールは「既報の再掲」を禁じているが、突合の範囲と「新事実だけの残し方」が無く、同じ一次 URL が4日後に再掲された
+  - 制約: 突合は 05 の直近7日に限る（01〜03 の全文や週次までは見ない）。除外は URL か識別子の一致に限り、主題が近いだけの項目は既報にしない。検証は、翌週の 05 日次で同じ一次 URL がハイライトに2度出ないこと
+
 - **B-092: OpenAI Alignment / Misalignment Reports の URL を 308 の転送先 `https://openai.com/safety-alignment/misalignment-reports/` に改める**（起票 2026-11-23 / 最終確認 2026-11-23 / 回数 1）
   - 対象: `.claude/rules/sites/daily-sources.md`「最優先」の **OpenAI Alignment / Misalignment Reports** 項の URL 欄と備考
   - 変更内容: ① URL（一覧）を `https://openai.com/safety-alignment/misalignment-reports/` に改め、旧 `alignment.openai.com/misalignment-reports/` は「308 で転送」と備考に残す ② 備考の「`openai.com` はオリジン403だが `alignment.openai.com` は到達できる」を「2026-11-23 に一覧が `openai.com` 配下へ移った。`openai.com` が読めない日は一覧も読めない」に改める ③ 個別レポートの href は `/safety-alignment/misalignment-reports/<slug>/` 形式になったと書く
