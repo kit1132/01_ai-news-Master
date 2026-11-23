@@ -8,6 +8,7 @@ on:
     paths:
       - 'digests/**'
       - 'scripts/check-update-tags.py'
+      - 'tests/test_check_update_tags.py'
 
 jobs:
   check:
@@ -19,3 +20,6 @@ jobs:
 
       - name: 更新タグを検査する
         run: python3 scripts/check-update-tags.py --since "${{ github.event.before }}"
+
+      - name: 更新タグ検査の単体テストを実行する
+        run: python3 -m unittest tests/test_check_update_tags.py
