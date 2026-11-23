@@ -196,3 +196,52 @@ test('Ollama はオープンウェイト（llama の部分一致に頼らない�
 test('「Microsoft（その他）」見出しは M365 Copilot と M365 管理を指す', () => {
   assert.deepEqual(catHeadingSlugs('Microsoft（その他）').sort(), ['m365-admin', 'm365-copilot']);
 });
+
+// --- 2026-11-20: 参照の無い Copilot Code ハイライトが M365 Copilot から消える ---
+// 本文の「M365 管理センター」だけが当たり、管理ページへ独占される。
+const DAY1120_HL3 = `### 3. [破壊的変更] Copilot Code のローカル Sandbox が11月下旬に既定でオンになり、利用者はオフにできなくなる — ポリシーを明示していないテナントでは、ローカルのファイル・ネットワークアクセスが許可範囲に絞られる
+
+**要点**: 今は既定オフで利用者が切り替えられる Windows のローカル Sandbox が、11月下旬からポリシー未設定のテナントで既定オンになり、利用者は切れなくなる。
+
+**詳細**: MC1519871 の 11/18 更新（Frontier 向け）で告知された（Copilot）。
+- 前提: ローカルのコーディングセッションはもともと既定で無効で、M365 管理センターの Code execution location を Cloud and local にしたときだけ PC で使える
+`;
+const DAY1120_CODE = `# AI News Daily Summary — 2026-11-20
+
+## 今日のハイライト
+
+${DAY1120_HL3}
+
+## カテゴリ別まとめ
+
+### Microsoft 365 Copilot
+
+- [新機能] **Work IQ MCP 経由のメモリ** — 許可済みの自社エージェントが Work IQ MCP 経由でメモリを読める。
+
+### GitHub Copilot / GitHub
+
+- [新機能] **Copilot のコネクタ8件** — GitHub が検証した MCP サーバー経由で Box などを Copilot に接続できる。
+`;
+
+test('Copilot Code の… は M365 Copilot。GitHub の code review には当てない', () => {
+  assert.ok(catClassifySlugs(DAY1120_HL3).includes('m365-copilot'), 'Copilot Code が M365 Copilot に無い');
+  assert.ok(catClassifySlugs(DAY1120_HL3).includes('m365-admin'), '管理センターの語が M365 管理に無い');
+  assert.ok(!catClassifySlugs(DAY1120_HL3).includes('github-copilot'), 'Sandbox が GitHub Copilot へ漏れた');
+  assert.ok(!catClassifySlugs('GitHub が Copilot code review を API から依頼できるようにした').includes('m365-copilot'), 'code review を Copilot Code と読んだ');
+  assert.ok(!catClassifySlugs('Copilot Code Review のポリシー').includes('m365-copilot'), 'Code Review を Copilot Code と読んだ');
+  assert.deepEqual(catClassifySlugs('Cowork・Copilot Code・Copilot Studio で作ったアプリを M365 テナント内で動かす。設定は管理センター。'), []);
+});
+
+test('参照の無い Copilot Code Sandbox ハイライトは M365 Copilot から消えない', () => {
+  assert.ok(has(DAY1120_CODE, 'm365-copilot', 'Copilot Code のローカル Sandbox'), 'Sandbox が M365 Copilot から消えた');
+  assert.ok(has(DAY1120_CODE, 'm365-admin', 'Copilot Code のローカル Sandbox'), 'Sandbox が M365 管理から消えた');
+  assert.ok(has(DAY1120_CODE, 'm365-copilot', 'Work IQ MCP 経由のメモリ'));
+  assert.ok(!has(DAY1120_CODE, 'github-copilot', 'Copilot Code のローカル Sandbox'), 'Sandbox が GitHub Copilot へ漏れた');
+});
+
+test('実データ 11-20: Copilot Code の Sandbox が M365 Copilot に出る', { skip: !existsSync(DAILY) && '05_ai-news-daily が無い' }, () => {
+  const md = real('11-20');
+  assert.ok(has(md, 'm365-copilot', 'Copilot Code のローカル Sandbox'), '11-20 の m365-copilot から Sandbox が消えた');
+  assert.ok(has(md, 'm365-admin', 'Copilot Code のローカル Sandbox'), '11-20 の m365-admin から Sandbox が消えた');
+  assert.ok(!has(md, 'github-copilot', 'Copilot Code のローカル Sandbox'), '11-20 の GitHub Copilot に Sandbox が漏れた');
+});
