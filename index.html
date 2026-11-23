@@ -1524,6 +1524,9 @@
     const CAT_MIXED_HEAD_SLUGS = {
       'Microsoft（その他）': ['m365-copilot', 'm365-admin'],
       'Microsoft (その他)': ['m365-copilot', 'm365-admin'],
+      // 「開発ツール・エージェント」は 開発ツール で複合扱いになるが、語が無いと
+      // catHeadingSlugs が空で Cursor の受け皿にも乗らず消える（2026-11-23 Vercel eve）
+      '開発ツール・エージェント': ['cursor'],
     };
     function catHeadingSlugs(h) {
       const raw = String(h || '').replace(/\s+/g, ' ').trim();

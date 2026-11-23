@@ -11,8 +11,8 @@ import { test } from 'node:test';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const html = readFileSync(join(ROOT, 'index.html'), 'utf8');
 const script = html.slice(html.lastIndexOf('<script>') + '<script>'.length, html.lastIndexOf('</script>'));
-const { extractCategoryDay, catClassifySlugs, catHeadingSlugs } = Function(
-  `${script}\nreturn { extractCategoryDay, catClassifySlugs, catHeadingSlugs };`,
+const { extractCategoryDay, catClassifySlugs, catHeadingSlugs, catHeadingTarget } = Function(
+  `${script}\nreturn { extractCategoryDay, catClassifySlugs, catHeadingSlugs, catHeadingTarget };`,
 )();
 
 // 抽出結果から、項目とハイライトの見出し（太字か ### の題）を取り出す
@@ -195,4 +195,44 @@ test('Ollama はオープンウェイト（llama の部分一致に頼らない�
 });
 test('「Microsoft（その他）」見出しは M365 Copilot と M365 管理を指す', () => {
   assert.deepEqual(catHeadingSlugs('Microsoft（その他）').sort(), ['m365-admin', 'm365-copilot']);
+});
+
+// --- 2026-11-23: 「開発ツール・エージェント」は複合だが受け皿が空で、語の無い項目が消える ---
+// 開発ツール のフォールバックで target は * になる。見出しの語が Cursor に当たらないと
+// catHeadingSlugs が空になり、Vercel eve のようにキーワードの無い GA が全カテゴリから消える。
+const DAY1123_TOOLS = `# AI News Daily Summary — 2026-11-23
+
+## カテゴリ別まとめ
+
+### Google
+
+- [新機能] **Gemini API のツール検索** — Google が関数検索を Gemini API に加えた。
+
+### 開発ツール・エージェント
+
+- [新機能] **Perplexity Monitor API** — Perplexity が検索を定期実行する API を公開した。
+- [新機能] **Vercel eve 1.0 の一般提供** — Vercel がオープンソースのエージェント開発フレームワーク eve 1.0 を一般提供にした。
+- [動向] **職場を模した環境でのエージェント評価** — Claude Opus 5.5 も GPT-6 Astra も完了できたタスクは10件に1件未満だった。
+`;
+
+test('「開発ツール・エージェント」は Cursor を受け皿にする複合見出し', () => {
+  assert.equal(catHeadingTarget('開発ツール・エージェント'), '*');
+  assert.deepEqual(catHeadingSlugs('開発ツール・エージェント'), ['cursor']);
+});
+
+test('開発ツール・エージェント見出しで、語の無い Vercel eve が Cursor から消えない', () => {
+  assert.ok(has(DAY1123_TOOLS, 'cursor', 'Vercel eve 1.0 の一般提供'), '語の無い Vercel eve が Cursor から消えた');
+  assert.ok(has(DAY1123_TOOLS, 'cursor', 'Perplexity Monitor API'), 'Perplexity が Cursor に無い');
+  assert.ok(!has(DAY1123_TOOLS, 'google', 'Vercel eve 1.0 の一般提供'), 'Vercel eve が Google へ漏れた');
+  assert.ok(!has(DAY1123_TOOLS, 'openai', 'Vercel eve 1.0 の一般提供'), 'Vercel eve が OpenAI へ漏れた');
+  assert.ok(has(DAY1123_TOOLS, 'claude', '職場を模した環境でのエージェント評価'), 'Claude 評価が Claude から消えた');
+  assert.ok(!has(DAY1123_TOOLS, 'cursor', '職場を模した環境でのエージェント評価'), 'Claude 評価が Cursor へ漏れた');
+  assert.ok(has(DAY1123_TOOLS, 'google', 'Gemini API のツール検索'));
+});
+
+test('実データ 11-23: Vercel eve が Cursor に出る', { skip: !existsSync(DAILY) && '05_ai-news-daily が無い' }, () => {
+  const md = real('11-23');
+  assert.ok(has(md, 'cursor', 'Vercel eve 1.0 の一般提供'), '11-23 の Vercel eve が Cursor から消えた');
+  assert.ok(has(md, 'cursor', 'Perplexity Monitor API'), '11-23 の Perplexity が Cursor に無い');
+  assert.ok(!has(md, 'google', 'Vercel eve 1.0 の一般提供'), '11-23 の Vercel eve が Google へ漏れた');
 });
