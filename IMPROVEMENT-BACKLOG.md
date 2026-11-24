@@ -57,7 +57,7 @@
   - 再確認（2026-11-17）: `www.onorca.dev/changelog` は `curl` で引き続き 307 → `https://orca.dev/changelog?__orca_moved=1&`。`v1.4.261`（11/16）の見出しは GitHub の個別リリースページ（WebFetch）で取った
   - 再確認（2026-11-23・月曜の測り直し）: `www.onorca.dev/changelog` は `curl` で引き続き **307**（→ `https://orca.dev/changelog?__orca_moved=1&`）。301 / 308 には変わっていない。転送先 `orca.dev` は `curl` 000 でゲートウェイ拒否のまま
 
-- **B-088: Gemini API Changelog の URL を `aistudio.google.com/docs/changelog` へ差し替え、転送先ホストの許可ドメイン追加を要請する**（起票 2026-11-04 / 最終確認 2026-11-24 / 回数 21）
+- **B-088: Gemini API Changelog の URL を `aistudio.google.com/docs/changelog` へ差し替え、転送先ホストの許可ドメイン追加を要請する**（起票 2026-11-04 / 最終確認 2026-11-25 / 回数 22）
   - 対象: `.claude/rules/sites/daily-sources.md`「最優先」の **Gemini API Changelog** 項の URL 欄（本体・`.md.txt`・料金の3本）と備考
   - 変更内容: ① URL を `https://aistudio.google.com/docs/changelog`、本文版を `https://aistudio.google.com/docs/changelog.md.txt` に差し替える（料金ページも同じ転送を受けるかは未測定なので、到達回復後に測る） ② 備考の「`ai.google.dev` が唯一到達できる Google 一次」を「2026-11-04 に `aistudio.google.com` へ 301 で移設。転送先はゲートウェイ拒否」に改める ③ 許可ドメインの要請リストに `aistudio.google.com` を加える
   - 根拠: 2026-11-04 実測。`curl` で `ai.google.dev/gemini-api/docs/changelog` と `.md.txt` がともに **301** → `aistudio.google.com/docs/...`。転送先は `curl` exit 56（CONNECT tunnel failed, response 403）、WebFetch は ENOTFOUND でゲートウェイ拒否。11-03 までは `.md.txt` で本文を取れていた。二次（alphasignal）は「Gemini API の docs を AI Studio に組み込んだ（first preview）」と報じている
@@ -77,7 +77,7 @@
   - 制約: 本日分の基準値（段落 29・6,813 字・`6daadf8d5f459157`）は 11-02 の状態ファイルに記録済み。ハッシュはページの装飾変更でも動くので、動いた日は本文を読んで判定する（ハッシュ一致＝無変更、の片方向だけを信頼する）
   - 再確認（2026-11-03）: `dateModified` は 2026-10-30T17:08:34Z のまま。ハッシュの取り方を固定する必要がある。`<article>` 内のタグを**空文字**で除いてから空白を1つに畳むと 6,813 字・`6daadf8d5f459157` で 11-02 と一致した。タグを**空白**に置き換えると 6,838 字・`dc7c5cafcc478555` となり、本文が変わっていなくても差分に見える。変更内容②に「タグは空文字で除去する」を明記する
 
-- **B-086: Claude Platform release notes を `daily-sources.md` に登録し、RSS で日付ごとの項目数を前回と突き合わせる**（起票 2026-10-23 / 最終確認 2026-11-24 / 回数 6）
+- **B-086: Claude Platform release notes を `daily-sources.md` に登録し、RSS で日付ごとの項目数を前回と突き合わせる**（起票 2026-10-23 / 最終確認 2026-11-25 / 回数 6）
   - 対象: `.claude/rules/sites/daily-sources.md`「最優先」に新規項目を追加する（「Claude モデルドキュメント」の直前が並び順として妥当）
   - 変更内容: 「**Claude Platform Release Notes**」を新設する。URL は `https://platform.claude.com/docs/en/release-notes/overview`、RSS は `https://platform.claude.com/docs/en/release-notes/feed.xml`。取得方法は RSS（curl）→ WebFetch → WebSearch。備考に「1日付＝1 item で、既存の日付に後から項目が足される。最上位の比較ではなく、日付ごとの項目数（段落数）を `.last-check-state.md` に残して前回と突き合わせる」と書く（`fetch-flow.md`「日付降順ページの差分判定」の B-024 項の適用先として明記する）
   - 根拠: 2026-10-23 実測。RSS は 200 / `application/rss+xml` / 225,016 bytes / 156 item。10-22 のセッションは最上位 October 21 を読んで据え置きと判断したが、**10/20 の項に組織単位の web fetch 無効化と Managed Agents のドメイン制限（2項）、10/21 の項に user profiles の `enforcement_status`（1項）が後から足されていた**。どちらも管理者の設定に直結する変更で、本日ハイライトに上げた。このソースは毎日 `.last-check-state.md` で追っているのに `daily-sources.md` に項目が無く、取得手順と差分の取り方が決まっていない
@@ -114,6 +114,11 @@
   - 統合（2026-10-19 棚卸し）: B-054 をこの提案へ統合した（要旨はアーカイブ参照）
 
 ## 既知の取得障害
+
+- → **2026-11-25: 新規の取得障害 0件・復旧 0件**（最終確認 2026-11-25）。水曜のため週次復旧チェックの対象日ではない（次回 11-30）。
+  - `aistudio.google.com`: ゲートウェイ拒否継続（B-088・最終確認 2026-11-25）→ 回避策: WebSearch
+  - 取りこぼし（障害ではない・B-060 の読み方の不徹底）: 11-24 のセッションは `claude.com/resources/articles` の 11/23 付記事を EFS の1本だけと記録したが、同日付で `introducing-claude-ship`・`enterprise-guide-to-securing-coding-agents`・KPMG インタビューの3本が一覧にあった。Claude Ship は 11-25 に初掲載。同日付が複数本ある一覧は、href を全件挙げさせてから日付で絞る手順を守る
+  - OpenAI deprecations: WebFetch の要約が「Past deprecations」だけを読み、最新告知を 9/11 と誤答した。`.md` 版（`/api/docs/deprecations.md`）を `curl` して告知日列を数え、最新 11/18 のままと確定した（B-024 の本文版で数える手順で閉じる）
 
 - → **2026-11-24: 新規の取得障害 0件・復旧 0件**（最終確認 2026-11-24）。火曜のため週次復旧チェックの対象日ではない（次回 11-30）。
   - `aistudio.google.com`: ゲートウェイ拒否継続（B-088・最終確認 2026-11-24）→ 回避策: WebSearch（10/27 より新しい項目は見つからない）
