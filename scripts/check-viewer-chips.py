@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 import re
 import subprocess
@@ -84,8 +85,12 @@ def run_hook() -> int:
     if not isinstance(command, str) or not re.search(r"\bgit\s+(commit|push)\b", command):
         return 0
     if not touches_viewer(command):
+        print('{"continue": true}')
         return 0
-    return report(VIEWER.read_text(encoding="utf-8"), "手元のビューア")
+    with contextlib.redirect_stdout(sys.stderr):
+        code = report(VIEWER.read_text(encoding="utf-8"), "手元のビューア")
+    print('{"continue": true}' if code == 0 else '{"continue": false}')
+    return code
 
 
 def report(text: str, label: str) -> int:
