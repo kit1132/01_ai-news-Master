@@ -1497,14 +1497,26 @@
       }
       return catItemRe;
     }
+    // 比較記事の URL（z-ai-follows-openai-into など）は本文の語ではない。
+    // github.blog/changelog のように URL 自体が語のものは、元テキストのまま当てる。
+    function catKeywordHay(text, kw) {
+      const raw = String(text || '');
+      if (/[./]/.test(kw)) return raw;
+      return raw.replace(/https?:\/\/[^\s)\]>'"]+/gi, ' ');
+    }
+    function catScoreSlugs(text) {
+      const scores = [];
+      for (const [slug, res] of catKeywordRes()) {
+        const kws = CAT_ITEM_KW[slug];
+        const s = res.filter((re, j) => re.test(catKeywordHay(text, kws[j]))).length;
+        if (s) scores.push([slug, s]);
+      }
+      return scores;
+    }
     // 項目が最も多く当たったカテゴリを返す。同点は2カテゴリまで両方を返す（2026-10-20 kit 決定）。
     // 3カテゴリ以上の同点は空。ただし見出しのカテゴリ（headSlugs）が分かれば、それと重なるものに絞る。
     function catClassifySlugs(text, headSlugs = null) {
-      const scores = [];
-      for (const [slug, res] of catKeywordRes()) {
-        const s = res.filter((re) => re.test(text)).length;
-        if (s) scores.push([slug, s]);
-      }
+      const scores = catScoreSlugs(text);
       if (!scores.length) return [];
       const top = Math.max(...scores.map(([, s]) => s));
       const tied = scores.filter(([, s]) => s === top).map(([slug]) => slug);
@@ -1517,7 +1529,7 @@
       return slugs.length === 1 ? slugs[0] : null;
     }
     function catHasKeyword(text) {
-      return catKeywordRes().some(([, res]) => res.some((re) => re.test(text)));
+      return catScoreSlugs(text).length > 0;
     }
     // 複数カテゴリにまたがる見出しが指すカテゴリの一覧。
     // 「Microsoft（その他）」は正規化で（その他）が落ちて何も指さなくなるので、画面の表示名（CAT_DISPLAY_MIXED）と同じ2カテゴリを返す

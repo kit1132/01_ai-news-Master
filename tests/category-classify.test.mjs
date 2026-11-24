@@ -196,3 +196,41 @@ test('Ollama はオープンウェイト（llama の部分一致に頼らない�
 test('「Microsoft（その他）」見出しは M365 Copilot と M365 管理を指す', () => {
   assert.deepEqual(catHeadingSlugs('Microsoft（その他）').sort(), ['m365-admin', 'm365-copilot']);
 });
+
+// --- 2026-11-24: 比較記事 URL の openai が ChatGPT ページへ漏らす ---
+// 開発ツール見出しは複合で本文の語で振る。Hugging Face と URL の openai が同点になり、
+// Z.ai の GLM が ChatGPT ページに載る。本文の「OpenAI が」は今までどおり残す。
+const DAY1124_GLM = `# AI News Daily Summary — 2026-11-24
+
+## カテゴリ別まとめ
+
+### OpenAI / Codex / ChatGPT
+
+- [新機能] **ChatGPT のチャット向け GPT-6.2** — OpenAI がチャットタブ向け GPT-6.2 を展開し始めた。
+
+### 開発ツール・エージェント
+
+- [新機能] **Z.ai GLM-5.4** — Z.ai がループ型トランスフォーマー GLM-5.4 を GLM Coding Plan で使えるようにした。Hugging Face の \`zai-org\` にも新しいリポジトリは無い。
+  - https://the-decoder.com/z-ai-follows-openai-into-loop-transformer-territory-with-its-new-750b-flagship-model/
+- [新機能] **Orca v1.4.272** — Stably AI が Orca を出した。
+`;
+
+test('URL パスの openai は ChatGPT に当てない。本文の OpenAI は当てる', () => {
+  assert.ok(!catClassifySlugs('https://the-decoder.com/z-ai-follows-openai-into-loop-transformer-territory').includes('openai'), 'URL の openai を OpenAI と読んだ');
+  assert.ok(catClassifySlugs('OpenAI が GPT-6.2 を出した').includes('openai'), '本文の OpenAI が消えた');
+  assert.ok(catClassifySlugs('https://github.blog/changelog/2026-11-18-connect-supabase-to-copilot').includes('github-copilot'), 'changelog URL の語が消えた');
+});
+
+test('開発ツール見出しの GLM-5.4 は ChatGPT に出さず、オープンウェイトに出す', () => {
+  assert.ok(has(DAY1124_GLM, 'open-weight', 'Z.ai GLM-5.4'), 'GLM-5.4 がオープンウェイトから消えた');
+  assert.ok(!has(DAY1124_GLM, 'openai', 'Z.ai GLM-5.4'), 'URL の openai で GLM-5.4 が ChatGPT へ漏れた');
+  assert.ok(has(DAY1124_GLM, 'openai', 'ChatGPT のチャット向け GPT-6.2'));
+  assert.ok(has(DAY1124_GLM, 'cursor', 'Orca v1.4.272'));
+});
+
+test('実データ 11-24: GLM-5.4 は ChatGPT に出ない', { skip: !existsSync(DAILY) && '05_ai-news-daily が無い' }, () => {
+  const md = real('11-24');
+  assert.ok(has(md, 'open-weight', 'Z.ai GLM-5.4'), '11-24 のオープンウェイトから GLM-5.4 が消えた');
+  assert.ok(!has(md, 'openai', 'Z.ai GLM-5.4'), '11-24 の ChatGPT に GLM-5.4 が漏れた');
+  assert.ok(has(md, 'openai', 'ChatGPT のチャット向け GPT-6.2'));
+});

@@ -8,6 +8,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 import re
 import subprocess
@@ -230,10 +231,13 @@ def run_hook() -> int:
         return 0
     if not re.search(r"\bgit\s+(commit|push)\b", command):
         return 0
-    code = report(hook_targets(command))
+    with contextlib.redirect_stdout(sys.stderr):
+        code = report(hook_targets(command))
     if code != 0:
         print("不一致のままコミット・push しない。対象行を直してからやり直す。", file=sys.stderr)
+        print('{"continue": false}')
         return 2
+    print('{"continue": true}')
     return 0
 
 
