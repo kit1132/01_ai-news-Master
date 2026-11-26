@@ -57,7 +57,7 @@
   - 再確認（2026-11-17）: `www.onorca.dev/changelog` は `curl` で引き続き 307 → `https://orca.dev/changelog?__orca_moved=1&`。`v1.4.261`（11/16）の見出しは GitHub の個別リリースページ（WebFetch）で取った
   - 再確認（2026-11-23・月曜の測り直し）: `www.onorca.dev/changelog` は `curl` で引き続き **307**（→ `https://orca.dev/changelog?__orca_moved=1&`）。301 / 308 には変わっていない。転送先 `orca.dev` は `curl` 000 でゲートウェイ拒否のまま
 
-- **B-088: Gemini API Changelog の URL を `aistudio.google.com/docs/changelog` へ差し替え、転送先ホストの許可ドメイン追加を要請する**（起票 2026-11-04 / 最終確認 2026-11-26 / 回数 23）
+- **B-088: Gemini API Changelog の URL を `aistudio.google.com/docs/changelog` へ差し替え、転送先ホストの許可ドメイン追加を要請する**（起票 2026-11-04 / 最終確認 2026-11-27 / 回数 24）
   - 対象: `.claude/rules/sites/daily-sources.md`「最優先」の **Gemini API Changelog** 項の URL 欄（本体・`.md.txt`・料金の3本）と備考
   - 変更内容: ① URL を `https://aistudio.google.com/docs/changelog`、本文版を `https://aistudio.google.com/docs/changelog.md.txt` に差し替える（料金ページも同じ転送を受けるかは未測定なので、到達回復後に測る） ② 備考の「`ai.google.dev` が唯一到達できる Google 一次」を「2026-11-04 に `aistudio.google.com` へ 301 で移設。転送先はゲートウェイ拒否」に改める ③ 許可ドメインの要請リストに `aistudio.google.com` を加える
   - 根拠: 2026-11-04 実測。`curl` で `ai.google.dev/gemini-api/docs/changelog` と `.md.txt` がともに **301** → `aistudio.google.com/docs/...`。転送先は `curl` exit 56（CONNECT tunnel failed, response 403）、WebFetch は ENOTFOUND でゲートウェイ拒否。11-03 までは `.md.txt` で本文を取れていた。二次（alphasignal）は「Gemini API の docs を AI Studio に組み込んだ（first preview）」と報じている
@@ -116,6 +116,10 @@
 
 ## 既知の取得障害
 
+- → **2026-11-27: 新規の取得障害 0件・復旧 0件**（最終確認 2026-11-27）。金曜のため週次復旧チェックの対象日ではない（次回 11-30）。
+  - `aistudio.google.com`: ゲートウェイ拒否継続（B-088・最終確認 2026-11-27。`ai.google.dev/gemini-api/docs/changelog` は 301 のまま、転送先は `curl` exit 56）→ 回避策: WebSearch
+  - 取りこぼし（障害ではない・B-082 の問い方の不徹底）: 11-26 のセッションは Devin release notes の最上位を「November 23, 2026 のまま」と記録したが、11/24・11/25 付があった。11-27 に初掲載
+  - GitHub の `releases.atom`（copilot-cli / codex / orca）は 11-27 も `curl` で 403（JSON 応答）。WebFetch の releases ページは本文を取れたので障害として記録しない（B-021）
 - → **2026-11-26: 新規の取得障害 0件・復旧 0件**（最終確認 2026-11-26）。木曜のため週次復旧チェックの対象日ではない（次回 11-30）。
   - `aistudio.google.com`: ゲートウェイ拒否継続（B-088・最終確認 2026-11-26。`ai.google.dev/gemini-api/docs/changelog` は 301 のまま、転送先は `curl` exit 56）→ 回避策: WebSearch
   - 取りこぼし（障害ではない・B-060 の読み方の不徹底）: 11-25 のセッションは `claude.com/resources/articles` の 11/24 付を skills-over-mcp の1本と記録したが、同日付の `install-as-app` があった。`/research` も最上位を 11/17 と記録したが、11/23 付の `working-with-ai` があった。どちらも 11-26 に初掲載
