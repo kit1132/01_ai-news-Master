@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 import re
 import subprocess
@@ -85,7 +86,8 @@ def run_hook() -> int:
         return 0
     if not touches_viewer(command):
         return 0
-    return report(VIEWER.read_text(encoding="utf-8"), "手元のビューア")
+    with contextlib.redirect_stdout(sys.stderr):
+        return report(VIEWER.read_text(encoding="utf-8"), "手元のビューア")
 
 
 def report(text: str, label: str) -> int:
