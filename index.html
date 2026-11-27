@@ -3303,7 +3303,7 @@
         out.quals.push('以降', `・${schedMD(m[4], m[5])}`);
         return finishSchedLabel(out, y);
       }
-      m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})\s*〜$/);
+      m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})\s*(?:〜|以降)$/);
       if (m) {
         out.day = schedMD(m[2], m[3]); out.year = Number(m[1]); out.quals.push('以降');
         return finishSchedLabel(out, y);
@@ -3338,6 +3338,14 @@
       m = s.match(/^(\d{1,2})\/(\d{1,2})\s*[–—−-]\s*(\d{1,2})\/(\d{1,2})$/);
       if (m) {
         out.day = schedMD(m[1], m[2]); out.quals.push(`–${schedMD(m[3], m[4])}`);
+        return finishSchedLabel(out, y);
+      }
+      m = s.match(/^(\d{4})年\s*(\d{1,2})月(\d{1,2})日(.*)$/);
+      if (m) {
+        out.year = Number(m[1]);
+        out.day = schedMD(m[2], m[3]);
+        const rest = m[4].trim().replace(/^〜$/, '以降');
+        if (rest) out.quals.push(rest);
         return finishSchedLabel(out, y);
       }
       m = s.match(/^(\d{4})年\s*(\d{1,2})月(.*)$/);
