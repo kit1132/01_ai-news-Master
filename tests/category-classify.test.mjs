@@ -11,8 +11,8 @@ import { test } from 'node:test';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const html = readFileSync(join(ROOT, 'index.html'), 'utf8');
 const script = html.slice(html.lastIndexOf('<script>') + '<script>'.length, html.lastIndexOf('</script>'));
-const { extractCategoryDay, catClassifySlugs, catHeadingSlugs } = Function(
-  `${script}\nreturn { extractCategoryDay, catClassifySlugs, catHeadingSlugs };`,
+const { extractCategoryDay, catClassifySlugs, catHeadingSlugs, catHlClassifySlugs } = Function(
+  `${script}\nreturn { extractCategoryDay, catClassifySlugs, catHeadingSlugs, catHlClassifySlugs };`,
 )();
 
 // 抽出結果から、項目とハイライトの見出し（太字か ### の題）を取り出す
@@ -195,4 +195,55 @@ test('Ollama はオープンウェイト（llama の部分一致に頼らない�
 });
 test('「Microsoft（その他）」見出しは M365 Copilot と M365 管理を指す', () => {
   assert.deepEqual(catHeadingSlugs('Microsoft（その他）').sort(), ['m365-admin', 'm365-copilot']);
+});
+
+// --- 参照の無いハイライトは、題に語があれば題で振る（本文の他社名で上書きしない） ---
+const DAY1015_HL1 = `### 1. [廃止] Copilot Studio の GPT-4.1 / GPT-5 系が 11/12 に退役する — 既定モデルが特定版から「最新版に追従する別名」に変わる
+
+**要点**: 標準ハーネスの GPT-4.1 は 11/12 に GPT Chat Latest へ自動移行する。
+
+- 続報: Claude Opus / Sonnet の旧版の退役日は別途告知される。実験枠は Grok 4.1 Fast から Grok 4.2 に替わった
+`;
+const DAY1015 = `# AI News Daily Summary — 2026-10-15
+
+## 今日のハイライト
+
+${DAY1015_HL1}
+
+## カテゴリ別まとめ
+
+### Claude / Anthropic
+
+- **Claude Code \`2.1.300\`**（ハイライト参照・3）
+- [動向] **シンガポール拠点** — Anthropic が事務所を開いた。
+
+### Copilot Studio / Power Platform
+
+- **Copilot Studio の GPT-4.1 / GPT-5 系退役**（ハイライト参照・1）
+`;
+
+test('catHlClassifySlugs は題の語を本文の他社名より優先する', () => {
+  assert.deepEqual(catHlClassifySlugs(DAY1015_HL1).sort(), ['openai', 'studio']);
+  assert.deepEqual(catClassifySlugs(DAY1015_HL1), ['claude']);
+});
+
+test('題に語が無いハイライトは本文全体で振る（changelog URL など）', () => {
+  assert.deepEqual(catHlClassifySlugs(HL1).sort(), ['github-copilot', 'mcp']);
+});
+
+test('本文が Claude に触れても、Studio 退役を Claude ページに埋め込まない', () => {
+  assert.ok(has(DAY1015, 'studio', 'Copilot Studio の GPT-4.1'), '正式参照の HL1 が Studio に無い');
+  assert.ok(!has(DAY1015, 'claude', 'Copilot Studio の GPT-4.1'), 'Studio 退役が Claude に漏れた');
+  assert.ok(has(DAY1015, 'claude', 'シンガポール拠点'), 'Claude の項目自体が消えた');
+});
+
+test('実データ 10-15: Claude に当日の Copilot Studio 退役ハイライトを出さない', { skip: !existsSync(DAILY) && '05_ai-news-daily が無い' }, () => {
+  const got = titles(extractCategoryDay(real('10-15'), 'claude'));
+  assert.ok(got.some((t) => t.includes('Claude Code') || t.includes('2.1.299')), `10-15 の claude: ${JSON.stringify(got)}`);
+  assert.ok(!got.some((t) => t.includes('Copilot Studio') && t.includes('退役')), `10-15 の claude に Studio 退役が混入: ${JSON.stringify(got)}`);
+});
+
+test('実データ 10-04: Claude に Copilot Chat のモデルセレクターを出さない', { skip: !existsSync(DAILY) && '05_ai-news-daily が無い' }, () => {
+  const got = titles(extractCategoryDay(real('10-04'), 'claude'));
+  assert.ok(!got.some((t) => t.includes('モデルセレクター')), `10-04 の claude に Chat 料金が混入: ${JSON.stringify(got)}`);
 });
