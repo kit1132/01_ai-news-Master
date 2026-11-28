@@ -11,8 +11,8 @@ import { test } from 'node:test';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const html = readFileSync(join(ROOT, 'index.html'), 'utf8');
 const script = html.slice(html.lastIndexOf('<script>') + '<script>'.length, html.lastIndexOf('</script>'));
-const { extractCategoryDay, catClassifySlugs, catHeadingSlugs } = Function(
-  `${script}\nreturn { extractCategoryDay, catClassifySlugs, catHeadingSlugs };`,
+const { extractCategoryDay, catClassifySlugs, catHeadingSlugs, catHeadingTarget } = Function(
+  `${script}\nreturn { extractCategoryDay, catClassifySlugs, catHeadingSlugs, catHeadingTarget };`,
 )();
 
 // 抽出結果から、項目とハイライトの見出し（太字か ### の題）を取り出す
@@ -195,4 +195,36 @@ test('Ollama はオープンウェイト（llama の部分一致に頼らない�
 });
 test('「Microsoft（その他）」見出しは M365 Copilot と M365 管理を指す', () => {
   assert.deepEqual(catHeadingSlugs('Microsoft（その他）').sort(), ['m365-admin', 'm365-copilot']);
+});
+
+// --- 2026-11-27: 開発ツール・エージェント見出しで Orca が Google に取られる ---
+const ORCA_GEMINI_CLI = `- [破壊的変更+新機能] **Orca \`v1.4.278\`** — Stably AI が 11/26 に Orca \`v1.4.277\` と \`v1.4.278\` を続けて出し、\`v1.4.278\` で Gemini CLI の対応を削除した。Google 系のエージェントは Orca 内でサインインできる Antigravity の \`agy\` に一本化され、Gemini CLI を Orca から使っていた環境は移行が要る（Master）
+  - \`v1.4.278\`: 新しい bot は Claude 固定ではなく既定のエージェントで始まる。Claude と Codex の長い返答を滑らかにストリーミングする
+  - https://github.com/stablyai/orca/releases`;
+const DAY1127_ORCA = `# AI News Daily Summary — 2026-11-27
+
+## 今日のハイライト
+
+### 1. [料金+破壊的変更] GitHub が Copilot code review の課金先の既定を 12/30 から組織に変える — 何も選ばないと組織の従量課金に乗る
+
+**要点**: 課金先の既定が組織に変わる。
+
+## カテゴリ別まとめ
+
+### 開発ツール・エージェント
+
+${ORCA_GEMINI_CLI}
+`;
+
+test('「開発ツール・エージェント」見出しは Cursor のダンプである', () => {
+  assert.equal(catHeadingTarget('開発ツール・エージェント'), 'cursor');
+  assert.deepEqual(catHeadingSlugs('開発ツール・エージェント'), ['cursor']);
+});
+
+test('Orca の Gemini CLI 削除は Cursor に出して Google へ出さない', () => {
+  // 本文の Google / Gemini / Antigravity が Orca より点数が多いと、複合見出しの
+  // 語振り分けは Google 独勝になり、Cursor ページから破壊的変更が消える。
+  assert.deepEqual(catClassifySlugs(ORCA_GEMINI_CLI), ['google']);
+  assert.ok(has(DAY1127_ORCA, 'cursor', 'Orca'), 'Orca が Cursor に無い');
+  assert.ok(!has(DAY1127_ORCA, 'google', 'Orca'), 'Orca が Google へ漏れた');
 });
